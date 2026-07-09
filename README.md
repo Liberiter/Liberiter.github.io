@@ -2,8 +2,8 @@
 
 판타지 세계관 블로그 — 모든 길이 만나는 교차로. https://liberiter.github.io
 
-세계관·디자인·운영 규칙은 **[WORLDBOOK.md](./WORLDBOOK.md)** 가 유일한 진실의 원천이다.
-구조나 규칙을 바꿀 때는 설정집을 먼저 고친다.
+- 세계관·디자인 규칙(왜): **[WORLDBOOK.md](./WORLDBOOK.md)** — 유일한 진실의 원천. 구조를 바꿀 때는 설정집부터.
+- 운영 매뉴얼(어떻게): **[HANDBOOK.md](./HANDBOOK.md)** — 글쓰기·배포·수정 절차 전부.
 
 ## 개발
 
