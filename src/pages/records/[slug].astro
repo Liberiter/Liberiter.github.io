@@ -1,0 +1,87 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Emblem from '../../components/Emblem.astro';
+import { placeBySlug, tintStyle, ESSAY_PLACES } from '../../data/places';
+import { fmtDate, readingTime } from '../../lib/format';
+
+export async function getStaticPaths() {
+  const records = await getCollection('records', ({ data }) => !data.draft);
+  return records.map((rec) => ({ params: { slug: rec.id }, props: { rec } }));
+}
+const { rec } = Astro.props;
+const place = placeBySlug(rec.data.place);
+const { Content } = await render(rec);
+
+// 연대기(시리즈) 내비게이션
+let chapters: typeof rec[] = [];
+if (rec.data.series) {
+  chapters = (
+    await getCollection('records', ({ data }) => data.series === rec.data.series && !data.draft)
+  ).sort((a, b) => (a.data.seriesOrder ?? 0) - (b.data.seriesOrder ?? 0));
+}
+const idx = chapters.findIndex((c) => c.id === rec.id);
+const prev = idx > 0 ? chapters[idx - 1] : null;
+const next = idx >= 0 && idx < chapters.length - 1 ? chapters[idx + 1] : null;
+const seriesTitle =
+  chapters.find((c) => c.data.seriesTitle)?.data.seriesTitle ?? rec.data.series;
+---
+
+<Base title={rec.data.title} description={rec.data.description}>
+  <article class="tinted" style={tintStyle(place)}>
+    <header class="record-head">
+      <a class="rc-place" href={`/places/${place.slug}/`}>
+        <Emblem id={place.slug} size={20} />
+        {place.ko}
+      </a>
+      <h1>{rec.data.title}</h1>
+      <p class="rc-desc">{rec.data.description}</p>
+      <div class="rc-meta">
+        <time datetime={rec.data.date.toISOString()}>{fmtDate(rec.data.date)}</time>
+        · 약 {readingTime(rec.body)}분의 여정
+        {rec.data.updated && <span> · {fmtDate(rec.data.updated)} 다듬음</span>}
+      </div>
+    </header>
+
+    {
+      rec.data.series && (
+        <aside class="series-box">
+          연대기 <a href={`/chronicles/${rec.data.series}/`}>{seriesTitle}</a> — 제{' '}
+          {rec.data.seriesOrder}화 / 전 {chapters.length}화
+        </aside>
+      )
+    }
+
+    <div class="orn">✦</div>
+
+    <div class={`prose ${ESSAY_PLACES.includes(place.slug) ? 'dropcap' : ''}`}>
+      <Content />
+    </div>
+
+    {
+      rec.data.series && (
+        <nav class="series-nav" aria-label="연재물 이동">
+          <span>{prev && <a href={`/records/${prev.id}/`}>← {prev.data.title}</a>}</span>
+          <a class="toc" href={`/chronicles/${rec.data.series}/`}>
+            목차
+          </a>
+          <span class="next">{next && <a href={`/records/${next.id}/`}>{next.data.title} →</a>}</span>
+        </nav>
+      )
+    }
+
+    {
+      rec.data.tags.length > 0 && (
+        <footer class="prose" style="margin-top: 36px">
+          <div class="tags">
+            {rec.data.tags.map((tag) => (
+              <a class="tag" href={`/tags/${tag}/`}>
+                {tag}
+              </a>
+            ))}
+          </div>
+        </footer>
+      )
+    }
+  </article>
+</Base>

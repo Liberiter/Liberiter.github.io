@@ -1,0 +1,109 @@
+---
+/**
+ * Realm 아이콘 주위에 도는 룬 원.
+ * 부모(realm-visual) 안에 position:absolute로 깔린다.
+ */
+---
+
+<div class="rune-ring" aria-hidden="true">
+  <svg class="rune-ring-outer" viewBox="0 0 200 200">
+    <!-- 외곽 원 -->
+    <circle cx="100" cy="100" r="92" fill="none" stroke="currentColor" stroke-width="0.6" opacity="0.55" />
+    <!-- 점선 내곽 원 -->
+    <circle
+      cx="100"
+      cy="100"
+      r="84"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="0.4"
+      stroke-dasharray="2 6"
+      opacity="0.4"
+    />
+    <!-- 4방 작은 결절 (cardinal points) -->
+    <circle cx="100" cy="8" r="2" fill="currentColor" opacity="0.7" />
+    <circle cx="192" cy="100" r="2" fill="currentColor" opacity="0.7" />
+    <circle cx="100" cy="192" r="2" fill="currentColor" opacity="0.7" />
+    <circle cx="8" cy="100" r="2" fill="currentColor" opacity="0.7" />
+
+    <!-- 룬 (회전 그룹 안에) -->
+    <g class="runes">
+      <text x="100" y="22" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.75">ᚠ</text>
+      <text x="156" y="42" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.7">ᚢ</text>
+      <text x="178" y="103" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.75">ᚦ</text>
+      <text x="156" y="166" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.7">ᚨ</text>
+      <text x="100" y="186" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.75">ᚱ</text>
+      <text x="44" y="166" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.7">ᚲ</text>
+      <text x="22" y="103" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.75">ᚷ</text>
+      <text x="44" y="42" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.7">ᚹ</text>
+    </g>
+  </svg>
+
+  <!-- 안쪽 작은 원: 반대 방향으로 천천히 회전 -->
+  <svg class="rune-ring-inner" viewBox="0 0 200 200">
+    <circle cx="100" cy="100" r="60" fill="none" stroke="currentColor" stroke-width="0.5" opacity="0.35" />
+    <circle cx="100" cy="100" r="55" fill="none" stroke="currentColor" stroke-width="0.3" stroke-dasharray="1 4" opacity="0.45" />
+    <!-- 4점 작은 별 -->
+    <g opacity="0.6" fill="currentColor">
+      <path d="M 100 36 L 102 42 L 100 48 L 98 42 Z" />
+      <path d="M 164 100 L 158 102 L 152 100 L 158 98 Z" />
+      <path d="M 100 164 L 102 158 L 100 152 L 98 158 Z" />
+      <path d="M 36 100 L 42 102 L 48 100 L 42 98 Z" />
+    </g>
+  </svg>
+</div>
+
+<style>
+  .rune-ring {
+    position: absolute;
+    inset: -25%;
+    color: var(--place, var(--accent-gold));
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .rune-ring svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .rune-ring-outer {
+    animation: rune-spin-cw 90s linear infinite;
+  }
+
+  .rune-ring-inner {
+    animation: rune-spin-ccw 70s linear infinite;
+  }
+
+  /* 룬 자체는 역회전시켜서 항상 정자세로 — 그리지만 미묘하게 약간 흔들리게 */
+  .rune-ring-outer .runes {
+    transform-origin: 100px 100px;
+    animation: rune-spin-ccw 90s linear infinite;
+  }
+
+  @keyframes rune-spin-cw {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes rune-spin-ccw {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(-360deg); }
+  }
+
+  :global([data-theme="light"]) .rune-ring {
+    color: var(--place, var(--accent-gold-dim));
+    opacity: 0.85;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rune-ring-outer,
+    .rune-ring-inner,
+    .rune-ring-outer .runes {
+      animation: none;
+    }
+  }
+</style>

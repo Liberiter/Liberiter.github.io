@@ -1,0 +1,81 @@
+---
+interface Props {
+  /** "default" = 본격 디바이더, "compact" = realm 사이용 좁은 버전 */
+  variant?: "default" | "compact";
+  /** 추가 여백 클래스 등을 외부에서 받을 때 */
+  class?: string;
+}
+
+const { variant = "default", class: className = "" } = Astro.props;
+
+// 같은 페이지에 여러 개 들어가도 SVG defs id가 안 겹치게
+const uid = Math.random().toString(36).slice(2, 9);
+---
+
+<div class={`ornament-divider ornament-${variant} ${className}`} aria-hidden="true">
+  <svg viewBox="0 0 400 28" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <linearGradient id={`fadeL-${uid}`} x1="0%" x2="100%" y1="0%" y2="0%">
+        <stop offset="0%" stop-color="currentColor" stop-opacity="0" />
+        <stop offset="100%" stop-color="currentColor" stop-opacity="0.7" />
+      </linearGradient>
+      <linearGradient id={`fadeR-${uid}`} x1="0%" x2="100%" y1="0%" y2="0%">
+        <stop offset="0%" stop-color="currentColor" stop-opacity="0.7" />
+        <stop offset="100%" stop-color="currentColor" stop-opacity="0" />
+      </linearGradient>
+    </defs>
+
+    <!-- 좌측 라인 -->
+    <line x1="10" y1="14" x2="160" y2="14" stroke={`url(#fadeL-${uid})`} stroke-width="0.9" />
+    <!-- 좌측 작은 다이아몬드 -->
+    <path d="M 170 14 L 178 9 L 186 14 L 178 19 Z" stroke="currentColor" stroke-width="0.8" fill="none" opacity="0.55" />
+
+    <!-- 중앙 모티프: 8각 별 + 외곽 원 -->
+    <g transform="translate(200 14)">
+      <circle r="9" stroke="currentColor" stroke-width="0.6" fill="none" opacity="0.4" />
+      <path
+        d="M 0 -7 L 1.7 -1.7 L 7 0 L 1.7 1.7 L 0 7 L -1.7 1.7 L -7 0 L -1.7 -1.7 Z"
+        fill="currentColor"
+        opacity="0.85"
+      />
+      <circle r="0.9" fill="currentColor" opacity="1" />
+    </g>
+
+    <!-- 우측 다이아몬드 -->
+    <path d="M 230 14 L 222 9 L 214 14 L 222 19 Z" stroke="currentColor" stroke-width="0.8" fill="none" opacity="0.55" />
+    <!-- 우측 라인 -->
+    <line x1="240" y1="14" x2="390" y2="14" stroke={`url(#fadeR-${uid})`} stroke-width="0.9" />
+  </svg>
+</div>
+
+<style>
+  .ornament-divider {
+    color: var(--accent-gold);
+    width: 100%;
+    display: block;
+    pointer-events: none;
+  }
+
+  .ornament-divider svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    overflow: visible;
+  }
+
+  .ornament-default {
+    max-width: 420px;
+    margin: 2.5rem auto;
+  }
+
+  .ornament-compact {
+    max-width: 240px;
+    margin: 1.25rem auto 0;
+    opacity: 0.6;
+  }
+
+  /* 라이트 모드에서 너무 강하지 않게 */
+  :global([data-theme="light"]) .ornament-divider {
+    color: var(--accent-gold-dim);
+  }
+</style>

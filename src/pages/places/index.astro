@@ -1,0 +1,103 @@
+---
+// 열두 장소 — 여정의 롱스크롤. 방랑자가 교차로를 처음 둘러보는 순서 그대로.
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Emblem from '../../components/Emblem.astro';
+import OrnamentDivider from '../../components/OrnamentDivider.astro';
+import RuneRing from '../../components/RuneRing.astro';
+import { PLACES, JOURNAL, rankFor, tintStyle } from '../../data/places';
+
+const records = await getCollection('records', ({ data }) => !data.draft);
+const countBy = new Map<string, number>();
+for (const rec of records) countBy.set(rec.data.place, (countBy.get(rec.data.place) ?? 0) + 1);
+
+const journalCount = (await getCollection('journal')).length;
+---
+
+<Base title="열두 장소 — 여정" description="교차로의 열두 장소를 여정의 순서대로 둘러봅니다.">
+  <section class="place-banner">
+    <div class="eyebrow">The Journey</div>
+    <h1>열두 갈래의 길</h1>
+    <p class="flavor">
+      교차로 초입의 기록관에서 하루의 끝 모닥불까지 —<br />
+      방랑자가 걷는 순서대로 열두 장소를 안내합니다.
+    </p>
+  </section>
+
+  <OrnamentDivider />
+
+  {
+    PLACES.map((place, i) => {
+      const count = countBy.get(place.slug) ?? 0;
+      const rank = rankFor(place, count);
+      const fogged = count === 0;
+      return (
+        <>
+          {i > 0 && <OrnamentDivider variant="compact" />}
+          <section
+            class:list={['realm-section', 'tinted', { reverse: i % 2 === 1, fogged }]}
+            style={tintStyle(place)}
+            data-animate={i % 2 === 1 ? 'fade-left' : 'fade-right'}
+          >
+            <div class="realm-visual">
+              <RuneRing />
+              <Emblem id={place.slug} size={62} />
+            </div>
+            <div class="realm-info">
+              <span class="realm-no">Realm {String(i + 1).padStart(2, '0')}</span>
+              <h2>{place.en}</h2>
+              <p class="realm-ko">{place.ko} · {place.topic}</p>
+              <p class="realm-lore">{place.lore}</p>
+              <div class="realm-meta">
+                {fogged ? (
+                  <span>아직 안개에 싸인 땅 — 첫 기록이 남는 순간 열립니다</span>
+                ) : (
+                  <>
+                    <a class="enter-btn" href={`/places/${place.slug}/`}>
+                      <span>이 장소 둘러보기</span>
+                      <span aria-hidden="true">→</span>
+                    </a>
+                    <span>
+                      {count}편의 기록{rank && ` · ${rank}`}
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+          </section>
+        </>
+      );
+    })
+  }
+
+  <!-- 에필로그 — 여정의 끝, 모닥불 곁에서 수첩을 편다 -->
+  <OrnamentDivider variant="compact" />
+  <section class="realm-section tinted" id="epilogue" style={tintStyle(JOURNAL)} data-animate="fade-right">
+    <div class="realm-visual">
+      <RuneRing />
+      <Emblem id="wanderers-journal" size={62} />
+    </div>
+    <div class="realm-info">
+      <span class="realm-no">Epilogue</span>
+      <h2>Wanderer's Journal</h2>
+      <p class="realm-ko">방랑자의 일지 · TIL</p>
+      <p class="realm-lore">
+        하루의 여정이 끝나면, 방랑자는 모닥불 곁에서 가죽 수첩을 폅니다. 완성된 기록이 아니어도
+        좋습니다 — 오늘 걸은 만큼만, 배운 만큼만 짧게 적습니다. 이 낱장들이 쌓여 열두 장소의
+        기록이 됩니다.
+      </p>
+      <div class="realm-meta">
+        <a class="enter-btn" href="/journal/">
+          <span>일지 펼쳐보기</span>
+          <span aria-hidden="true">→</span>
+        </a>
+        <span>{journalCount}편의 낱장</span>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import { initScrollAnimations } from '../../scripts/scroll-animations';
+  initScrollAnimations();
+</script>

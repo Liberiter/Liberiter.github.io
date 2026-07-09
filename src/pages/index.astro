@@ -1,0 +1,116 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Emblem from '../components/Emblem.astro';
+import HeroPortal from '../components/HeroPortal.astro';
+import OrnamentDivider from '../components/OrnamentDivider.astro';
+import PlaceCard from '../components/PlaceCard.astro';
+import RecordCard from '../components/RecordCard.astro';
+import { PLACES, JOURNAL, tintStyle } from '../data/places';
+
+const records = (await getCollection('records', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+const journal = (await getCollection('journal')).sort((a, b) => (a.id < b.id ? 1 : -1));
+
+const countBy = new Map<string, number>();
+for (const rec of records) countBy.set(rec.data.place, (countBy.get(rec.data.place) ?? 0) + 1);
+
+const recent = records.slice(0, 5);
+const recentJournal = journal.slice(0, 3);
+---
+
+<Base>
+  <HeroPortal slot="hero" />
+
+  <section class="realms-intro" data-animate="fade-up">
+    <h2 class="ri-title">The Realms Await</h2>
+    <p class="ri-sub">
+      열두 갈래 길이 이곳에서 만납니다.<br />
+      기록이 남은 곳부터, 안개가 걷힙니다.
+    </p>
+    <OrnamentDivider />
+  </section>
+
+  <section class="home-section" id="realms" aria-label="교차로의 장소들">
+    <div class="sec-head" data-animate="fade-up">
+      <div>
+        <h2 class="sec-title">The Twelve Realms</h2>
+        <p class="sec-sub">열두 장소 — 여정의 순서대로</p>
+      </div>
+      <a class="sec-link" href="/places/">여정 전체 보기 →</a>
+    </div>
+    <div class="map-grid" data-stagger>
+      {
+        PLACES.map((place) => (
+          <div data-animate="fade-up">
+            <PlaceCard place={place} count={countBy.get(place.slug) ?? 0} />
+          </div>
+        ))
+      }
+    </div>
+
+    <!-- 장소가 아닌 메타 공간 — 지도 아래에 가로로 놓인 방랑자의 수첩 -->
+    <a class="journal-band tinted" href="/journal/" style={tintStyle(JOURNAL)} data-animate="fade-up">
+      <span class="pc-icon"><Emblem id="wanderers-journal" size={34} /></span>
+      <div>
+        <div class="jb-name">{JOURNAL.ko}</div>
+        <div class="jb-sub">{JOURNAL.en} · TIL</div>
+      </div>
+      <span class="jb-flavor">“{JOURNAL.flavor}”</span>
+      <span class="jb-meta">{journal.length}편의 낱장 →</span>
+    </a>
+  </section>
+
+  <OrnamentDivider />
+
+  <section class="home-section" aria-label="최근 기록">
+    <div class="sec-head" data-animate="fade-up">
+      <div>
+        <h2 class="sec-title">Recent Scrolls</h2>
+        <p class="sec-sub">최근 기록</p>
+      </div>
+      <a class="sec-link" href="/records/">서고에서 전체 보기 →</a>
+    </div>
+    <div class="record-list" data-stagger>
+      {
+        recent.map((rec) => (
+          <div data-animate="fade-up">
+            <RecordCard rec={rec} />
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  {
+    recentJournal.length > 0 && (
+      <>
+        <OrnamentDivider />
+        <section class="home-section tinted" aria-label="방랑자의 일지" style={tintStyle(JOURNAL)}>
+          <div class="sec-head" data-animate="fade-up">
+            <div>
+              <h2 class="sec-title">Wanderer's Journal</h2>
+              <p class="sec-sub">방랑자의 일지 — 오늘 걸은 만큼만</p>
+            </div>
+            <a class="sec-link" href="/journal/">일지 전체 보기 →</a>
+          </div>
+          <div class="journal-list" data-animate="fade-up">
+            {recentJournal.map((j) => (
+              <a class="journal-row" href={`/journal/${j.id}/`}>
+                <time>{j.id}</time>
+                <span class="jr-title">{j.data.title ?? '이 날의 기록'}</span>
+                <span class="jr-tags">{j.data.tags.join(' · ')}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      </>
+    )
+  }
+</Base>
+
+<script>
+  import { initScrollAnimations } from '../scripts/scroll-animations';
+  initScrollAnimations();
+</script>

@@ -1,0 +1,50 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Emblem from '../../components/Emblem.astro';
+import RecordCard from '../../components/RecordCard.astro';
+import RuneRing from '../../components/RuneRing.astro';
+import { PLACES, rankFor, tintStyle } from '../../data/places';
+
+export function getStaticPaths() {
+  return PLACES.map((place) => ({ params: { place: place.slug }, props: { place } }));
+}
+const { place } = Astro.props;
+
+const records = (
+  await getCollection('records', ({ data }) => data.place === place.slug && !data.draft)
+).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const rank = rankFor(place, records.length);
+---
+
+<Base title={`${place.ko} — ${place.topic}`} description={`${place.topic}에 대한 기록들. ${place.flavor}`}>
+  <div class="tinted" style={tintStyle(place)}>
+    <section class="place-banner">
+      <div class="banner-visual">
+        <RuneRing />
+        <Emblem id={place.slug} size={56} />
+      </div>
+      <h1>{place.ko}</h1>
+      <div class="eyebrow">{place.en} · {place.topic}</div>
+      <p class="flavor">“{place.flavor}”</p>
+      {rank && <div class="rank-badge">방랑자의 칭호 — {rank}</div>}
+    </section>
+
+    <div class="orn">✦</div>
+
+    {
+      records.length > 0 ? (
+        <div class="record-list">
+          {records.map((rec) => (
+            <RecordCard rec={rec} />
+          ))}
+        </div>
+      ) : (
+        <p style="text-align:center; color: var(--ink-soft)">
+          이 땅은 아직 안개에 싸여 있다. 첫 기록이 남는 순간, 안개가 걷힌다.
+        </p>
+      )
+    }
+  </div>
+</Base>

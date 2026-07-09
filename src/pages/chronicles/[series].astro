@@ -1,0 +1,52 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Emblem from '../../components/Emblem.astro';
+import { placeBySlug, tintStyle } from '../../data/places';
+import { fmtDate } from '../../lib/format';
+
+export async function getStaticPaths() {
+  const records = await getCollection('records', ({ data }) => !!data.series && !data.draft);
+  const bySeries = new Map<string, typeof records>();
+  for (const rec of records) {
+    const list = bySeries.get(rec.data.series!) ?? [];
+    list.push(rec);
+    bySeries.set(rec.data.series!, list);
+  }
+  return [...bySeries.entries()].map(([series, chapters]) => ({
+    params: { series },
+    props: {
+      chapters: chapters.sort((a, b) => (a.data.seriesOrder ?? 0) - (b.data.seriesOrder ?? 0)),
+    },
+  }));
+}
+const { chapters } = Astro.props;
+const title = chapters.find((c) => c.data.seriesTitle)?.data.seriesTitle ?? chapters[0].data.series;
+const place = placeBySlug(chapters[0].data.place);
+---
+
+<Base title={`${title} — 연재 목차`} description={`연재물 ${title}의 전체 목차 (${chapters.length}화).`}>
+  <div class="tinted" style={tintStyle(place)}>
+    <section class="place-banner">
+      <Emblem id={place.slug} size={48} />
+      <div class="eyebrow" style="margin-top:14px">연대기 · Chronicle</div>
+      <h1>{title}</h1>
+      <p class="flavor">전 {chapters.length}화 — {place.ko}에서 연재 중</p>
+    </section>
+    <div class="orn">✦</div>
+    <div class="record-list">
+      {
+        chapters.map((chapter) => (
+          <a class="record-card tinted" href={`/records/${chapter.id}/`} style={tintStyle(place)}>
+            <div class="rc-place">제 {chapter.data.seriesOrder}화</div>
+            <h3>{chapter.data.title}</h3>
+            <p>{chapter.data.description}</p>
+            <div class="rc-meta">
+              <time>{fmtDate(chapter.data.date)}</time>
+            </div>
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</Base>

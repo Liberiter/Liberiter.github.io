@@ -1,0 +1,118 @@
+---
+// 모든 페이지의 바탕. 세계관 용어는 화면에만, 메타데이터는 평범하게 (WORLDBOOK §1.2).
+import '@fontsource/cinzel/400.css';
+import '@fontsource/cinzel/700.css';
+import '@fontsource/gowun-batang/400.css';
+import '@fontsource/gowun-batang/700.css';
+import '@fontsource/nanum-gothic-coding/400.css';
+import '@fontsource/nanum-gothic-coding/700.css';
+import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
+import 'katex/dist/katex.min.css';
+import '../styles/global.css';
+import spriteRaw from '../../assets/emblems.svg?raw';
+import Emblem from '../components/Emblem.astro';
+import OrnamentDivider from '../components/OrnamentDivider.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+const SITE = "The Wanderer's Crossroads";
+const { title, description = '방랑자의 기록이 쌓이는 교차로 — 기술, 수학, 책, 그리고 이야기.' } =
+  Astro.props;
+const pageTitle = title ? `${title} — ${SITE}` : SITE;
+---
+
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="alternate" type="application/rss+xml" title={SITE} href={new URL('rss.xml', Astro.site)} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <script is:inline>
+      // 테마를 페인트 전에 확정 (깜빡임 방지) — 항상 data-theme를 찍어
+      // 히어로 장면/파티클이 확실한 테마 값을 읽을 수 있게 한다
+      (function () {
+        // ?theme=dark|light 로 강제 가능 (미리보기·공유용)
+        const forced = new URLSearchParams(location.search).get('theme');
+        const saved = localStorage.getItem('theme');
+        const theme =
+          forced === 'dark' || forced === 'light'
+            ? forced
+            : saved === 'dark' || saved === 'light'
+              ? saved
+              : matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light';
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
+  </head>
+  <body>
+    <Fragment set:html={spriteRaw} />
+
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="/">
+          <Emblem id="crossroads" size={26} />
+          <span>The Wanderer's Crossroads</span>
+        </a>
+        <nav class="site-nav" aria-label="사이트 내비게이션">
+          <a href="/places/">장소</a>
+          <a href="/records/">서고</a>
+          <a href="/journal/">일지</a>
+          <a href="/rest/">쉼터</a>
+          <button id="theme-toggle" aria-label="라이트/다크 테마 전환">
+            <!-- 여명 (다크 → 라이트로) -->
+            <svg class="icon-dawn" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M4 17 h16 M6.5 13.5 a5.5 5.5 0 0 1 11 0 M12 4 v2.5 M4.5 7 l1.8 1.8 M19.5 7 l-1.8 1.8 M7 20.5 h10" />
+            </svg>
+            <!-- 모닥불 (라이트 → 다크로) -->
+            <svg class="icon-fire" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3.5 c2.8 3.2 4.7 5.2 4.7 8.2 a4.7 4.7 0 0 1 -9.4 0 c0 -3 1.9 -5 4.7 -8.2 Z M5 21 l14 -3.8 M5 17.2 L19 21" />
+            </svg>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <slot name="hero" />
+
+    <main class="wrap">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <OrnamentDivider />
+      <div class="wrap">
+        <p class="foot-mark">The Wanderer's Crossroads</p>
+        <p>이 교차로는 Astro로 지어졌으며, GitHub의 대지 위에 서 있습니다.</p>
+        <p>
+          © {new Date().getFullYear()} The Wanderer ·
+          <a href="/rss.xml">전서구 구독 (RSS)</a>
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      const btn = document.getElementById('theme-toggle');
+      btn?.addEventListener('click', () => {
+        const current =
+          document.documentElement.dataset.theme ??
+          (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = next;
+        localStorage.setItem('theme', next);
+        // 히어로 파티클 등 테마 연동 요소에 알림 (legacy 호환 이벤트)
+        document.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme: next } }));
+      });
+    </script>
+  </body>
+</html>

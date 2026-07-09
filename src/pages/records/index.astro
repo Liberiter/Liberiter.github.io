@@ -1,0 +1,20 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import RecordCard from '../../components/RecordCard.astro';
+
+const records = (await getCollection('records', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+---
+
+<Base title="서고 — 전체 기록" description="교차로에 남긴 모든 기록, 시간 역순.">
+  <section class="place-banner">
+    <h1>서고</h1>
+    <p class="flavor">교차로에 남긴 모든 기록 — {records.length}편, 시간 역순.</p>
+  </section>
+  <div class="orn">✦</div>
+  <div class="record-list">
+    {records.map((rec) => <RecordCard rec={rec} />)}
+  </div>
+</Base>

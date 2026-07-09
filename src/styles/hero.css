@@ -1,0 +1,346 @@
+/* ===== Hero — Hidden Grove (dark) / Road Begins (light) ===== */
+
+.hero-portal {
+  position: relative;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* body bg와 완전히 이어지는 하단 fade (CSS 레이어 — SVG fade 위에 얹어서 seam 제거) */
+.hero-portal::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 35%;
+  pointer-events: none;
+  z-index: 4;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0%,
+    var(--bg-primary) 100%
+  );
+}
+
+.hero-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 6;
+  pointer-events: none;
+}
+
+/* --- Sky gradient (ambient backdrop behind scene SVG) --- */
+.hero-sky {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  transition: background 1s ease;
+}
+
+[data-theme="dark"] .hero-sky,
+:root:not([data-theme="light"]) .hero-sky {
+  background: linear-gradient(
+    to bottom,
+    #02040a 0%,
+    #070d18 35%,
+    #0d1714 70%,
+    #101915 100%
+  );
+}
+
+[data-theme="light"] .hero-sky {
+  background: linear-gradient(
+    to bottom,
+    #b8bfce 0%,
+    #d4bcbe 30%,
+    #e4c8a8 60%,
+    #ecd8ba 80%,
+    #faf5e9 100%
+  );
+}
+
+/* --- Scene SVG (single full-bleed SVG per theme for consistent composition) --- */
+.hero-scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  display: block;
+}
+
+/* 기본(다크)은 dark scene만 보이고 light scene은 숨김 */
+.hero-scene.scene-light {
+  display: none;
+}
+
+[data-theme="light"] .hero-scene.scene-dark {
+  display: none;
+}
+
+[data-theme="light"] .hero-scene.scene-light {
+  display: block;
+}
+
+/* --- Dark scene animations --- */
+
+/* SVG 내부 transform origin을 viewBox 좌표로 잡기 위한 공통 세팅 */
+.flame-outer, .flame-mid, .flame-inner {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+/* 모닥불 불꽃 flicker (각 path의 bottom-center에서 pivot) */
+.flame-outer { animation: flame-flicker-outer 0.8s ease-in-out infinite alternate; }
+.flame-mid   { animation: flame-flicker-mid   0.55s ease-in-out infinite alternate-reverse; }
+.flame-inner { animation: flame-flicker-inner 0.4s ease-in-out infinite alternate; }
+
+@keyframes flame-flicker-outer {
+  0%   { transform: scaleY(1)    scaleX(1);    opacity: 0.85; }
+  100% { transform: scaleY(1.12) scaleX(0.92); opacity: 1;    }
+}
+@keyframes flame-flicker-mid {
+  0%   { transform: scaleY(0.95) scaleX(1.04); }
+  100% { transform: scaleY(1.08) scaleX(0.94); }
+}
+@keyframes flame-flicker-inner {
+  0%   { transform: scaleY(1)    scaleX(1);    }
+  100% { transform: scaleY(1.15) scaleX(0.9);  }
+}
+
+/* 모닥불 halo 맥동 */
+.fire-glow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fire-glow-breathe 3s ease-in-out infinite;
+}
+@keyframes fire-glow-breathe {
+  0%, 100% { opacity: 0.65; transform: scale(1);    }
+  50%      { opacity: 0.9;  transform: scale(1.08); }
+}
+
+/* 떠다니는 룬 pulse */
+.floating-rune { animation: rune-float 4s ease-in-out infinite; }
+@keyframes rune-float {
+  0%, 100% { opacity: 0.75; }
+  50%      { opacity: 0.35; }
+}
+
+/* 등불 맥동 (다크 이정표 위) */
+.lantern-glow { animation: lantern-breathe 5s ease-in-out infinite; transform-origin: center; }
+@keyframes lantern-breathe {
+  0%, 100% { opacity: 0.9;  }
+  50%      { opacity: 0.55; }
+}
+
+/* --- Light scene animations --- */
+
+/* 태양 광선 매우 천천히 회전 (viewBox 800,320 = 태양 중심) */
+.sun-rays {
+  transform-box: view-box;
+  transform-origin: 800px 235px;
+  animation: sun-rays-spin 120s linear infinite;
+}
+@keyframes sun-rays-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* 태양 body 은은한 pulse */
+.sun-core {
+  transform-box: view-box;
+  transform-origin: 800px 235px;
+  animation: sun-breathe 6s ease-in-out infinite;
+}
+
+/* 달 은은한 brightness 변화 (다크 모드) */
+.moon-core {
+  transform-box: view-box;
+  transform-origin: 800px 235px;
+  animation: moon-breathe 8s ease-in-out infinite;
+}
+@keyframes moon-breathe {
+  0%, 100% { opacity: 0.95; filter: brightness(1);    }
+  50%      { opacity: 0.85; filter: brightness(1.05); }
+}
+@keyframes sun-breathe {
+  0%, 100% { transform: scale(1);    }
+  50%      { transform: scale(1.04); }
+}
+
+/* 새 날갯짓 */
+.bird {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: bird-flap 0.7s ease-in-out infinite alternate;
+}
+.bird-1 { animation-delay: 0s;  }
+.bird-2 { animation-delay: 0.2s; }
+.bird-3 { animation-delay: 0.35s; }
+@keyframes bird-flap {
+  0%   { transform: scaleY(1);   }
+  100% { transform: scaleY(0.55); }
+}
+
+/* 들꽃 미세 흔들림 */
+.flower-sway {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: flower-sway 3.5s ease-in-out infinite alternate;
+}
+@keyframes flower-sway {
+  0%   { transform: rotate(-2deg); }
+  100% { transform: rotate( 2deg); }
+}
+
+/* --- Hero Content --- */
+.hero-content {
+  position: relative;
+  z-index: 5;
+  text-align: center;
+  padding: 0 1.5rem;
+  max-width: 720px;
+}
+
+.hero-welcome {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+  opacity: 0;
+  animation: hero-text-in 1s ease 0.3s forwards;
+}
+
+/* 다크 모드에서 달 halo 배경에 묻히지 않도록 골드 + 강한 shadow */
+[data-theme="dark"] .hero-welcome,
+:root:not([data-theme="light"]) .hero-welcome {
+  color: var(--accent-gold-dim);
+  text-shadow:
+    0 0 18px rgba(0, 0, 0, 0.8),
+    0 0 8px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="light"] .hero-welcome {
+  color: #5a4020;
+  text-shadow: 0 1px 2px rgba(255, 245, 220, 0.6);
+}
+
+.hero-title {
+  font-family: var(--font-heading);
+  font-size: 2.8rem;
+  margin-bottom: 1rem;
+  opacity: 0;
+  animation: hero-text-in 1s ease 0.6s forwards;
+  text-wrap: balance;
+  /* 큰 display 제목은 살짝 타이트하게 (luxury/editorial 감각) */
+  letter-spacing: -0.012em;
+  font-feature-settings: "kern", "liga", "dlig";
+}
+
+[data-theme="dark"] .hero-title,
+:root:not([data-theme="light"]) .hero-title {
+  color: var(--accent-gold);
+  text-shadow:
+    0 0 20px rgba(0, 0, 0, 0.55),
+    0 0 40px rgba(212, 170, 48, 0.22),
+    0 0 80px rgba(212, 170, 48, 0.12);
+}
+
+[data-theme="light"] .hero-title {
+  color: #4a3010;
+  text-shadow:
+    0 1px 2px rgba(255, 245, 220, 0.6),
+    0 0 30px rgba(245, 212, 136, 0.35);
+}
+
+.hero-sub {
+  color: var(--text-primary);
+  font-size: 1rem;
+  line-height: 1.9;
+  max-width: 500px;
+  margin: 0 auto;
+  opacity: 0;
+  animation: hero-text-in 1s ease 0.9s forwards;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  text-wrap: pretty;
+}
+
+[data-theme="light"] .hero-sub {
+  color: #3a2e20;
+  text-shadow: 0 1px 2px rgba(255, 250, 230, 0.7);
+}
+
+@keyframes hero-text-in {
+  from { opacity: 0; transform: translateY(15px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+/* --- Scroll CTA --- */
+.scroll-cta {
+  position: absolute;
+  bottom: 2rem;
+  z-index: 5;
+  text-align: center;
+  opacity: 0;
+  animation: hero-text-in 1s ease 1.5s forwards;
+}
+
+.scroll-cta span {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  color: var(--text-heading);
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="light"] .scroll-cta span {
+  color: #3a2e20;
+  text-shadow: 0 1px 2px rgba(255, 245, 220, 0.6);
+}
+
+.scroll-arrow {
+  width: 20px;
+  height: 20px;
+  margin: 0 auto;
+  border-right: 2px solid var(--accent-gold);
+  border-bottom: 2px solid var(--accent-gold);
+  transform: rotate(45deg);
+  animation: arrow-bounce 2s ease-in-out infinite;
+}
+
+@keyframes arrow-bounce {
+  0%, 100% { transform: rotate(45deg) translateY(0);   opacity: 0.6; }
+  50%      { transform: rotate(45deg) translateY(6px); opacity: 1;   }
+}
+
+/* --- Responsive --- */
+@media (min-width: 768px) {
+  .hero-title    { font-size: 3.5rem; }
+  .hero-welcome  { font-size: 1rem;   }
+}
+
+@media (max-width: 480px) {
+  .hero-title { font-size: 2rem; }
+}
+
+/* 애니메이션 줄이기 선호 */
+@media (prefers-reduced-motion: reduce) {
+  .flame-outer, .flame-mid, .flame-inner,
+  .fire-glow, .floating-rune, .lantern-glow,
+  .sun-rays, .sun-core, .bird, .flower-sway {
+    animation: none !important;
+  }
+}

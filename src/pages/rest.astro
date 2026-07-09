@@ -1,0 +1,34 @@
+---
+import Base from '../layouts/Base.astro';
+import Emblem from '../components/Emblem.astro';
+---
+
+<Base title="여행자의 쉼터" description="블로그와 글쓴이 소개.">
+  <section class="place-banner">
+    <Emblem id="crossroads" size={48} class="emblem" />
+    <h1>여행자의 쉼터</h1>
+    <p class="flavor">The Wayfarer's Rest — 여독을 푸는 곳</p>
+  </section>
+
+  <div class="orn">✦</div>
+
+  <div class="prose dropcap">
+    <p>
+      어서 오시게, 여행자여. 이곳은 모든 길이 만나는 교차로 — 한 방랑자가 오랜 여행 끝에 멈추어,
+      길마다 자신이 배운 것을 세우기 시작한 곳이라네.
+    </p>
+    <p>
+      방랑자는 데이터의 길을 걷는 사람이다. 공학자 길드에서는 파이썬과 SQL, 데이터 엔지니어링을
+      벼리고, 수학자의 탑을 오르며, 밤이면 마법사의 도서관에서 책을 읽는다. 이따금 작가의 집필실에
+      틀어박혀 다른 세계의 이야기를 쓰기도 한다.
+    </p>
+    <p>
+      열두 장소 중 안개에 싸인 곳은 아직 열리지 않은 땅이다. 기록이 남는 순간 안개가 걷히니,
+      서두르지 않고 천천히 지도를 그려갈 생각이다.
+    </p>
+    <hr />
+    <p>
+      길에서 만나고 싶다면 — <a href="https://github.com/Liberiter">GitHub @Liberiter</a>
+    </p>
+  </div>
+</Base>

@@ -1,0 +1,23 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Emblem from './Emblem.astro';
+import { placeBySlug, tintStyle } from '../data/places';
+import { fmtDate, readingTime } from '../lib/format';
+
+interface Props {
+  rec: CollectionEntry<'records'>;
+}
+const { rec } = Astro.props;
+const place = placeBySlug(rec.data.place);
+---
+
+<a class="record-card tinted" href={`/records/${rec.id}/`} style={tintStyle(place)}>
+  <div class="rc-place"><Emblem id={place.slug} size={15} />{place.ko}</div>
+  <h3>{rec.data.title}</h3>
+  <p>{rec.data.description}</p>
+  <div class="rc-meta">
+    <time datetime={rec.data.date.toISOString()}>{fmtDate(rec.data.date)}</time>
+    <span>약 {readingTime(rec.body)}분의 여정</span>
+    {rec.data.series && <span>연대기 · {rec.data.seriesTitle ?? rec.data.series}</span>}
+  </div>
+</a>

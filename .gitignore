@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.astro/
+# 전작 아카이브 (디자인은 합병 완료 — docs/legacy-design-system.md 참고)
+github-page/
+.DS_Store
+*.log
+.env
+.env.*

@@ -1,0 +1,31 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Emblem from '../../components/Emblem.astro';
+import { JOURNAL, tintStyle } from '../../data/places';
+
+const entries = (await getCollection('journal')).sort((a, b) => (a.id < b.id ? 1 : -1));
+---
+
+<Base title="방랑자의 일지" description="매일의 짧은 학습 기록 (TIL).">
+  <div class="tinted" style={tintStyle(JOURNAL)}>
+    <section class="place-banner">
+      <Emblem id="wanderers-journal" size={56} />
+      <h1>방랑자의 일지</h1>
+      <div class="eyebrow">{JOURNAL.en} · TIL</div>
+      <p class="flavor">“{JOURNAL.flavor}”</p>
+    </section>
+    <div class="orn">✦</div>
+    <div class="journal-list">
+      {
+        entries.map((entry) => (
+          <a class="journal-row" href={`/journal/${entry.id}/`}>
+            <time>{entry.id}</time>
+            <span class="jr-title">{entry.data.title ?? '이 날의 기록'}</span>
+            <span class="jr-tags">{entry.data.tags.join(' · ')}</span>
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</Base>

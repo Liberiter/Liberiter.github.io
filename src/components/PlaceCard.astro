@@ -1,0 +1,38 @@
+---
+import Emblem from './Emblem.astro';
+import { tintStyle, type Place } from '../data/places';
+
+interface Props {
+  place: Place;
+  count: number;
+}
+const { place, count } = Astro.props;
+const fogged = count === 0;
+---
+
+{
+  fogged ? (
+    <div class="place-card fog tinted" style={tintStyle(place)}>
+      <span class="pc-icon"><Emblem id={place.slug} size={36} /></span>
+      <div>
+        <div class="pc-name">{place.ko}</div>
+        <div class="pc-sub">{place.en}</div>
+        <div class="pc-meta">아직 안개에 싸인 땅</div>
+      </div>
+    </div>
+  ) : (
+    <a class="place-card tinted" href={`/places/${place.slug}/`} style={tintStyle(place)}>
+      <span class="card-corner card-corner-tl" aria-hidden="true"></span>
+      <span class="card-corner card-corner-tr" aria-hidden="true"></span>
+      <span class="card-corner card-corner-bl" aria-hidden="true"></span>
+      <span class="card-corner card-corner-br" aria-hidden="true"></span>
+      <span class="card-glow" aria-hidden="true"></span>
+      <span class="pc-icon"><Emblem id={place.slug} size={36} /></span>
+      <div>
+        <div class="pc-name">{place.ko}</div>
+        <div class="pc-sub">{place.en}</div>
+        <div class="pc-meta">{place.topic} · {count}편의 기록</div>
+      </div>
+    </a>
+  )
+}

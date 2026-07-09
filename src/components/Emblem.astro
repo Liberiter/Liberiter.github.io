@@ -1,0 +1,13 @@
+---
+// 장소 문장(紋章) — assets/emblems.svg 스프라이트를 참조 (Base.astro에서 인라인됨)
+interface Props {
+  id: string; // 장소 슬러그 또는 'wanderers-journal' | 'crossroads'
+  size?: number;
+  class?: string;
+}
+const { id, size = 32, class: cls = 'emblem' } = Astro.props;
+---
+
+<svg class={cls} width={size} height={size} aria-hidden="true">
+  <use href={`#emblem-${id}`}></use>
+</svg>
