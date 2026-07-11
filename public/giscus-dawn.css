@@ -1,0 +1,132 @@
+/*! The Wanderer's Crossroads — giscus 커스텀 테마 "여명" (라이트)
+    v4 팔레트(새벽의 양피지) 하드코딩 — src/styles/global.css :root 라이트 토큰 기준.
+    giscus 커스텀 테마 규격: 변수는 main 위에, 위젯 클래스는 .gsc-* */
+
+main {
+  color-scheme: light;
+
+  /* ── 구문 강조 (prettylights) — 세피아 위 AA 보정 잉크 (global.css shiki 보정과 동계열) ── */
+  --color-prettylights-syntax-comment: #686253;
+  --color-prettylights-syntax-constant: #75640e;
+  --color-prettylights-syntax-entity: #46702c;
+  --color-prettylights-syntax-storage-modifier-import: #3a3226;
+  --color-prettylights-syntax-entity-tag: #1c6e4a;
+  --color-prettylights-syntax-keyword: #9a4a4a;
+  --color-prettylights-syntax-string: #96513f;
+  --color-prettylights-syntax-variable: #8f4f20;
+  --color-prettylights-syntax-brackethighlighter-unmatched: #9a4a4a;
+  --color-prettylights-syntax-invalid-illegal-text: #faf5e9;
+  --color-prettylights-syntax-invalid-illegal-bg: #9a4a4a;
+  --color-prettylights-syntax-carriage-return-text: #faf5e9;
+  --color-prettylights-syntax-carriage-return-bg: #9a4a4a;
+  --color-prettylights-syntax-string-regexp: #1c6e4a;
+  --color-prettylights-syntax-markup-list: #75640e;
+  --color-prettylights-syntax-markup-heading: #7a5c10;
+  --color-prettylights-syntax-markup-italic: #3a3226;
+  --color-prettylights-syntax-markup-bold: #3a3226;
+  --color-prettylights-syntax-markup-deleted-text: #9a4a4a;
+  --color-prettylights-syntax-markup-deleted-bg: #f2ddd3;
+  --color-prettylights-syntax-markup-inserted-text: #1c6e4a;
+  --color-prettylights-syntax-markup-inserted-bg: #ddeadf;
+  --color-prettylights-syntax-markup-changed-text: #8f4f20;
+  --color-prettylights-syntax-markup-changed-bg: #f0e2c8;
+  --color-prettylights-syntax-markup-ignored-text: #ece2c9;
+  --color-prettylights-syntax-markup-ignored-bg: #6e6353;
+  --color-prettylights-syntax-meta-diff-range: #356f5d;
+  --color-prettylights-syntax-brackethighlighter-angle: #6e6353;
+  --color-prettylights-syntax-sublimelinter-gutter-mark: #beb29a;
+  --color-prettylights-syntax-constant-other-reference-link: #7a5c10;
+
+  /* ── 버튼 — 양피지 카드 + 황금 헤어라인 ── */
+  --color-btn-text: #3a3226;
+  --color-btn-bg: #f3ebd8;
+  --color-btn-border: rgba(139, 105, 20, 0.35);
+  --color-btn-shadow: 0 1px 2px rgba(58, 50, 38, 0.05);
+  --color-btn-inset-shadow: inset 0 1px 0 rgba(255, 252, 240, 0.25);
+  --color-btn-hover-bg: #efe4cd;
+  --color-btn-hover-border: #8b6914;
+  --color-btn-active-bg: #ece2c9;
+  --color-btn-active-border: #8b6914;
+  --color-btn-selected-bg: #ece2c9;
+  /* 주 버튼(댓글 남기기) — 비리디안, 이끼의 인광 */
+  --color-btn-primary-text: #faf5e9;
+  --color-btn-primary-bg: #40826d;
+  --color-btn-primary-border: rgba(53, 111, 93, 0.6);
+  --color-btn-primary-shadow: 0 1px 2px rgba(58, 50, 38, 0.1);
+  --color-btn-primary-inset-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --color-btn-primary-hover-bg: #356f5d;
+  --color-btn-primary-hover-border: #356f5d;
+  --color-btn-primary-selected-bg: #2f6353;
+  --color-btn-primary-selected-shadow: inset 0 1px 0 rgba(20, 45, 38, 0.2);
+  --color-btn-primary-disabled-text: rgba(250, 245, 233, 0.8);
+  --color-btn-primary-disabled-bg: #93b8ab;
+  --color-btn-primary-disabled-border: rgba(53, 111, 93, 0.3);
+
+  --color-action-list-item-default-hover-bg: rgba(139, 105, 20, 0.08);
+  --color-segmented-control-bg: #ece2c9;
+  --color-segmented-control-button-bg: #faf5e9;
+  --color-segmented-control-button-selected-border: #8b6914;
+
+  /* ── 바탕과 잉크 ── */
+  --color-fg-default: #3a3226;
+  --color-fg-muted: #6e6353;
+  --color-fg-subtle: #857a66;
+  --color-canvas-default: #faf5e9;
+  --color-canvas-overlay: #f3ebd8;
+  --color-canvas-inset: #ece2c9;
+  --color-canvas-subtle: #f3ebd8;
+  --color-border-default: #dfd3b8;
+  --color-border-muted: #e7dcc6;
+  --color-neutral-muted: rgba(139, 105, 20, 0.1);
+
+  /* ── 강조 — 고대의 황금 잉크 ── */
+  --color-accent-fg: #7a5c10;
+  --color-accent-emphasis: #8b6914;
+  --color-accent-muted: rgba(139, 105, 20, 0.4);
+  --color-accent-subtle: rgba(139, 105, 20, 0.1);
+  --color-success-fg: #356f5d;
+  --color-attention-fg: #8f4f20;
+  --color-attention-muted: rgba(166, 124, 26, 0.4);
+  --color-attention-subtle: rgba(166, 124, 26, 0.14);
+  --color-danger-fg: #9a4a4a;
+  --color-danger-muted: rgba(154, 74, 74, 0.4);
+  --color-danger-subtle: rgba(154, 74, 74, 0.1);
+  --color-primer-shadow-inset: inset 0 1px 0 rgba(139, 105, 20, 0.08);
+
+  /* 리액션(모닥불 곁 호응) hover */
+  --color-social-reaction-bg-hover: #efe4cd;
+  --color-social-reaction-bg-reacted-hover: rgba(139, 105, 20, 0.16);
+}
+
+main .pagination-loader-container {
+  background-image: url('https://github.com/images/modules/pulls/progressive-disclosure-line.svg');
+}
+
+main .gsc-loading-image {
+  background-image: url('https://github.githubassets.com/images/mona-loading-default.gif');
+}
+
+/* ── 각진 판형 — 둥근 모서리 금지 (WORLDBOOK v4) ── */
+main .gsc-comment,
+main .gsc-comment-box,
+main .gsc-comment-box-tabs,
+main .gsc-comment-box-textarea,
+main .gsc-comment-box-textarea-extras,
+main .gsc-reply,
+main .gsc-reactions-popover,
+main .gsc-social-reaction-summary-item,
+main .gsc-direct-reaction-button,
+main .gsc-comment-author-avatar img,
+main .gsc-reply-author-avatar img,
+main button,
+main input,
+main textarea,
+main img.avatar,
+main .btn,
+main .rounded,
+main .rounded-md,
+main .rounded-t-md,
+main .rounded-b-md,
+main .rounded-full {
+  border-radius: 0 !important;
+}

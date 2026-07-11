@@ -1,0 +1,118 @@
+---
+// 모닥불 곁 대화 — giscus 댓글 래퍼 (copy-deck §4, WORLDBOOK 모닥불 장소)
+// · 지연 로드: IntersectionObserver로 섹션이 뷰포트에 접근할 때 client.js 주입
+// · 커스텀 테마: public/giscus-dawn.css(여명) / giscus-campfire.css(모닥불)
+// · 테마 동기화: Base.astro의 theme-changed 이벤트 → iframe postMessage
+import Emblem from './Emblem.astro';
+import { placeBySlug, tintStyle } from '../data/places';
+
+const campfire = placeBySlug('campfire');
+---
+
+<section class="campfire-talks tinted" aria-label="댓글" style={tintStyle(campfire)}>
+  <div class="section-head" data-animate>
+    <div class="orn-line" data-orn="headpiece" aria-hidden="true"></div>
+    <span class="eyebrow">The Campfire Talks</span>
+    <h2>
+      <span class="cf-ink" aria-hidden="true"><Emblem id="campfire" size={24} /></span>
+      모닥불 곁 대화
+    </h2>
+    <p class="cf-lead">장작은 넉넉하다. GitHub 계정으로 모닥불 곁에 앉으시게.</p>
+  </div>
+  <div class="giscus" id="giscus-mount" data-animate></div>
+</section>
+
+<script>
+  // ── giscus 지연 로드 + 테마 동기화 ──
+  const THEME_BASE = 'https://liberiter.github.io';
+  const giscusTheme = () =>
+    document.documentElement.dataset.theme === 'dark'
+      ? `${THEME_BASE}/giscus-campfire.css`
+      : `${THEME_BASE}/giscus-dawn.css`;
+
+  const mount = document.getElementById('giscus-mount');
+  let injected = false;
+
+  function injectGiscus() {
+    if (injected || !mount) return;
+    injected = true;
+    const s = document.createElement('script');
+    s.src = 'https://giscus.app/client.js';
+    s.async = true;
+    s.crossOrigin = 'anonymous';
+    const attrs: Record<string, string> = {
+      'data-repo': 'Liberiter/Liberiter.github.io',
+      'data-repo-id': 'R_kgDOTVGd1A',
+      'data-category': 'Announcements',
+      'data-category-id': 'DIC_kwDOTVGd1M4DA9ZO',
+      'data-mapping': 'pathname',
+      'data-strict': '1',
+      'data-reactions-enabled': '1',
+      'data-emit-metadata': '0',
+      'data-input-position': 'top',
+      'data-theme': giscusTheme(),
+      'data-lang': 'ko',
+      'data-loading': 'lazy',
+    };
+    for (const [k, v] of Object.entries(attrs)) s.setAttribute(k, v);
+    mount.appendChild(s);
+  }
+
+  // 섹션이 뷰포트에 접근하면 주입 — 첫 페인트 비용 0
+  if (mount) {
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((e) => e.isIntersecting)) {
+            io.disconnect();
+            injectGiscus();
+          }
+        },
+        { rootMargin: '600px 0px' }
+      );
+      io.observe(mount);
+    } else {
+      injectGiscus();
+    }
+  }
+
+  // 테마 전환(여명 ↔ 모닥불) 시 iframe에 즉시 반영
+  document.addEventListener('theme-changed', () => {
+    const iframe = document.querySelector<HTMLIFrameElement>('iframe.giscus-frame');
+    iframe?.contentWindow?.postMessage(
+      { giscus: { setConfig: { theme: giscusTheme() } } },
+      'https://giscus.app'
+    );
+  });
+</script>
+
+<style>
+  .campfire-talks {
+    margin-top: 64px;
+  }
+  .campfire-talks .section-head {
+    margin-bottom: 24px;
+  }
+  .campfire-talks h2 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 11px;
+  }
+  .cf-ink {
+    display: inline-flex;
+    color: var(--place); /* 모닥불 문장색 */
+    filter: var(--glow);
+  }
+  .cf-lead {
+    font-family: var(--serif);
+    font-size: 14.5px;
+    color: var(--muted);
+    margin: 10px 0 0;
+    text-wrap: pretty;
+  }
+  /* 위젯 자리 — 로드 전 레이아웃 점프 최소화 */
+  .giscus {
+    min-height: 260px;
+  }
+</style>

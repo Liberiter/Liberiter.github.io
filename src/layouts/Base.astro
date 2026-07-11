@@ -20,10 +20,14 @@ import SearchModal from '../components/SearchModal.astro';
 interface Props {
   title?: string;
   description?: string;
+  ogImage?: string; // 루트 상대 경로 — 지정하면 관례 URL 대신 사용
 }
 const SITE = "The Wanderer's Crossroads";
-const { title, description = '방랑자의 기록이 쌓이는 교차로 — 기술, 수학, 책, 그리고 이야기.' } =
-  Astro.props;
+const {
+  title,
+  description = '방랑자의 기록이 쌓이는 교차로 — 기술, 수학, 책, 그리고 이야기.',
+  ogImage,
+} = Astro.props;
 const pageTitle = title ? `${title} — ${SITE}` : SITE;
 
 // 내비 (copy-deck §1)
@@ -38,6 +42,23 @@ const NAV = [
 const path = Astro.url.pathname;
 const isCurrent = (href: string) =>
   href === '/' ? path === '/' : path === href || path.startsWith(href);
+
+// ── OG 이미지 관례 URL — 엔드포인트 src/pages/og/[...slug].png.ts 와 반드시 일치 ──
+// 규칙: 홈·대표 정적 페이지는 OG_STATIC 매핑, 기록/일지 상세는 /og/<경로>.png,
+//       그 외 모든 페이지(태그·장소 상세·404 등)는 /og/default.png 폴백.
+const OG_STATIC: Record<string, string> = {
+  '': 'index',
+  records: 'records',
+  places: 'places',
+  chronicles: 'chronicles',
+  journal: 'journal',
+  rest: 'rest',
+};
+const ogKey = path.replace(/^\/+|\/+$/g, ''); // '/records/foo/' → 'records/foo'
+let ogPath = '/og/default.png';
+if (Object.hasOwn(OG_STATIC, ogKey)) ogPath = `/og/${OG_STATIC[ogKey]}.png`;
+else if (/^(records|journal)\/.+/.test(ogKey)) ogPath = `/og/${ogKey}.png`;
+const ogImageURL = new URL(ogImage ?? ogPath, Astro.site);
 ---
 
 <!doctype html>
@@ -53,6 +74,11 @@ const isCurrent = (href: string) =>
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    <meta property="og:image" content={ogImageURL} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={ogImageURL} />
     <script is:inline>
       // 테마를 페인트 전에 확정 (깜빡임 방지) — 항상 data-theme를 찍어
       // 헤더 적응/파티클이 확실한 테마 값을 읽을 수 있게 한다

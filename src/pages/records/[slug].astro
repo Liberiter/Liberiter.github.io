@@ -4,6 +4,7 @@
 import { getCollection, render } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import Campfire from '../../components/Campfire.astro';
 import Emblem from '../../components/Emblem.astro';
 import PageBanner from '../../components/PageBanner.astro';
 import { placeBySlug, tintStyle, ESSAY_PLACES } from '../../data/places';
@@ -51,8 +52,6 @@ const prevRec = idx > 0 ? all[idx - 1] : null;
 const nextRec = idx >= 0 && idx < all.length - 1 ? all[idx + 1] : null;
 const prevPlace = prevRec ? placeBySlug(prevRec.data.place) : null;
 const nextPlace = nextRec ? placeBySlug(nextRec.data.place) : null;
-
-const campfirePlace = placeBySlug('campfire');
 ---
 
 <Base title={rec.data.title} description={rec.data.description}>
@@ -231,19 +230,8 @@ const campfirePlace = placeBySlug('campfire');
         }
       </nav>
 
-      <section class="campfire-talks" aria-label="댓글">
-        <div class="section-head" data-animate>
-          <div class="orn-line" data-orn="headpiece" aria-hidden="true"></div>
-          <span class="eyebrow">The Campfire Talks</span>
-          <h2>모닥불 곁 대화</h2>
-        </div>
-        <!-- giscus 위젯은 운영 단계에서 이 박스 자리에 마운트한다 -->
-        <div class="campfire-box tinted" id="comments" style={tintStyle(campfirePlace)} data-animate>
-          <span class="cf-ink" aria-hidden="true"><Emblem id="campfire" size={40} /></span>
-          <p>장작은 넉넉하다. GitHub 계정으로 모닥불 곁에 앉으시게.</p>
-          <p class="cf-sub">아직 아무도 불가에 앉지 않았다. 첫 번째 손님이 되시게.</p>
-        </div>
-      </section>
+      <!-- 모닥불 곁 대화 — giscus (기록에만 단다. 일지는 가벼운 수첩 — 확정) -->
+      <Campfire />
     </div>
   </div>
 </Base>
@@ -992,8 +980,7 @@ const campfirePlace = placeBySlug('campfire');
 
   /* 카드류 양피지 grain (셸 카드와 동일 레시피) */
   .chronicle::after,
-  .nav-card::after,
-  .campfire-box::after {
+  .nav-card::after {
     content: '';
     position: absolute;
     inset: 0;
@@ -1003,39 +990,5 @@ const campfirePlace = placeBySlug('campfire');
     background-size: 140px 140px;
     opacity: 0.1;
     mix-blend-mode: var(--grain-blend);
-  }
-
-  /* 모닥불 곁 대화 — giscus 자리 (copy-deck §4) */
-  .campfire-talks {
-    margin-top: 64px;
-    text-align: center;
-  }
-  .campfire-box {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-    margin: 0 auto;
-    padding: 34px 26px 30px;
-    border: 1px dashed color-mix(in srgb, var(--gold) 45%, var(--card-border));
-    background: var(--wash);
-  }
-  .campfire-box .cf-ink {
-    display: flex;
-    justify-content: center;
-    margin: 0 auto 12px;
-    color: var(--place);
-    filter: var(--glow);
-  }
-  .campfire-box p {
-    margin: 0;
-    font-family: var(--serif);
-    font-size: 14.5px;
-    color: var(--muted);
-    line-height: 1.9;
-  }
-  .campfire-box .cf-sub {
-    margin-top: 6px;
-    font-size: 13px;
-    opacity: 0.8;
   }
 </style>
