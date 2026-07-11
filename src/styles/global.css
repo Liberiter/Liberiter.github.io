@@ -105,7 +105,7 @@
     --foil-a: #8a6c1e;
     --foil-b: #f2d878;
     --foil-c: #d4aa30;
-    --hero-bg: linear-gradient(180deg, #0b2438 0%, #0e2a30 34%, #14291c 62%, #1f2c1b 84%, #15211a 100%);
+    --hero-bg: linear-gradient(180deg, #0a2032 0%, #0e2a30 34%, #14291c 62%, #1f2c1b 84%, #15211a 100%);
     --hero-veil: radial-gradient(90% 62% at 50% 88%, rgba(212, 170, 48, 0.1), transparent 62%);
     --hero-sub-ink: #9bb0a4;
     --place: var(--place-dark, var(--gold));
@@ -145,7 +145,7 @@
   --foil-a: #8a6c1e;
   --foil-b: #f2d878;
   --foil-c: #d4aa30;
-  --hero-bg: linear-gradient(180deg, #0b2438 0%, #0e2a30 34%, #14291c 62%, #1f2c1b 84%, #15211a 100%);
+  --hero-bg: linear-gradient(180deg, #0a2032 0%, #0e2a30 34%, #14291c 62%, #1f2c1b 84%, #15211a 100%);
   --hero-veil: radial-gradient(90% 62% at 50% 88%, rgba(212, 170, 48, 0.1), transparent 62%);
   --hero-sub-ink: #9bb0a4;
   --place: var(--place-dark, var(--gold));
@@ -214,6 +214,9 @@
 }
 html {
   scrollbar-gutter: stable;
+  /* 스크롤이 없는 짧은 페이지에서 예약된 거터 띠가 흰색(UA 기본)으로
+     비치지 않게 — 본문 배경과 같은 색으로 채운다 */
+  background-color: var(--bg);
 }
 @media (prefers-reduced-motion: no-preference) {
   html {

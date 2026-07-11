@@ -40,8 +40,8 @@ const DEV = import.meta.env.DEV;
     <ul class="sm-results" id="sm-results" role="listbox" aria-label="검색 결과" hidden></ul>
 
     <p class="sm-hints" aria-hidden="true">
-      <span><kbd>Esc</kbd> — 그만 묻기</span><i class="sm-hint-dia">✦</i><span><kbd>↑↓</kbd> 길 고르기</span><i
-        class="sm-hint-dia">✦</i><span><kbd>Enter</kbd> 떠나기</span>
+      <span><kbd>↑↓</kbd> 길 고르기</span><i class="sm-hint-dia">✦</i><span><kbd>Enter</kbd> 그 길로 떠나기</span><i
+        class="sm-hint-dia">✦</i><span><kbd>Esc</kbd> 그만 묻기</span>
     </p>
 
     {
@@ -501,13 +501,13 @@ const DEV = import.meta.env.DEV;
     margin: 14px 2px 0;
     text-align: center;
     font-family: var(--serif);
-    font-size: 11.5px;
+    font-size: 13px;
     color: var(--muted);
-    opacity: 0.75;
+    opacity: 0.9;
   }
   .sm-hints kbd {
     font-family: var(--mono);
-    font-size: 10px;
+    font-size: 11.5px;
     letter-spacing: 0.02em;
   }
   .sm-hints .sm-hint-dia {
