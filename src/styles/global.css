@@ -381,19 +381,12 @@ time {
 .folio-frame .c-tr { top: 9px; right: 9px; transform: scaleX(-1); }
 .folio-frame .c-bl { bottom: 9px; left: 9px; transform: scaleY(-1); }
 .folio-frame .c-br { bottom: 9px; right: 9px; transform: scale(-1, -1); }
-@media (max-width: 720px) {
+/* ≤768px: 폴리오 프레임 완전 숨김 — 고서의 장식은 큰 판형의 특권.
+   모바일은 여백이 곧 품위다 (코너 SVG 생성도 ornaments.ts가 함께 생략한다) */
+@media (max-width: 768px) {
   .folio-frame {
-    inset: 6px;
-    top: calc(var(--header-h) + 6px);
+    display: none;
   }
-  .folio-frame .corner {
-    width: 40px;
-    height: 40px;
-  }
-  .folio-frame .c-tl { top: 5px; left: 5px; }
-  .folio-frame .c-tr { top: 5px; right: 5px; }
-  .folio-frame .c-bl { bottom: 5px; left: 5px; }
-  .folio-frame .c-br { bottom: 5px; right: 5px; }
 }
 
 /* ── 헤더: 상단 고정 · 60px 한 줄 · 연속 스크롤 적응형 프로스트 글라스 ──
@@ -479,6 +472,10 @@ time {
   text-transform: uppercase;
   white-space: nowrap;
 }
+/* 축약 브랜드 — ≤520px에서만 (나침반 + 짧은 표기) */
+.brand .en-short {
+  display: none;
+}
 nav.primary {
   display: flex;
   gap: 0;
@@ -542,29 +539,59 @@ nav.primary a:hover {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+/* ✦ 메뉴 버튼(각진 고스트) — ≤860px에서만 표시, 모바일 메뉴(MobileMenu)를 연다 */
+.menu-trigger {
+  display: none;
+  align-items: center;
+  gap: 7px;
+  flex: none;
+  font-family: var(--serif);
+  font-size: 13px;
+  border: 1px solid var(--card-border);
+  background: transparent;
+  padding: 6px 13px;
+  cursor: pointer;
+  color: color-mix(in srgb, var(--muted) calc(var(--hd-p) * 100%), var(--hd-top-link));
+  text-shadow: var(--hd-halo);
+  transition: border-color 0.2s, color 0.2s;
+}
+.menu-trigger:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.menu-trigger .dia {
+  font-size: 9px;
+  color: color-mix(in srgb, var(--gold) calc(var(--hd-p) * 100%), var(--hd-top-brand));
+}
 @media (max-width: 980px) {
   nav.primary a {
     padding: 5px 6px;
     font-size: 12.5px;
   }
 }
+/* ≤860px: 내비·검색·토글은 모바일 메뉴로 수납 — 헤더는 브랜드 + ✦ 메뉴 두 요소만
+   (가로 오버플로 원천 차단) */
 @media (max-width: 860px) {
-  nav.primary {
+  nav.primary,
+  .site-header .ask-guide,
+  .site-header .theme-toggle {
     display: none;
   }
   .brand .en {
     letter-spacing: 0.12em;
   }
-  .ask-guide {
+  .menu-trigger {
+    display: inline-flex;
     margin-left: auto;
   }
 }
 @media (max-width: 520px) {
-  .ask-guide {
+  .brand .en {
     display: none;
   }
-  .theme-toggle {
-    margin-left: auto;
+  .brand .en-short {
+    display: inline;
+    letter-spacing: 0.14em;
   }
 }
 

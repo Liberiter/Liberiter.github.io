@@ -30,7 +30,10 @@ const DEV = import.meta.env.DEV;
         aria-autocomplete="list"
         aria-label="검색어 입력"
       />
-      <button type="button" class="sm-close" id="sm-close">그만 묻기 (Esc)</button>
+      <button type="button" class="sm-close" id="sm-close" aria-label="검색 닫기">
+        <span class="sm-close-full">그만 묻기 (Esc)</span>
+        <span class="sm-close-min">닫기</span>
+      </button>
     </div>
 
     <p class="sm-status" id="sm-status" aria-live="polite" hidden></p>
@@ -396,6 +399,9 @@ const DEV = import.meta.env.DEV;
     color: var(--gold);
     border-color: var(--gold);
   }
+  .sm-close .sm-close-min {
+    display: none;
+  }
 
   /* 결과 헤딩 — "길잡이가 N개의 길을 안다" / 결과 없음 */
   .sm-status {
@@ -517,8 +523,12 @@ const DEV = import.meta.env.DEV;
     .sm-orn svg {
       width: 170px;
     }
-    .sm-close {
-      display: none; /* 좁은 화면 — Esc·오버레이 탭으로 닫는다 */
+    /* 좁은 화면(터치) — Esc가 없으므로 버튼은 유지, 라벨만 축약 */
+    .sm-close .sm-close-full {
+      display: none;
+    }
+    .sm-close .sm-close-min {
+      display: inline;
     }
   }
 </style>

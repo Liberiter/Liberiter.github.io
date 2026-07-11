@@ -112,9 +112,16 @@ export function tailpiece(): SVGElement {
 
 /* 페이지의 오너먼트 슬롯을 모두 채운다 (중복 호출 안전) */
 export function initOrnaments() {
-  document.querySelectorAll('.folio-frame .corner').forEach((c) => {
-    if (!c.querySelector('svg')) c.appendChild(cornerFlourish());
-  });
+  // 폴리오 프레임 코너 — 모바일(≤768px)은 display:none이므로 SVG 생성 자체를 생략.
+  // 이후 데스크톱 폭으로 커지는 순간(태블릿 회전 등) 한 번만 채운다.
+  const fillCorners = () => {
+    document.querySelectorAll('.folio-frame .corner').forEach((c) => {
+      if (!c.querySelector('svg')) c.appendChild(cornerFlourish());
+    });
+  };
+  const mqDesk = matchMedia('(min-width: 769px)');
+  if (mqDesk.matches) fillCorners();
+  else mqDesk.addEventListener('change', (e) => e.matches && fillCorners(), { once: true });
   document.querySelectorAll('[data-orn="headpiece"]').forEach((n) => {
     if (!n.querySelector('svg')) n.appendChild(headpiece());
   });

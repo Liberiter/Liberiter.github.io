@@ -336,6 +336,12 @@ const campfirePlace = placeBySlug('campfire');
     text-transform: uppercase;
     color: color-mix(in srgb, var(--place) 45%, var(--muted));
   }
+  /* 좁은 폭 — 긴 영문 장소명(Alchemist's Laboratory 등)이 리본을 밀어내지 않게 */
+  @media (max-width: 480px) {
+    .place-ribbon .rb-en {
+      display: none;
+    }
+  }
   /* 메타 행 — 색·그림자는 PageBanner의 --pbn-sub 토큰을 상속 */
   .banner-meta {
     display: flex;

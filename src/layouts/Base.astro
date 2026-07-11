@@ -14,6 +14,7 @@ import spriteRaw from '../../assets/emblems.svg?raw';
 import AmbientParticles from '../components/AmbientParticles.astro';
 import Emblem from '../components/Emblem.astro';
 import FolioFrame from '../components/FolioFrame.astro';
+import MobileMenu from '../components/MobileMenu.astro';
 import SearchModal from '../components/SearchModal.astro';
 
 interface Props {
@@ -84,6 +85,7 @@ const isCurrent = (href: string) =>
         <a class="brand" href="/">
           <Emblem id="crossroads" size={21} />
           <span class="en">The Wanderer's Crossroads</span>
+          <span class="en en-short">Crossroads</span>
         </a>
         <nav class="primary" aria-label="사이트 내비게이션">
           {
@@ -98,17 +100,27 @@ const isCurrent = (href: string) =>
           <span class="dia" aria-hidden="true">✦</span>길잡이에게 묻기
         </button>
         <div class="theme-toggle" role="group" aria-label="테마 전환">
-          <button type="button" id="btn-theme-light" aria-pressed="false" title="동이 튼다" aria-label="라이트 테마로 전환">
+          <button type="button" data-set-theme="light" aria-pressed="false" title="동이 튼다" aria-label="라이트 테마로 전환">
             <!-- 이정표 -->
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M12 21h4M5 7h11l3 2-3 2H5zM19 13H9l-3 2 3 2h10z"></path></svg>
             여명
           </button>
-          <button type="button" id="btn-theme-dark" aria-pressed="false" title="모닥불 곁으로" aria-label="다크 테마로 전환">
+          <button type="button" data-set-theme="dark" aria-pressed="false" title="모닥불 곁으로" aria-label="다크 테마로 전환">
             <!-- 등불 -->
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6M12 4v2M8 6h8l1 10a5 5 0 0 1-10 0zM12 10a2.5 2.5 0 0 1 2 3 2 2 0 0 1-4 0 2.5 2.5 0 0 1 2-3zM10 21h4"></path></svg>
             모닥불
           </button>
         </div>
+        <button
+          type="button"
+          class="menu-trigger"
+          id="menu-trigger"
+          aria-haspopup="dialog"
+          aria-expanded="false"
+          aria-controls="mobile-menu"
+        >
+          <span class="dia" aria-hidden="true">✦</span>메뉴
+        </button>
       </div>
     </header>
 
@@ -130,6 +142,7 @@ const isCurrent = (href: string) =>
     </footer>
 
     <SearchModal />
+    <MobileMenu nav={NAV} path={path} />
 
     <script>
       import { initOrnaments } from '../scripts/ornaments';
@@ -137,18 +150,18 @@ const isCurrent = (href: string) =>
       // ── 절차 생성 오너먼트 (폴리오 프레임 코너 + 헤드피스/테일피스) ──
       initOrnaments();
 
-      // ── 테마: 여명 ↔ 모닥불 ──
+      // ── 테마: 여명 ↔ 모닥불 (헤더 토글 + 모바일 메뉴 토글 — [data-set-theme] 공용) ──
       const root = document.documentElement;
-      const btnLight = document.getElementById('btn-theme-light');
-      const btnDark = document.getElementById('btn-theme-dark');
+      const themeBtns = Array.from(
+        document.querySelectorAll<HTMLButtonElement>('[data-set-theme]')
+      );
 
       // head 인라인 스크립트가 항상 data-theme를 확정해 둔다
       const effectiveTheme = () => (root.dataset.theme === 'dark' ? 'dark' : 'light');
 
       function syncToggle() {
         const t = effectiveTheme();
-        btnLight?.setAttribute('aria-pressed', String(t === 'light'));
-        btnDark?.setAttribute('aria-pressed', String(t === 'dark'));
+        for (const b of themeBtns) b.setAttribute('aria-pressed', String(b.dataset.setTheme === t));
       }
       function setTheme(t: 'light' | 'dark') {
         root.dataset.theme = t;
@@ -157,8 +170,9 @@ const isCurrent = (href: string) =>
         // 파티클 등 테마 연동 요소에 알림 (legacy 호환 이벤트)
         document.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme: t } }));
       }
-      btnLight?.addEventListener('click', () => setTheme('light'));
-      btnDark?.addEventListener('click', () => setTheme('dark'));
+      for (const b of themeBtns) {
+        b.addEventListener('click', () => setTheme(b.dataset.setTheme === 'dark' ? 'dark' : 'light'));
+      }
       syncToggle();
 
       // ── 헤더: 연속 스크롤 적응형 프로스트 글라스 ──
