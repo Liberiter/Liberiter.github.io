@@ -1312,26 +1312,34 @@ a.tag:hover {
   z-index: 1;
 }
 :root[data-theme-dir]::view-transition-new(root) {
-  animation: ink-ripple 1s cubic-bezier(0.25, 0.1, 0.35, 1) both;
+  animation: ink-ripple 1.45s cubic-bezier(0.19, 0.55, 0.22, 1) both;
   -webkit-mask-image: radial-gradient(
     circle at var(--vt-x, 50%) var(--vt-y, 50%),
-    #000 calc(var(--vt-r) - 70px),
-    rgba(0, 0, 0, 0.9) calc(var(--vt-r) - 22px),
+    #000 calc(var(--vt-r) - 96px),
+    rgba(0, 0, 0, 0.92) calc(var(--vt-r) - 30px),
     transparent var(--vt-r),
-    transparent calc(var(--vt-r) + 22px),
-    rgba(0, 0, 0, 0.3) calc(var(--vt-r) + 42px),
-    rgba(0, 0, 0, 0.3) calc(var(--vt-r) + 62px),
-    transparent calc(var(--vt-r) + 84px)
+    transparent calc(var(--vt-r) + 26px),
+    rgba(0, 0, 0, 0.24) calc(var(--vt-r) + 46px),
+    rgba(0, 0, 0, 0.24) calc(var(--vt-r) + 68px),
+    transparent calc(var(--vt-r) + 92px),
+    transparent calc(var(--vt-r) + 118px),
+    rgba(0, 0, 0, 0.11) calc(var(--vt-r) + 130px),
+    rgba(0, 0, 0, 0.11) calc(var(--vt-r) + 142px),
+    transparent calc(var(--vt-r) + 160px)
   );
   mask-image: radial-gradient(
     circle at var(--vt-x, 50%) var(--vt-y, 50%),
-    #000 calc(var(--vt-r) - 70px),
-    rgba(0, 0, 0, 0.9) calc(var(--vt-r) - 22px),
+    #000 calc(var(--vt-r) - 96px),
+    rgba(0, 0, 0, 0.92) calc(var(--vt-r) - 30px),
     transparent var(--vt-r),
-    transparent calc(var(--vt-r) + 22px),
-    rgba(0, 0, 0, 0.3) calc(var(--vt-r) + 42px),
-    rgba(0, 0, 0, 0.3) calc(var(--vt-r) + 62px),
-    transparent calc(var(--vt-r) + 84px)
+    transparent calc(var(--vt-r) + 26px),
+    rgba(0, 0, 0, 0.24) calc(var(--vt-r) + 46px),
+    rgba(0, 0, 0, 0.24) calc(var(--vt-r) + 68px),
+    transparent calc(var(--vt-r) + 92px),
+    transparent calc(var(--vt-r) + 118px),
+    rgba(0, 0, 0, 0.11) calc(var(--vt-r) + 130px),
+    rgba(0, 0, 0, 0.11) calc(var(--vt-r) + 142px),
+    transparent calc(var(--vt-r) + 160px)
   );
 }
 @keyframes ink-ripple {
