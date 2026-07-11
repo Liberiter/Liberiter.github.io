@@ -14,13 +14,14 @@
 | 배포 | **GitHub Actions** | `main`에 push하면 자동 빌드·배포 (`.github/workflows/deploy.yml`) |
 | 콘텐츠 관리 | Astro Content Collections | frontmatter 스키마 검증 (`src/content.config.ts`) |
 | 수식 | remark-math + KaTeX | `$...$`, `$$...$$` 문법 |
-| 코드 하이라이팅 | Shiki | 라이트 `vitesse-light` / 다크 `everforest-dark` 자동 전환 |
+| 코드 하이라이팅 | Shiki | 라이트 `vitesse-light` / 다크 `everforest-dark` 자동 전환 — 배경은 v4 "필사 노트" 톤(`--code-bg`)으로 오버라이드 |
 | 폰트 (셀프호스팅) | Cinzel(영문 디스플레이) · 고운바탕(한글 제목) · Pretendard(본문) · 나눔고딕코딩(코드, 한:영 2:1 정폭) | npm 패키지로 번들 — 외부 CDN 의존 없음 |
 | RSS / 사이트맵 | @astrojs/rss, @astrojs/sitemap | `/rss.xml`, `/sitemap-index.xml` |
 
 **히스토리 메모**: 이 프로젝트는 두 세계의 합병이다. 전작(`github-page/`, Astro 6 + 시각 연출)과
 신작(콘텐츠 아키텍처 + 세계관 체계)을 합쳤고, 전작의 디자인 유산은
 `docs/legacy-design-system.md`에 보존되어 있다 (V2 Midjourney 에셋 프롬프트 포함).
+2026-07에 **v4 "채색 필사본" 리디자인** — 규칙은 WORLDBOOK §3, 화면 스펙은 `docs/mockups/`, 문구는 `docs/copy-deck.md`.
 
 ## 2. 컨셉 요약
 
@@ -43,7 +44,10 @@ blog/
 ├─ HANDBOOK.md             ← 이 문서 (운영 매뉴얼)
 ├─ README.md               ← 저장소 첫인사 (요약)
 ├─ assets/emblems.svg      ← 문장(紋章) 14종 SVG 스프라이트 원본
-├─ docs/legacy-design-system.md  ← 전작 디자인 유산 + Midjourney 프롬프트
+├─ docs/
+│  ├─ copy-deck.md         ← v4 화면별 문구 사전 (마이크로카피의 원본)
+│  ├─ mockups/*.html       ← v4 화면 스펙 목업 (home·record·archive 등)
+│  └─ legacy-design-system.md  ← 전작 디자인 유산 + Midjourney 프롬프트
 ├─ .github/workflows/deploy.yml  ← 자동 배포
 ├─ public/favicon.svg
 └─ src/
@@ -52,11 +56,12 @@ blog/
    │  └─ journal/YYYY-MM-DD.md       ← TIL
    ├─ data/places.ts       ← 12장소 정의(색·lore·칭호)의 코드측 원본
    ├─ content.config.ts    ← frontmatter 스키마
-   ├─ components/          ← HeroPortal(히어로), RuneRing, OrnamentDivider 등
+   ├─ components/          ← Hero(시네마틱 히어로), PageBanner, FolioFrame,
+   │                          AmbientParticles, RecordBibliography, PlaceCard·RecordCard 등
    ├─ layouts/Base.astro   ← 공통 레이아웃 (테마·폰트·문장 스프라이트)
    ├─ pages/               ← 라우트 (아래 URL 지도 참고)
-   ├─ scripts/             ← 파티클, 스크롤 등장 애니메이션
-   └─ styles/              ← global.css (디자인 시스템), hero.css
+   ├─ scripts/             ← 파티클, 스크롤 등장 애니메이션, 오너먼트 주입
+   └─ styles/              ← global.css (디자인 시스템 v4 토큰), hero.css
 ```
 
 **URL 지도**: `/`(교차로) · `/places/`(여정) · `/places/{장소}/` · `/records/`(서고) ·
@@ -153,8 +158,12 @@ npm run preview    # 빌드 결과물 로컬 확인
 - **장소 추가/삭제/이름 변경**: WORLDBOOK §2 표 → `src/data/places.ts`(정의) →
   `assets/emblems.svg`(문장 추가 — 48×48, stroke 2.5, 모노라인, `currentColor`) 순서로.
   지도·여정·안개·칭호는 `places.ts`만 고치면 전부 자동 반영된다.
-- **색·폰트**: WORLDBOOK §3 → `src/styles/global.css` 상단 토큰
-- **히어로 장면**: `src/components/HeroPortal.astro` (다크/라이트 SVG) + `src/styles/hero.css`
+- **색·폰트·장식 (디자인 시스템 v4 "채색 필사본")**: 규칙의 원본은 WORLDBOOK §3.
+  구현은 `src/styles/global.css` 상단 토큰(라이트 "새벽의 양피지" / 다크 "칠흑의 숲") —
+  화면 단위 스펙이 필요하면 `docs/mockups/`의 해당 HTML, 문구는 `docs/copy-deck.md`를 본다
+- **히어로**: `src/components/Hero.astro`(금박 타이포 시네마틱) + `src/styles/hero.css`.
+  서브페이지 상단은 `PageBanner`, 화면 가장자리 장식은 `FolioFrame`,
+  배경 파티클은 `AmbientParticles`, 서고/태그 목록은 `RecordBibliography`가 담당
 - **12라는 숫자는 구조**다 — 여정 서사, 6계열×2 색 체계, 지도 그리드가 전부 12 기준.
   깨야 할 때는 색 짝(Blue/Violet/Green/Gold/Earth/Fire × 2)을 함께 재설계할 것.
 
@@ -171,9 +180,11 @@ npm run preview    # 빌드 결과물 로컬 확인
 
 | 문서 | 역할 |
 |---|---|
-| `WORLDBOOK.md` | 세계관·용어·디자인 규칙의 유일한 진실 (왜) |
+| `WORLDBOOK.md` | 세계관·용어·디자인 규칙의 유일한 진실 (왜) — 디자인 시스템 v4는 §3 |
 | `HANDBOOK.md` | 운영 매뉴얼 — 글쓰기·배포·수정 절차 (어떻게) |
 | `README.md` | 저장소 방문자용 요약 |
+| `docs/copy-deck.md` | v4 화면별 문구 사전 |
+| `docs/mockups/` | v4 화면 스펙 목업 (HTML) |
 | `docs/legacy-design-system.md` | 전작 디자인 유산 + V2 Midjourney 로드맵 |
 
 *길을 잃었다면 이 안내서로 돌아올 것. 안내서에 없는 길은 설정집에 있다.* ✦

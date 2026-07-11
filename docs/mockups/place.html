@@ -1,0 +1,1489 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>공학자 길드 — The Wanderer's Crossroads</title>
+<style>
+/* ============================================================
+   장소 상세 페이지 목업 — /places/engineers-guild
+   셸(토큰·헤더·프레임·파티클·오너먼트·푸터) = mock6 홈 최종본 이식
+   ============================================================ */
+
+/* ---------- 토큰: 라이트 "새벽의 양피지" ---------- */
+:root{
+  --bg:#FAF5E9;
+  --card:#F3EBD8;
+  --card-hover:#EFE4CD;
+  --ink:#3A3226;
+  --muted:#6E6353;
+  --line:#DFD3B8;
+  --gold:#8B6914;
+  --gold-dim:#A67C1A;
+  --gold-text:#7A5C10;
+  --gold-soft:rgba(139,105,20,.12);
+  --viridian:#40826D;
+  --viridian-text:#356F5D;
+  --card-border:color-mix(in srgb, var(--gold) 12%, var(--line));
+  --corner-op:.5;
+  --header-h:60px;
+  --wash:linear-gradient(160deg, color-mix(in srgb, #C0655B 4%, var(--card)) 0%, var(--card) 46%, color-mix(in srgb, var(--gold-dim) 3%, var(--card)) 100%);
+  --wash-hover:linear-gradient(160deg, color-mix(in srgb, #C0655B 6%, var(--card)) 0%, var(--card) 46%, color-mix(in srgb, var(--gold-dim) 5%, var(--card)) 100%);
+  --hover-border:var(--gold);
+  --mist:color-mix(in srgb, var(--ink) 9%, transparent);
+  --ambient-bg:radial-gradient(120% 85% at 50% -12%, color-mix(in srgb, #C0655B 3%, var(--bg)) 0%, var(--bg) 62%);
+  --hd-top-brand:#5A4020;
+  --hd-top-link:#4A3010;
+  --hd-halo:0 1px 2px rgba(255,245,220,.65), 0 0 10px rgba(255,245,220,.45);
+  --shadow:0 1px 2px rgba(58,50,38,.05), 0 8px 24px -12px rgba(58,50,38,.18);
+  --grain-opacity:.11;
+  --grain-blend:multiply;
+  --frame:#B99A55;
+  --frame-in:#8B6914;
+  --glow:none;
+  /* 장소 배너 하늘 (라이트 = 여명 기운의 절제된 축소판) */
+  --banner-sky-a:#b8bfce;
+  --banner-sky-b:#e8d5ba;
+  --disp:Georgia,'Palatino Linotype','Times New Roman',serif;
+  --serif:'Gowun Batang','Nanum Myeongjo',Batang,Georgia,serif;
+  --body:'Pretendard Variable',Pretendard,-apple-system,'Malgun Gothic',sans-serif;
+  --code:'Nanum Gothic Coding',D2Coding,Consolas,monospace;
+}
+
+/* ---------- 토큰: 다크 "칠흑의 숲, 황금 등불" ---------- */
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15211A;
+    --card:#1D2C23;
+    --card-hover:#243529;
+    --ink:#E5E0D1;
+    --muted:#9BB0A4;
+    --line:#33473B;
+    --gold:#D4AA30;
+    --gold-dim:#B8932A;
+    --gold-text:#D4AA30;
+    --gold-soft:rgba(212,170,48,.14);
+    --viridian:#5FA88B;
+    --viridian-text:#5FA88B;
+    --card-border:color-mix(in srgb, var(--gold) 32%, var(--line));
+    --corner-op:.85;
+    --wash:linear-gradient(155deg, color-mix(in srgb, var(--viridian) 9%, var(--card)) 0%, var(--card) 48%, color-mix(in srgb, var(--gold) 4%, var(--card)) 100%);
+    --wash-hover:linear-gradient(155deg, color-mix(in srgb, var(--viridian) 13%, var(--card-hover)) 0%, var(--card-hover) 48%, color-mix(in srgb, var(--gold) 6%, var(--card-hover)) 100%);
+    --hover-border:color-mix(in srgb, var(--gold) 72%, var(--viridian));
+    --mist:color-mix(in srgb, var(--viridian) 14%, transparent);
+    --ambient-bg:radial-gradient(120% 85% at 50% -12%, color-mix(in srgb, var(--gold) 3%, var(--bg)) 0%, var(--bg) 62%);
+    --hd-top-brand:var(--gold);
+    --hd-top-link:var(--muted);
+    --hd-halo:0 0 14px rgba(0,0,0,.75), 0 0 6px rgba(0,0,0,.5);
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    --grain-opacity:.15;
+    --grain-blend:overlay;
+    --frame:#B8932A;
+    --frame-in:#D4AA30;
+    --glow:drop-shadow(0 0 4px rgba(212,170,48,.45));
+    /* 배너 하늘 (다크 = 숲+등불 기운) */
+    --banner-sky-a:#0b120e;
+    --banner-sky-b:#12211a;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15211A;
+  --card:#1D2C23;
+  --card-hover:#243529;
+  --ink:#E5E0D1;
+  --muted:#9BB0A4;
+  --line:#33473B;
+  --gold:#D4AA30;
+  --gold-dim:#B8932A;
+  --gold-text:#D4AA30;
+  --gold-soft:rgba(212,170,48,.14);
+  --viridian:#5FA88B;
+  --viridian-text:#5FA88B;
+  --card-border:color-mix(in srgb, var(--gold) 32%, var(--line));
+  --corner-op:.85;
+  --wash:linear-gradient(155deg, color-mix(in srgb, var(--viridian) 9%, var(--card)) 0%, var(--card) 48%, color-mix(in srgb, var(--gold) 4%, var(--card)) 100%);
+  --wash-hover:linear-gradient(155deg, color-mix(in srgb, var(--viridian) 13%, var(--card-hover)) 0%, var(--card-hover) 48%, color-mix(in srgb, var(--gold) 6%, var(--card-hover)) 100%);
+  --hover-border:color-mix(in srgb, var(--gold) 72%, var(--viridian));
+  --mist:color-mix(in srgb, var(--viridian) 14%, transparent);
+  --ambient-bg:radial-gradient(120% 85% at 50% -12%, color-mix(in srgb, var(--gold) 3%, var(--bg)) 0%, var(--bg) 62%);
+  --hd-top-brand:var(--gold);
+  --hd-top-link:var(--muted);
+  --hd-halo:0 0 14px rgba(0,0,0,.75), 0 0 6px rgba(0,0,0,.5);
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  --grain-opacity:.15;
+  --grain-blend:overlay;
+  --frame:#B8932A;
+  --frame-in:#D4AA30;
+  --glow:drop-shadow(0 0 4px rgba(212,170,48,.45));
+  --banner-sky-a:#0b120e;
+  --banner-sky-b:#12211a;
+}
+:root[data-theme="light"]{
+  --bg:#FAF5E9; --card:#F3EBD8; --card-hover:#EFE4CD;
+  --ink:#3A3226; --muted:#6E6353; --line:#DFD3B8;
+  --gold:#8B6914; --gold-dim:#A67C1A; --gold-text:#7A5C10;
+  --gold-soft:rgba(139,105,20,.12); --viridian:#40826D; --viridian-text:#356F5D;
+  --card-border:color-mix(in srgb, var(--gold) 12%, var(--line));
+  --corner-op:.5;
+  --wash:linear-gradient(160deg, color-mix(in srgb, #C0655B 4%, var(--card)) 0%, var(--card) 46%, color-mix(in srgb, var(--gold-dim) 3%, var(--card)) 100%);
+  --wash-hover:linear-gradient(160deg, color-mix(in srgb, #C0655B 6%, var(--card)) 0%, var(--card) 46%, color-mix(in srgb, var(--gold-dim) 5%, var(--card)) 100%);
+  --hover-border:var(--gold);
+  --mist:color-mix(in srgb, var(--ink) 9%, transparent);
+  --ambient-bg:radial-gradient(120% 85% at 50% -12%, color-mix(in srgb, #C0655B 3%, var(--bg)) 0%, var(--bg) 62%);
+  --hd-top-brand:#5A4020;
+  --hd-top-link:#4A3010;
+  --hd-halo:0 1px 2px rgba(255,245,220,.65), 0 0 10px rgba(255,245,220,.45);
+  --shadow:0 1px 2px rgba(58,50,38,.05), 0 8px 24px -12px rgba(58,50,38,.18);
+  --grain-opacity:.11; --grain-blend:multiply;
+  --frame:#B99A55; --frame-in:#8B6914; --glow:none;
+  --banner-sky-a:#b8bfce;
+  --banner-sky-b:#e8d5ba;
+}
+
+/* ---------- 장소 문장색 주입 (.tinted 방식 — 이 페이지는 body 전체가 길드) ---------- */
+.tinted{ --place:var(--place-l, var(--gold)); }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .tinted{ --place:var(--place-d, var(--gold)); }
+}
+:root[data-theme="dark"] .tinted{ --place:var(--place-d, var(--gold)); }
+:root[data-theme="light"] .tinted{ --place:var(--place-l, var(--gold)); }
+
+/* ---------- 기본 ---------- */
+*,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
+html{ scroll-behavior:smooth; }
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:var(--body); font-size:16px; line-height:1.75;
+  word-break:keep-all; overflow-wrap:break-word;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  padding:var(--header-h) clamp(22px,4vw,54px) 40px;
+  transition:background-color .4s ease, color .4s ease;
+}
+section{ scroll-margin-top:calc(var(--header-h) + 12px); }
+/* 전역 양피지 grain */
+body::before{
+  content:""; position:fixed; inset:0; z-index:9999; pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:180px 180px;
+  opacity:var(--grain-opacity); mix-blend-mode:var(--grain-blend);
+}
+/* 전역 은은한 앰비언트 그라데이션 — 전역 고정 */
+body::after{
+  content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background:var(--ambient-bg);
+  opacity:1;
+}
+/* 전역 파티클 캔버스(z1) 위로 콘텐츠 승격 */
+.home-section,.orn,footer.site,.pb-in{ position:relative; z-index:2; }
+a{ color:inherit; text-decoration:none; }
+button{ font:inherit; color:inherit; background:none; border:0; cursor:pointer; }
+svg{ display:block; }
+time{ font-variant-numeric:tabular-nums; }
+::selection{ background:var(--gold); color:var(--bg); }
+:focus-visible{ outline:2px solid var(--gold); outline-offset:3px; }
+.wrap{ max-width:1080px; margin:0 auto; }
+
+/* ---------- 폴리오 프레임: 코너만 (확정 상태) ---------- */
+.folio-frame{
+  position:fixed; inset:10px;
+  top:calc(var(--header-h) + 10px);
+  z-index:80; pointer-events:none;
+}
+.folio-frame .corner{
+  position:absolute; width:64px; height:64px; color:var(--frame-in);
+  filter:var(--glow);
+}
+.folio-frame .corner svg{ width:100%; height:100%; }
+.folio-frame .corner::before,
+.folio-frame .corner::after{
+  content:""; position:absolute; opacity:.85;
+}
+.folio-frame .corner::before{ /* 수평 스텁 */
+  left:86%; top:3.5%; width:clamp(90px,15vw,180px); height:15.5%;
+  background:
+    linear-gradient(to right, currentColor 0%, transparent 100%) left top/100% 1.5px no-repeat,
+    linear-gradient(to right, currentColor 0%, transparent 100%) left bottom/100% 2px no-repeat;
+}
+.folio-frame .corner::after{ /* 수직 스텁 */
+  top:86%; left:3.5%; height:clamp(90px,15vw,180px); width:15.5%;
+  background:
+    linear-gradient(to bottom, currentColor 0%, transparent 100%) left top/1.5px 100% no-repeat,
+    linear-gradient(to bottom, currentColor 0%, transparent 100%) right top/2px 100% no-repeat;
+}
+.folio-frame .c-tl{ top:9px; left:9px; }
+.folio-frame .c-tr{ top:9px; right:9px; transform:scaleX(-1); }
+.folio-frame .c-bl{ bottom:9px; left:9px; transform:scaleY(-1); }
+.folio-frame .c-br{ bottom:9px; right:9px; transform:scale(-1,-1); }
+@media (max-width:720px){
+  body{ padding:var(--header-h) 18px 30px; }
+  .folio-frame{ inset:6px; top:calc(var(--header-h) + 6px); }
+  .folio-frame .corner{ width:40px; height:40px; }
+  .folio-frame .c-tl{ top:5px; left:5px; } .folio-frame .c-tr{ top:5px; right:5px; }
+  .folio-frame .c-bl{ bottom:5px; left:5px; } .folio-frame .c-br{ bottom:5px; right:5px; }
+}
+
+/* ---------- 헤더: 연속 스크롤 적응형 프로스트 글라스 ---------- */
+header.site{
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  height:var(--header-h);
+  --hd-p:1;
+  background:color-mix(in srgb, var(--bg) calc(var(--hd-p) * 55%), transparent);
+  backdrop-filter:blur(calc(var(--hd-p) * 10px));
+  -webkit-backdrop-filter:blur(calc(var(--hd-p) * 10px));
+  border-bottom:1px solid color-mix(in srgb, var(--line) calc(var(--hd-p) * 75%), transparent);
+}
+header.site .brand svg{
+  color:color-mix(in srgb, var(--gold) calc(var(--hd-p) * 100%), var(--hd-top-brand));
+}
+header.site .brand .en{
+  color:color-mix(in srgb, var(--gold) calc(var(--hd-p) * 100%), var(--hd-top-brand));
+  text-shadow:var(--hd-halo);
+}
+header.site nav.primary a{
+  color:color-mix(in srgb, var(--muted) calc(var(--hd-p) * 100%), var(--hd-top-link));
+  text-shadow:var(--hd-halo);
+}
+header.site nav.primary a:hover,
+header.site nav.primary a[aria-current="page"]{
+  color:var(--gold); border-bottom-color:var(--gold);
+}
+header.site .ask-guide{
+  color:color-mix(in srgb, var(--muted) calc(var(--hd-p) * 100%), var(--hd-top-link));
+  text-shadow:var(--hd-halo);
+}
+header.site .ask-guide:hover{ color:var(--gold); }
+header.site .ask-guide .dia{
+  color:color-mix(in srgb, var(--gold) calc(var(--hd-p) * 100%), var(--hd-top-brand));
+}
+header.site .theme-toggle button{
+  color:color-mix(in srgb, var(--muted) calc(var(--hd-p) * 100%), var(--hd-top-link));
+  text-shadow:var(--hd-halo);
+}
+header.site .theme-toggle button[aria-pressed="true"]{
+  background:color-mix(in srgb, var(--gold) calc(var(--hd-p) * 100%), transparent);
+  color:color-mix(in srgb, var(--bg) calc(var(--hd-p) * 100%), var(--hd-top-brand));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--hd-top-brand) calc((1 - var(--hd-p)) * 100%), transparent);
+  text-shadow:none;
+}
+.hd-in{
+  max-width:calc(1080px + 2*clamp(22px,4vw,54px));
+  margin:0 auto; height:100%;
+  padding:0 clamp(22px,4vw,54px);
+  display:flex; align-items:center; gap:16px;
+}
+.brand{ display:flex; align-items:center; gap:9px; flex:none; }
+.brand svg{ color:var(--gold); flex:none; filter:var(--glow); }
+.brand .en{
+  font-family:var(--disp); font-size:12.5px; font-weight:700;
+  letter-spacing:.18em; text-transform:uppercase; color:var(--gold);
+  white-space:nowrap;
+}
+nav.primary{ display:flex; gap:0; margin-left:auto; }
+nav.primary a{
+  color:var(--muted); font-size:13.5px; padding:5px 9px; white-space:nowrap;
+  border-bottom:1px solid transparent;
+  transition:color .2s, border-color .2s;
+}
+nav.primary a:hover{ color:var(--gold); border-bottom-color:var(--gold); }
+nav.primary a[aria-current="page"]{ color:var(--gold); border-bottom-color:var(--gold); }
+.ask-guide{
+  display:inline-flex; align-items:center; gap:7px; flex:none;
+  font-family:var(--serif); font-size:12.5px; color:var(--muted);
+  border:1px solid var(--card-border); padding:5px 11px;
+  transition:border-color .2s, color .2s;
+}
+.ask-guide:hover{ border-color:var(--gold); color:var(--gold); }
+.ask-guide .dia{ color:var(--gold); font-size:9px; }
+.theme-toggle{ display:inline-flex; flex:none; border:1px solid var(--card-border); }
+.theme-toggle button{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:5px 10px; font-family:var(--serif); font-size:12px; color:var(--muted);
+  transition:background-color .25s, color .25s;
+}
+.theme-toggle button + button{ border-left:1px solid var(--card-border); }
+.theme-toggle button svg{
+  width:13px; height:13px; stroke:currentColor; stroke-width:1.8;
+  fill:none; stroke-linecap:round; stroke-linejoin:round;
+}
+.theme-toggle button[aria-pressed="true"]{ background:var(--gold); color:var(--bg); }
+@media (max-width:980px){ nav.primary a{ padding:5px 6px; font-size:12.5px; } }
+@media (max-width:820px){ nav.primary{ display:none; } .brand .en{ letter-spacing:.12em; } }
+@media (max-width:520px){ .ask-guide{ display:none; } .theme-toggle{ margin-left:auto; } }
+
+/* ---------- 오너먼트 ---------- */
+.orn-line{ display:flex; justify-content:center; color:var(--gold); filter:var(--glow); }
+.orn-line svg{ max-width:100%; height:auto; }
+.orn{
+  display:flex; align-items:center; justify-content:center; gap:18px;
+  color:var(--gold-dim); font-size:11px; margin:52px auto; max-width:420px;
+  filter:var(--glow);
+}
+.orn::before,.orn::after{ content:""; flex:1; height:1px; }
+.orn::before{ background:linear-gradient(to right, transparent, color-mix(in srgb, var(--gold) 55%, transparent)); }
+.orn::after{ background:linear-gradient(to left, transparent, color-mix(in srgb, var(--gold) 55%, transparent)); }
+
+.section-head{ text-align:center; margin:0 0 36px; }
+.section-head .eyebrow{
+  display:block; font-family:var(--disp); font-size:12px; font-weight:600;
+  letter-spacing:.4em; text-transform:uppercase; color:var(--gold);
+  margin:13px 0 7px;
+}
+.section-head h2{
+  font-family:var(--serif); font-size:clamp(23px,3.2vw,30px); font-weight:700;
+  letter-spacing:.04em; color:var(--ink); line-height:1.4;
+}
+.section-head .tail{ margin-top:13px; }
+.section-head .sec-note{
+  display:block; margin-top:13px; font-size:13px; color:var(--muted);
+}
+.section-head .sec-note b{ color:var(--gold-text); font-weight:600; }
+
+/* ---------- 스크롤 등장 ---------- */
+[data-animate]{ opacity:0; transform:translateY(18px); transition:opacity .6s ease, transform .6s ease; }
+[data-animate].is-visible{ opacity:1; transform:none; }
+.record-grid > [data-animate]:nth-child(2n){ transition-delay:.06s; }
+
+/* ============================================================
+   장소 배너 — 컴팩트보다 한 단계 웅장하게 (~400px+)
+   ============================================================ */
+.place-banner{
+  position:relative; overflow:hidden;
+  margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
+  margin-top:calc(-1 * var(--header-h));
+  min-height:400px; height:clamp(400px,58vh,500px);
+  display:flex; align-items:center; justify-content:center;
+  text-align:center;
+  /* 문장색이 은은하게 기운 배너 하늘 → 하단에서 body bg로 합류 */
+  background:
+    radial-gradient(90% 72% at 50% 26%, color-mix(in srgb, var(--place) 11%, transparent) 0%, transparent 68%),
+    linear-gradient(to bottom,
+      color-mix(in srgb, var(--place) 16%, var(--banner-sky-a)) 0%,
+      color-mix(in srgb, var(--place) 6%, var(--banner-sky-b)) 58%,
+      var(--bg) 100%);
+}
+.pb-in{ padding:calc(var(--header-h) + 18px) 24px 30px; }
+
+/* 문장 + 룬 원 */
+.pb-emblem{
+  position:relative; width:150px; height:150px;
+  margin:0 auto 26px;
+  display:flex; align-items:center; justify-content:center;
+  color:var(--place); filter:var(--glow);
+}
+.pb-gear{
+  width:78px; height:78px; position:relative; z-index:1;
+  stroke:currentColor; stroke-width:2.5; fill:none;
+  stroke-linecap:round; stroke-linejoin:round;
+}
+/* RuneRing — 전작 유산 단순화 이식: 외륜 90s 정회전 · 내륜 70s 역회전 */
+.rune-ring{
+  position:absolute; inset:-24%;
+  color:var(--place); opacity:.92;
+  pointer-events:none;
+}
+.rune-ring svg{ position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
+.rune-ring text{ font-family:'Segoe UI Historic','Segoe UI Symbol',serif; }
+.rune-ring-outer{ animation:rune-spin-cw 90s linear infinite; }
+.rune-ring-inner{ animation:rune-spin-ccw 70s linear infinite; }
+/* 룬 글자는 역회전으로 항상 정자세 */
+.rune-ring-outer .runes{
+  transform-origin:100px 100px;
+  animation:rune-spin-ccw 90s linear infinite;
+}
+@keyframes rune-spin-cw{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
+@keyframes rune-spin-ccw{ from{ transform:rotate(0deg); } to{ transform:rotate(-360deg); } }
+
+.pb-locus{
+  font-family:var(--disp); font-size:11px; font-weight:600;
+  letter-spacing:.4em; text-transform:uppercase;
+  color:color-mix(in srgb, var(--place) 40%, var(--ink));
+  text-shadow:var(--hd-halo);
+  margin-bottom:8px;
+}
+.pb-name{
+  font-family:var(--serif); font-weight:700;
+  font-size:clamp(30px,4.6vw,42px); line-height:1.25; letter-spacing:.02em;
+  color:var(--ink); text-shadow:var(--hd-halo);
+}
+.pb-en{
+  font-family:var(--disp); font-size:13px; font-weight:600;
+  letter-spacing:.34em; text-transform:uppercase;
+  color:color-mix(in srgb, var(--place) 40%, var(--ink));
+  text-shadow:var(--hd-halo);
+  margin-top:9px;
+}
+/* 입간판 플레이버 */
+.pb-plaque{
+  display:inline-block; margin-top:22px; padding:9px 22px;
+  font-family:var(--serif); font-size:14.5px; font-style:italic;
+  color:var(--ink); text-shadow:var(--hd-halo);
+  border:1px solid color-mix(in srgb, var(--place) 45%, transparent);
+  background:color-mix(in srgb, var(--bg) 40%, transparent);
+  position:relative;
+}
+.pb-plaque::before,.pb-plaque::after{
+  content:"✦"; position:absolute; top:50%; transform:translateY(-52%);
+  font-size:8px; font-style:normal;
+  color:color-mix(in srgb, var(--place) 70%, var(--ink));
+}
+.pb-plaque::before{ left:8px; }
+.pb-plaque::after{ right:8px; }
+@media (max-width:560px){
+  .place-banner{ height:auto; min-height:380px; }
+  .pb-emblem{ width:122px; height:122px; margin-bottom:20px; }
+  .pb-gear{ width:64px; height:64px; }
+  .pb-plaque{ padding:8px 26px; font-size:13.5px; }
+}
+
+/* 전역 파티클 캔버스 */
+#fxCanvas{
+  position:fixed; inset:0; width:100%; height:100%;
+  z-index:1; pointer-events:none;
+}
+
+/* ---------- 홈 섹션 리듬 ---------- */
+.home-section{ margin:3.4rem 0; }
+
+/* ============================================================
+   방랑자의 칭호 카드
+   ============================================================ */
+.rank-card{
+  position:relative; isolation:isolate;
+  max-width:760px; margin:2.4rem auto 0;
+  background:var(--wash);
+  border:1px solid var(--card-border);
+  padding:26px clamp(20px,4.5vw,42px) 24px;
+  overflow:hidden;
+}
+/* 카드 양피지 grain (공용) */
+.rank-card::after,
+.record-card::after,
+.chron-card::after,
+.road-card::after{
+  content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.4 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size:140px 140px; opacity:.1; mix-blend-mode:var(--grain-blend);
+}
+/* 네 모서리 금 장식 (공용) */
+.card-corner{
+  position:absolute; width:14px; height:14px;
+  border-color:var(--gold); opacity:var(--corner-op);
+  filter:var(--glow);
+  pointer-events:none; z-index:2;
+}
+.card-corner-tl{ top:6px; left:6px; border-top:1px solid; border-left:1px solid; }
+.card-corner-tr{ top:6px; right:6px; border-top:1px solid; border-right:1px solid; }
+.card-corner-bl{ bottom:6px; left:6px; border-bottom:1px solid; border-left:1px solid; }
+.card-corner-br{ bottom:6px; right:6px; border-bottom:1px solid; border-right:1px solid; }
+
+.rank-head{ text-align:center; }
+.rank-eyebrow{
+  display:block; font-family:var(--disp); font-size:10.5px; font-weight:600;
+  letter-spacing:.32em; text-transform:uppercase; color:var(--gold); margin-bottom:6px;
+}
+.rank-line{ font-family:var(--serif); font-size:15px; color:var(--muted); }
+.rank-line .rank-now{
+  font-size:21px; font-weight:700; color:var(--ink); margin:0 2px;
+}
+.rank-line .rank-en{
+  font-family:var(--disp); font-size:11px; letter-spacing:.18em;
+  text-transform:uppercase; color:color-mix(in srgb, var(--place) 40%, var(--ink));
+  margin-left:6px;
+}
+.rank-count{ font-size:13px; color:var(--muted); margin-top:3px; }
+.rank-count b{ color:var(--gold-text); font-weight:600; }
+
+/* 4단계 계보 */
+.rank-steps{
+  list-style:none; display:flex; margin:24px 0 20px;
+}
+.rank-steps li{
+  flex:1; text-align:center; font-size:12.5px; color:var(--muted);
+  position:relative; padding-top:18px; line-height:1.5;
+}
+.rank-steps li::before{
+  content:""; position:absolute; top:5px; left:0; right:0; height:1px;
+  background:var(--card-border);
+}
+.rank-steps li:first-child::before{ left:50%; }
+.rank-steps li:last-child::before{ right:50%; }
+.rank-steps li::after{
+  content:""; position:absolute; top:1px; left:50%;
+  width:9px; height:9px; transform:translateX(-50%) rotate(45deg);
+  background:var(--card); border:1px solid var(--card-border);
+}
+.rank-steps li.done{ color:var(--gold-text); }
+.rank-steps li.done::before{ background:color-mix(in srgb, var(--gold) 55%, var(--card-border)); }
+.rank-steps li.done::after{ background:var(--gold); border-color:var(--gold); }
+.rank-steps li.cur{ font-family:var(--serif); font-weight:700; color:var(--ink); }
+.rank-steps li.cur::after{
+  box-shadow:0 0 0 3px var(--gold-soft), 0 0 10px color-mix(in srgb, var(--gold) 35%, transparent);
+}
+.rank-steps .rs-num{
+  display:block; font-family:var(--disp); font-size:10.5px;
+  letter-spacing:.12em; color:inherit; opacity:.75;
+}
+
+/* 진행 바 — 각진 판형 · 황금 채움 */
+.rank-bar{
+  height:11px; position:relative;
+  border:1px solid color-mix(in srgb, var(--gold) 45%, var(--card-border));
+  background:color-mix(in srgb, var(--ink) 6%, transparent);
+}
+.rank-fill{
+  position:absolute; top:0; bottom:0; left:0;
+  background:linear-gradient(90deg, var(--gold-dim), var(--gold));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28);
+}
+.rank-fill::after{ /* 끝단 마름모 촉 */
+  content:""; position:absolute; right:-4px; top:50%;
+  width:7px; height:7px; transform:translateY(-50%) rotate(45deg);
+  background:var(--gold);
+}
+.rank-note{
+  display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  font-size:13px; color:var(--muted); margin-top:11px;
+}
+.rank-note b{ color:var(--gold-text); font-weight:600; }
+.rank-note .rn-frac{ font-family:var(--code); font-size:12.5px; }
+
+/* ============================================================
+   기록 목록 — 수채 워시 카드 그리드
+   ============================================================ */
+.record-grid{
+  display:grid; gap:1.1rem;
+  grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));
+}
+@media (max-width:400px){ .record-grid{ grid-template-columns:1fr; } }
+.record-card{
+  position:relative; isolation:isolate; display:block;
+  background:var(--wash);
+  border:1px solid var(--card-border);
+  border-left:3px solid color-mix(in srgb, var(--place) 65%, transparent);
+  padding:1.25rem 1.4rem 1.1rem; color:var(--ink); overflow:hidden;
+}
+a.record-card{
+  transition:background .3s ease, border-color .3s ease, transform .3s ease, box-shadow .3s ease;
+}
+a.record-card::before{
+  content:""; position:absolute; top:0; left:-100%; width:100%; height:100%;
+  background:linear-gradient(100deg, transparent 0%,
+    color-mix(in srgb, var(--gold) 10%, transparent) 50%, transparent 100%);
+  transition:left .7s ease; pointer-events:none;
+}
+a.record-card:hover{
+  background:var(--wash-hover);
+  border-color:var(--hover-border);
+  border-left-color:var(--place); border-left-width:4px;
+  transform:translateY(-4px);
+  box-shadow:0 6px 20px rgba(0,0,0,.14), 0 0 24px color-mix(in srgb, var(--gold) 14%, transparent);
+}
+a.record-card:hover::before{ left:100%; }
+.rc-top{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:7px; }
+.rc-place{
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:12px; font-weight:600; letter-spacing:.04em;
+  color:color-mix(in srgb, var(--place) 80%, var(--ink));
+}
+/* 밀랍 봉인 점 */
+.rc-seal{
+  width:9px; height:9px; border-radius:50%; flex:none;
+  background:radial-gradient(circle at 34% 30%,
+    color-mix(in srgb, var(--place) 55%, #fff) 0%, var(--place) 55%,
+    color-mix(in srgb, var(--place) 65%, #000) 100%);
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--place) 12%, transparent);
+}
+/* 연대기 소속 배지 */
+.rc-chron{
+  display:inline-block; margin-left:auto;
+  font-family:var(--serif); font-size:11.5px; line-height:1.7;
+  color:color-mix(in srgb, var(--place) 60%, var(--ink));
+  border:1px solid color-mix(in srgb, var(--place) 40%, transparent);
+  background:color-mix(in srgb, var(--place) 8%, transparent);
+  padding:0 8px;
+}
+.record-card h3{
+  font-family:var(--serif); font-size:1.08rem; font-weight:700;
+  line-height:1.5; margin:0 0 .3rem;
+}
+.rc-meta{
+  display:flex; align-items:center; gap:.65rem; flex-wrap:wrap;
+  font-size:.84rem; color:var(--muted); margin-top:.5rem;
+}
+.rc-meta time{ font-family:var(--code); font-size:.8rem; }
+.rc-meta .tag{
+  font-family:var(--code); font-size:.74rem; letter-spacing:.03em;
+  color:var(--viridian-text);
+  border:1px solid color-mix(in srgb, var(--viridian) 40%, transparent);
+  padding:1px 8px;
+}
+.rc-meta .journey{ font-family:var(--serif); color:var(--gold-text); }
+.rc-meta .dot{ color:var(--gold); font-size:8px; }
+
+/* ============================================================
+   연대기 서가
+   ============================================================ */
+.chron-card{
+  position:relative; isolation:isolate;
+  max-width:760px; margin:0 auto;
+  background:var(--wash);
+  border:1px solid var(--card-border);
+  padding:24px clamp(20px,4vw,36px) 20px;
+  overflow:hidden;
+}
+.chron-head{ display:flex; align-items:flex-start; gap:14px; }
+.chron-icon{
+  flex:none; margin-top:3px; color:var(--place); filter:var(--glow);
+}
+.chron-icon svg{
+  width:36px; height:36px; stroke:currentColor; stroke-width:2.5; fill:none;
+  stroke-linecap:round; stroke-linejoin:round;
+}
+.chron-name{ font-family:var(--serif); font-size:19px; font-weight:700; line-height:1.4; }
+.chron-en{
+  font-family:var(--disp); font-size:10.5px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--muted);
+}
+.chron-status{
+  margin-left:auto; flex:none; align-self:center;
+  font-family:var(--serif); font-size:12.5px;
+  color:color-mix(in srgb, var(--place) 60%, var(--ink));
+  border:1px solid color-mix(in srgb, var(--place) 40%, transparent);
+  background:color-mix(in srgb, var(--place) 8%, transparent);
+  padding:2px 10px; white-space:nowrap;
+}
+.chron-desc{ font-size:13.5px; color:var(--muted); margin:10px 0 4px; }
+.chron-toc{ list-style:none; margin-top:12px; }
+.chron-toc a{
+  display:flex; align-items:baseline; gap:12px;
+  padding:10px 6px;
+  border-bottom:1px dashed var(--card-border);
+  transition:background-color .25s;
+}
+.chron-toc li:first-child a{ border-top:1px dashed var(--card-border); }
+.chron-toc a:hover{ background:color-mix(in srgb, var(--place) 8%, transparent); }
+.chron-toc .ep{
+  flex:none; font-family:var(--serif); font-size:12.5px; font-weight:700;
+  color:color-mix(in srgb, var(--place) 75%, var(--ink));
+}
+.chron-toc .ep-title{ font-size:14.5px; min-width:0; }
+.chron-toc time{
+  margin-left:auto; flex:none;
+  font-family:var(--code); font-size:12px; color:var(--muted);
+}
+.chron-more{
+  display:inline-block; margin-top:14px; font-size:13px; color:var(--gold-text);
+  border-bottom:1px solid transparent;
+  transition:color .2s, border-color .2s;
+}
+.chron-more:hover{ color:var(--gold); border-bottom-color:var(--gold); }
+@media (max-width:560px){
+  .chron-head{ flex-wrap:wrap; }
+  .chron-status{ margin-left:50px; align-self:flex-start; }
+  .chron-toc time{ display:none; }
+}
+
+/* ============================================================
+   이웃 장소 내비 — 다른 길로
+   ============================================================ */
+.roads{
+  display:grid; grid-template-columns:1fr 1fr; gap:1.25rem;
+  max-width:860px; margin:0 auto;
+}
+@media (max-width:600px){ .roads{ grid-template-columns:1fr; } }
+.road-card{
+  position:relative; isolation:isolate;
+  display:flex; align-items:center; gap:13px;
+  background:var(--wash);
+  border:1px solid var(--card-border);
+  padding:15px 18px; color:var(--ink); overflow:hidden;
+  transition:border-color .3s ease, background .3s ease,
+    transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease;
+}
+.road-card:hover{
+  background:var(--wash-hover);
+  border-color:color-mix(in srgb, var(--place) 65%, var(--card-border));
+  transform:translateY(-4px);
+  box-shadow:0 8px 22px -10px color-mix(in srgb, var(--place) 32%, transparent);
+}
+.road-card.next{ flex-direction:row-reverse; text-align:right; }
+.road-icon{ flex:none; color:var(--place); filter:var(--glow); }
+.road-icon svg{
+  width:32px; height:32px; stroke:currentColor; stroke-width:2.5; fill:none;
+  stroke-linecap:round; stroke-linejoin:round;
+}
+.road-card > div{ min-width:0; }
+.road-dir{
+  font-family:var(--disp); font-size:10px; font-weight:600;
+  letter-spacing:.22em; text-transform:uppercase; color:var(--muted);
+}
+.road-name{ font-family:var(--serif); font-size:15.5px; font-weight:700; line-height:1.4; }
+.road-en{
+  font-family:var(--disp); font-size:10.5px; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--muted);
+}
+.road-arrow{
+  margin-left:auto; flex:none; font-size:15px;
+  color:color-mix(in srgb, var(--place) 75%, var(--ink));
+}
+.road-card.next .road-arrow{ margin-left:0; margin-right:auto; }
+
+/* ---------- 푸터 ---------- */
+footer.site{
+  margin-top:84px; padding:8px 0 10px; text-align:center;
+  color:var(--muted); font-size:13px;
+}
+footer.site .tail-orn{ margin-bottom:20px; }
+footer.site .links{ display:flex; gap:28px; justify-content:center; margin-bottom:12px; }
+footer.site .links a{
+  font-family:var(--serif); font-size:13.5px; color:var(--muted);
+  border-bottom:1px solid transparent;
+  transition:color .2s, border-color .2s;
+}
+footer.site .links a:hover{ color:var(--gold); border-bottom-color:var(--gold); }
+footer.site .colophon{ letter-spacing:.04em; }
+
+/* ---------- 모션 감소 존중 ---------- */
+@media (prefers-reduced-motion: reduce){
+  html{ scroll-behavior:auto; }
+  *,*::before,*::after{ transition:none !important; animation:none !important; }
+  [data-animate]{ opacity:1 !important; transform:none !important; }
+}
+</style>
+</head>
+<body class="tinted" style="--place-l:#44607a;--place-d:#5e7d95">
+
+<!-- 폴리오 프레임: 코너 플러리시 + 페이드아웃 괘선 스텁 -->
+<div class="folio-frame" aria-hidden="true">
+  <div class="corner c-tl"></div>
+  <div class="corner c-tr"></div>
+  <div class="corner c-bl"></div>
+  <div class="corner c-br"></div>
+</div>
+
+<div class="wrap">
+
+<header class="site">
+  <div class="hd-in">
+    <a class="brand" href="#top">
+      <svg width="21" height="21" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M24 5 L27.6 20.4 L43 24 L27.6 27.6 L24 43 L20.4 27.6 L5 24 L20.4 20.4 Z"/>
+        <circle cx="33" cy="15" r="1.6" fill="currentColor" stroke="none"/>
+        <circle cx="33" cy="33" r="1.6" fill="currentColor" stroke="none"/>
+        <circle cx="15" cy="33" r="1.6" fill="currentColor" stroke="none"/>
+        <circle cx="15" cy="15" r="1.6" fill="currentColor" stroke="none"/>
+      </svg>
+      <span class="en">The Wanderer's Crossroads</span>
+    </a>
+    <nav class="primary" aria-label="주 메뉴">
+      <a href="#top">교차로</a>
+      <a href="#top" aria-current="page">열두 장소</a>
+      <a href="#records">서고</a>
+      <a href="#chronicle">연대기</a>
+      <a href="#top">방랑자의 일지</a>
+      <a href="#footer">여행자의 쉼터</a>
+    </nav>
+    <button class="ask-guide" type="button"><span class="dia" aria-hidden="true">✦</span>길잡이에게 묻기</button>
+    <div class="theme-toggle" role="group" aria-label="테마 전환">
+      <button type="button" id="btn-light" aria-pressed="false" aria-label="여명 테마로 전환">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M12 21h4M5 7h11l3 2-3 2H5zM19 13H9l-3 2 3 2h10z"/></svg>
+        여명
+      </button>
+      <button type="button" id="btn-dark" aria-pressed="false" aria-label="모닥불 테마로 전환">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6M12 4v2M8 6h8l1 10a5 5 0 0 1-10 0zM12 10a2.5 2.5 0 0 1 2 3 2 2 0 0 1-4 0 2.5 2.5 0 0 1 2-3zM10 21h4"/></svg>
+        모닥불
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ============ 장소 배너 — 이 페이지의 얼굴 ============ -->
+<section class="place-banner" aria-label="공학자 길드 입구">
+  <div class="pb-in">
+    <div class="pb-emblem" aria-hidden="true">
+      <!-- RuneRing: 외륜(90s 정회전) -->
+      <div class="rune-ring">
+        <svg class="rune-ring-outer" viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="92" fill="none" stroke="currentColor" stroke-width="0.6" opacity="0.55"/>
+          <circle cx="100" cy="100" r="84" fill="none" stroke="currentColor" stroke-width="0.4" stroke-dasharray="2 6" opacity="0.4"/>
+          <circle cx="100" cy="8" r="2" fill="currentColor" opacity="0.7"/>
+          <circle cx="192" cy="100" r="2" fill="currentColor" opacity="0.7"/>
+          <circle cx="100" cy="192" r="2" fill="currentColor" opacity="0.7"/>
+          <circle cx="8" cy="100" r="2" fill="currentColor" opacity="0.7"/>
+          <g class="runes">
+            <text x="100" y="22" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.75">ᚠ</text>
+            <text x="156" y="42" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.7">ᚢ</text>
+            <text x="178" y="103" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.75">ᚦ</text>
+            <text x="156" y="166" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.7">ᚨ</text>
+            <text x="100" y="186" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.75">ᚱ</text>
+            <text x="44" y="166" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.7">ᚲ</text>
+            <text x="22" y="103" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.75">ᚷ</text>
+            <text x="44" y="42" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.7">ᚹ</text>
+          </g>
+        </svg>
+        <!-- 내륜(70s 역회전) -->
+        <svg class="rune-ring-inner" viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="60" fill="none" stroke="currentColor" stroke-width="0.5" opacity="0.35"/>
+          <circle cx="100" cy="100" r="55" fill="none" stroke="currentColor" stroke-width="0.3" stroke-dasharray="1 4" opacity="0.45"/>
+          <g opacity="0.6" fill="currentColor">
+            <path d="M 100 36 L 102 42 L 100 48 L 98 42 Z"/>
+            <path d="M 164 100 L 158 102 L 152 100 L 158 98 Z"/>
+            <path d="M 100 164 L 102 158 L 100 152 L 98 158 Z"/>
+            <path d="M 36 100 L 42 102 L 48 100 L 42 98 Z"/>
+          </g>
+        </svg>
+      </div>
+      <!-- 길드 문장: 톱니 모노라인 -->
+      <svg class="pb-gear" viewBox="0 0 96 96">
+        <circle cx="48" cy="48" r="18"/>
+        <circle cx="48" cy="48" r="5.2"/>
+        <path d="M66 48h9M48 66v9M30 48h-9M48 30v-9"/>
+        <path d="M60.7 60.7l6.4 6.4M35.3 35.3l-6.4-6.4M60.7 35.3l6.4-6.4M35.3 60.7l-6.4 6.4"/>
+      </svg>
+    </div>
+    <p class="pb-locus">The Twelve Places · Locus Ⅳ</p>
+    <h1 class="pb-name">공학자 길드</h1>
+    <p class="pb-en">Engineers' Guild</p>
+    <p class="pb-plaque">"우리는 마법을 믿지 않는다. 다만 동작하는 것을 믿는다."</p>
+  </div>
+</section>
+
+<!-- 전역 파티클 (별+반딧불이 / 황금 먼지) -->
+<canvas id="fxCanvas" aria-hidden="true"></canvas>
+
+<!-- ============ 방랑자의 칭호 ============ -->
+<section class="home-section" id="standing" aria-label="이곳에서의 방랑자">
+  <div class="rank-card" data-animate>
+    <span class="card-corner card-corner-tl" aria-hidden="true"></span>
+    <span class="card-corner card-corner-tr" aria-hidden="true"></span>
+    <span class="card-corner card-corner-bl" aria-hidden="true"></span>
+    <span class="card-corner card-corner-br" aria-hidden="true"></span>
+
+    <div class="rank-head">
+      <span class="rank-eyebrow">Wanderer's Standing</span>
+      <p class="rank-line">이곳에서의 방랑자 — <b class="rank-now">장인</b><span class="rank-en">Artisan</span></p>
+      <p class="rank-count">이 길드에 남긴 <b>기록 12편</b></p>
+    </div>
+
+    <ol class="rank-steps" aria-label="길드 칭호 계보">
+      <li class="done"><span class="rs-num" aria-hidden="true">Ⅰ</span>견습공</li>
+      <li class="done"><span class="rs-num" aria-hidden="true">Ⅱ</span>직공</li>
+      <li class="done cur" aria-current="step"><span class="rs-num" aria-hidden="true">Ⅲ</span>장인</li>
+      <li><span class="rs-num" aria-hidden="true">Ⅳ</span>길드 마스터</li>
+    </ol>
+
+    <div class="rank-bar" role="progressbar" aria-valuemin="0" aria-valuemax="30" aria-valuenow="12" aria-label="다음 칭호 길드 마스터까지의 진행도">
+      <div class="rank-fill" style="width:40%"></div>
+    </div>
+    <p class="rank-note">
+      <span>다음 칭호 <b>길드 마스터</b>까지 18편의 기록이 남았다</span>
+      <span class="rn-frac">12 / 30</span>
+    </p>
+  </div>
+</section>
+
+<div class="orn" aria-hidden="true">✦&nbsp;&nbsp;✦&nbsp;&nbsp;✦</div>
+
+<!-- ============ 기록 목록 ============ -->
+<section class="home-section" id="records" aria-label="길드의 기록">
+  <div class="section-head" data-animate>
+    <div class="orn-line" data-orn="headpiece" aria-hidden="true"></div>
+    <span class="eyebrow">Records of the Guild</span>
+    <h2>길드의 기록</h2>
+    <div class="orn-line tail" data-orn="tailpiece" aria-hidden="true"></div>
+    <span class="sec-note">이 작업대 위에 남긴 <b>기록 12편</b> — 최근 것부터</span>
+  </div>
+
+  <div class="record-grid">
+
+    <a class="record-card" href="#records" data-animate>
+      <div class="rc-top">
+        <span class="rc-place"><span class="rc-seal" aria-hidden="true"></span>공학자 길드</span>
+        <span class="rc-chron">연대기: Python 심장부로 · 3화</span>
+      </div>
+      <h3>GIL은 정말 악당인가 — 동시성의 문지기</h3>
+      <div class="rc-meta">
+        <time datetime="2026-07-09">2026-07-09</time>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="tag">python</span><span class="tag">gil</span>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="journey">약 16분의 여정</span>
+      </div>
+    </a>
+
+    <a class="record-card" href="#records" data-animate>
+      <div class="rc-top">
+        <span class="rc-place"><span class="rc-seal" aria-hidden="true"></span>공학자 길드</span>
+        <span class="rc-chron">연대기: Python 심장부로 · 2화</span>
+      </div>
+      <h3>Python 데코레이터, 제대로 이해하기</h3>
+      <div class="rc-meta">
+        <time datetime="2026-07-02">2026-07-02</time>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="tag">python</span><span class="tag">decorator</span>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="journey">약 12분의 여정</span>
+      </div>
+    </a>
+
+    <a class="record-card" href="#records" data-animate>
+      <div class="rc-top">
+        <span class="rc-place"><span class="rc-seal" aria-hidden="true"></span>공학자 길드</span>
+      </div>
+      <h3>도커 이미지 다이어트 — 멀티스테이지 빌드의 기술</h3>
+      <div class="rc-meta">
+        <time datetime="2026-06-30">2026-06-30</time>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="tag">docker</span><span class="tag">build</span>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="journey">약 10분의 여정</span>
+      </div>
+    </a>
+
+    <a class="record-card" href="#records" data-animate>
+      <div class="rc-top">
+        <span class="rc-place"><span class="rc-seal" aria-hidden="true"></span>공학자 길드</span>
+        <span class="rc-chron">연대기: Python 심장부로 · 1화</span>
+      </div>
+      <h3>파이썬은 어떻게 코드를 실행하는가 — 바이트코드 첫걸음</h3>
+      <div class="rc-meta">
+        <time datetime="2026-06-18">2026-06-18</time>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="tag">python</span><span class="tag">bytecode</span>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="journey">약 14분의 여정</span>
+      </div>
+    </a>
+
+    <a class="record-card" href="#records" data-animate>
+      <div class="rc-top">
+        <span class="rc-place"><span class="rc-seal" aria-hidden="true"></span>공학자 길드</span>
+      </div>
+      <h3>git rebase가 무섭지 않게 되는 순간</h3>
+      <div class="rc-meta">
+        <time datetime="2026-06-14">2026-06-14</time>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="tag">git</span><span class="tag">workflow</span>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="journey">약 9분의 여정</span>
+      </div>
+    </a>
+
+    <a class="record-card" href="#records" data-animate>
+      <div class="rc-top">
+        <span class="rc-place"><span class="rc-seal" aria-hidden="true"></span>공학자 길드</span>
+      </div>
+      <h3>레이어드에서 헥사고날로 — 아키텍처 개축기</h3>
+      <div class="rc-meta">
+        <time datetime="2026-06-08">2026-06-08</time>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="tag">architecture</span>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="journey">약 15분의 여정</span>
+      </div>
+    </a>
+
+    <a class="record-card" href="#records" data-animate>
+      <div class="rc-top">
+        <span class="rc-place"><span class="rc-seal" aria-hidden="true"></span>공학자 길드</span>
+      </div>
+      <h3>pytest fixture, 의존성 주입처럼 쓰기</h3>
+      <div class="rc-meta">
+        <time datetime="2026-05-29">2026-05-29</time>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="tag">python</span><span class="tag">pytest</span>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="journey">약 11분의 여정</span>
+      </div>
+    </a>
+
+    <a class="record-card" href="#records" data-animate>
+      <div class="rc-top">
+        <span class="rc-place"><span class="rc-seal" aria-hidden="true"></span>공학자 길드</span>
+      </div>
+      <h3>Nginx 설정 파일을 한 줄씩 읽어보았다</h3>
+      <div class="rc-meta">
+        <time datetime="2026-05-20">2026-05-20</time>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="tag">nginx</span><span class="tag">devops</span>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="journey">약 13분의 여정</span>
+      </div>
+    </a>
+
+    <a class="record-card" href="#records" data-animate>
+      <div class="rc-top">
+        <span class="rc-place"><span class="rc-seal" aria-hidden="true"></span>공학자 길드</span>
+      </div>
+      <h3>타입 힌트가 버그를 잡아준 세 번의 순간</h3>
+      <div class="rc-meta">
+        <time datetime="2026-05-11">2026-05-11</time>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="tag">python</span><span class="tag">typing</span>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="journey">약 8분의 여정</span>
+      </div>
+    </a>
+
+    <a class="record-card" href="#records" data-animate>
+      <div class="rc-top">
+        <span class="rc-place"><span class="rc-seal" aria-hidden="true"></span>공학자 길드</span>
+      </div>
+      <h3>CI 파이프라인, 3분에서 40초로</h3>
+      <div class="rc-meta">
+        <time datetime="2026-04-27">2026-04-27</time>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="tag">ci</span><span class="tag">github-actions</span>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="journey">약 12분의 여정</span>
+      </div>
+    </a>
+
+    <a class="record-card" href="#records" data-animate>
+      <div class="rc-top">
+        <span class="rc-place"><span class="rc-seal" aria-hidden="true"></span>공학자 길드</span>
+      </div>
+      <h3>.env와 시크릿 관리의 정석</h3>
+      <div class="rc-meta">
+        <time datetime="2026-04-15">2026-04-15</time>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="tag">devops</span><span class="tag">security</span>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="journey">약 9분의 여정</span>
+      </div>
+    </a>
+
+    <a class="record-card" href="#records" data-animate>
+      <div class="rc-top">
+        <span class="rc-place"><span class="rc-seal" aria-hidden="true"></span>공학자 길드</span>
+      </div>
+      <h3>이름 짓기의 기술 — 변수명이 곧 설계다</h3>
+      <div class="rc-meta">
+        <time datetime="2026-04-02">2026-04-02</time>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="tag">clean-code</span>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="journey">약 7분의 여정</span>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+<div class="orn" aria-hidden="true">✦&nbsp;&nbsp;✦&nbsp;&nbsp;✦</div>
+
+<!-- ============ 연대기 서가 ============ -->
+<section class="home-section" id="chronicle" aria-label="이 장소의 연대기">
+  <div class="section-head" data-animate>
+    <div class="orn-line" data-orn="headpiece" aria-hidden="true"></div>
+    <span class="eyebrow">Chronicles of the Guild</span>
+    <h2>연대기 서가</h2>
+    <div class="orn-line tail" data-orn="tailpiece" aria-hidden="true"></div>
+    <span class="sec-note">이어지는 이야기 — 이 길드에서 쓰인 연대기 <b>1권</b></span>
+  </div>
+
+  <div class="chron-card" data-animate>
+    <span class="card-corner card-corner-tl" aria-hidden="true"></span>
+    <span class="card-corner card-corner-tr" aria-hidden="true"></span>
+    <span class="card-corner card-corner-bl" aria-hidden="true"></span>
+    <span class="card-corner card-corner-br" aria-hidden="true"></span>
+
+    <div class="chron-head">
+      <span class="chron-icon" aria-hidden="true">
+        <svg viewBox="0 0 48 48"><path d="M15 7h18v34l-9-7-9 7z"/><path d="M15 13h18"/><circle cx="24" cy="24" r="4"/><path d="M24 18.5V20M24 28v1.5M29.5 24H28M20 24h-1.5"/></svg>
+      </span>
+      <div>
+        <div class="chron-name">Python 심장부로</div>
+        <div class="chron-en">Into the Heart of Python</div>
+      </div>
+      <span class="chron-status">3편 진행 중</span>
+    </div>
+    <p class="chron-desc">인터프리터의 뚜껑을 열고, 바이트코드에서 GIL까지 — 동작하는 것의 내부를 향한 연속 기행.</p>
+
+    <ol class="chron-toc">
+      <li>
+        <a href="#chronicle">
+          <span class="ep">제1화</span>
+          <span class="ep-title">파이썬은 어떻게 코드를 실행하는가 — 바이트코드 첫걸음</span>
+          <time datetime="2026-06-18">2026-06-18</time>
+        </a>
+      </li>
+      <li>
+        <a href="#chronicle">
+          <span class="ep">제2화</span>
+          <span class="ep-title">Python 데코레이터, 제대로 이해하기</span>
+          <time datetime="2026-07-02">2026-07-02</time>
+        </a>
+      </li>
+      <li>
+        <a href="#chronicle">
+          <span class="ep">제3화</span>
+          <span class="ep-title">GIL은 정말 악당인가 — 동시성의 문지기</span>
+          <time datetime="2026-07-09">2026-07-09</time>
+        </a>
+      </li>
+    </ol>
+
+    <a class="chron-more" href="#chronicle">연대기 첫 화부터 이어 읽기 →</a>
+  </div>
+</section>
+
+<div class="orn" aria-hidden="true">✦&nbsp;&nbsp;✦&nbsp;&nbsp;✦</div>
+
+<!-- ============ 이웃 장소 내비 ============ -->
+<section class="home-section" id="roads" aria-label="이웃 장소로 가는 길">
+  <div class="section-head" data-animate>
+    <span class="eyebrow">Other Roads</span>
+    <h2>다른 길로</h2>
+    <div class="orn-line tail" data-orn="tailpiece" aria-hidden="true"></div>
+  </div>
+
+  <nav class="roads" aria-label="이전·다음 장소">
+    <a class="road-card tinted prev" href="#roads" data-animate style="--place-l:#3e7d5f;--place-d:#5fa886">
+      <span class="road-arrow" aria-hidden="true">←</span>
+      <span class="road-icon" aria-hidden="true">
+        <svg viewBox="0 0 48 48"><path d="M20 7h8"/><path d="M22 7v11l-8.5 15a6 6 0 0 0 5.2 9h10.6a6 6 0 0 0 5.2-9L26 18V7"/><path d="M17 31h14"/><circle cx="22" cy="36" r="1.6" fill="currentColor" stroke="none"/><circle cx="27" cy="38.5" r="1.2" fill="currentColor" stroke="none"/></svg>
+      </span>
+      <div>
+        <div class="road-dir">이전 장소</div>
+        <div class="road-name">연금술사의 연구실</div>
+        <div class="road-en">Alchemist's Laboratory</div>
+      </div>
+    </a>
+    <a class="road-card tinted next" href="#roads" data-animate style="--place-l:#6a3f6a;--place-d:#9c6b9c">
+      <span class="road-arrow" aria-hidden="true">→</span>
+      <span class="road-icon" aria-hidden="true">
+        <svg viewBox="0 0 48 48"><path d="M24 18c-3-2.6-8-3.6-13-2.8V38c5-.8 10 .2 13 2.8 3-2.6 8-3.6 13-2.8V15.2c-5-.8-10 .2-13 2.8z"/><path d="M24 18v22.8"/><path d="M24 4v7M20.5 7.5h7"/></svg>
+      </span>
+      <div>
+        <div class="road-dir">다음 장소</div>
+        <div class="road-name">마법사의 도서관</div>
+        <div class="road-en">Wizard's Library</div>
+      </div>
+    </a>
+  </nav>
+</section>
+
+</main>
+
+<footer class="site" id="footer">
+  <div class="orn-line tail-orn" data-orn="tailpiece" aria-hidden="true"></div>
+  <div class="links">
+    <a href="#footer">전서구 (RSS)</a>
+    <a href="#footer">GitHub</a>
+  </div>
+  <p class="colophon">© 2026 The Wanderer — 이 교차로는 GitHub의 대지 위에 서 있다.</p>
+</footer>
+
+</div><!-- /.wrap -->
+
+<script>
+(function(){
+  'use strict';
+  var SVGNS='http://www.w3.org/2000/svg';
+  var root=document.documentElement;
+  var mqDark=window.matchMedia('(prefers-color-scheme: dark)');
+  var mqMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  /* ================= 절차 생성 오너먼트 ================= */
+  function mk(name,attrs,parent){
+    var n=document.createElementNS(SVGNS,name);
+    for(var k in attrs) n.setAttribute(k,attrs[k]);
+    if(parent) parent.appendChild(n);
+    return n;
+  }
+  function fmt(v){ return Math.round(v*100)/100; }
+
+  function spiralD(cx,cy,r0,turns,startAngle,dir){
+    var steps=Math.max(18,Math.round(turns*22)), d='', i, a, r, x, y;
+    for(i=0;i<=steps;i++){
+      a=startAngle+dir*(i/steps)*turns*Math.PI*2;
+      r=r0*(1-(i/steps)*0.86);
+      x=cx+r*Math.cos(a); y=cy+r*Math.sin(a);
+      d+=(i===0?'M':'L')+fmt(x)+' '+fmt(y);
+    }
+    return d;
+  }
+  function diamond(cx,cy,r,parent){
+    mk('path',{d:'M'+fmt(cx)+' '+fmt(cy-r)+'L'+fmt(cx+r)+' '+fmt(cy)+
+      'L'+fmt(cx)+' '+fmt(cy+r)+'L'+fmt(cx-r)+' '+fmt(cy)+'Z',
+      fill:'currentColor',stroke:'none'},parent);
+  }
+  function berry(cx,cy,r,parent){
+    mk('circle',{cx:fmt(cx),cy:fmt(cy),r:r,fill:'currentColor',stroke:'none'},parent);
+  }
+
+  function cornerFlourish(){
+    var s=mk('svg',{viewBox:'0 0 64 64','aria-hidden':'true'});
+    var g=mk('g',{fill:'none',stroke:'currentColor','stroke-width':'1.5',
+      'stroke-linecap':'round'},s);
+    mk('path',{d:'M3 61 C3 25 25 3 61 3'},g);
+    mk('path',{d:'M11 61 C11 30 30 11 61 11'},g);
+    mk('path',{d:spiralD(18,52,8,1.35,Math.PI*0.5,-1)},g);
+    mk('path',{d:spiralD(52,18,8,1.35,Math.PI,1)},g);
+    diamond(30,30,4,g);
+    berry(40,22,1.8,g);
+    berry(22,40,1.8,g);
+    berry(48,10,1.4,g);
+    berry(10,48,1.4,g);
+    return s;
+  }
+
+  function vineHalfD(x0,x1,cy,amp){
+    var d='M'+fmt(x0)+' '+fmt(cy), n=3, seg=(x1-x0)/n, i, xa, xb, s;
+    for(i=0;i<n;i++){
+      xa=x0+seg*i; xb=xa+seg; s=(i%2===0)?-1:1;
+      d+=' C '+fmt(xa+seg*0.35)+' '+fmt(cy+s*amp)+', '+
+              fmt(xb-seg*0.35)+' '+fmt(cy+s*amp)+', '+fmt(xb)+' '+fmt(cy);
+    }
+    return d;
+  }
+
+  function headpiece(){
+    var W=300,H=30,cy=15;
+    var s=mk('svg',{viewBox:'0 0 '+W+' '+H,width:W,height:H,'aria-hidden':'true'});
+    var half=mk('g',{fill:'none',stroke:'currentColor','stroke-width':'1.4',
+      'stroke-linecap':'round'},s);
+    half.appendChild(mkPath(vineHalfD(132,36,cy,9)));
+    half.appendChild(mkPath(spiralD(26,cy,7,1.4,0,1)));
+    berry(116,cy-8,1.7,half);
+    berry(84,cy+8,1.7,half);
+    berry(52,cy-8,1.7,half);
+    var mirror=half.cloneNode(true);
+    mirror.setAttribute('transform','translate('+W+',0) scale(-1,1)');
+    s.appendChild(mirror);
+    diamond(W/2,cy,5,s);
+    mk('circle',{cx:W/2,cy:cy,r:8.5,fill:'none',stroke:'currentColor',
+      'stroke-width':'1'},s);
+    return s;
+
+    function mkPath(d){ return mk('path',{d:d}); }
+  }
+
+  function tailpiece(){
+    var W=170,H=22,cy=11;
+    var s=mk('svg',{viewBox:'0 0 '+W+' '+H,width:W,height:H,'aria-hidden':'true'});
+    var half=mk('g',{fill:'none',stroke:'currentColor','stroke-width':'1.3',
+      'stroke-linecap':'round'},s);
+    mk('path',{d:'M72 '+cy+' C 58 '+(cy-7)+', 44 '+(cy+7)+', 30 '+cy},half);
+    mk('path',{d:spiralD(22,cy,5.5,1.3,0,1)},half);
+    berry(51,cy,1.5,half);
+    var mirror=half.cloneNode(true);
+    mirror.setAttribute('transform','translate('+W+',0) scale(-1,1)');
+    s.appendChild(mirror);
+    diamond(W/2,cy,4,s);
+    return s;
+  }
+
+  document.querySelectorAll('.folio-frame .corner').forEach(function(c){
+    c.appendChild(cornerFlourish());
+  });
+  document.querySelectorAll('[data-orn="headpiece"]').forEach(function(n){
+    n.appendChild(headpiece());
+  });
+  document.querySelectorAll('[data-orn="tailpiece"]').forEach(function(n){
+    n.appendChild(tailpiece());
+  });
+
+  /* ================= 테마: 여명 ↔ 모닥불 ================= */
+  var btnLight=document.getElementById('btn-light');
+  var btnDark=document.getElementById('btn-dark');
+  var manualTheme=false;
+
+  function effectiveTheme(){
+    return root.dataset.theme || (mqDark.matches?'dark':'light');
+  }
+  function syncToggle(){
+    var t=effectiveTheme();
+    btnLight.setAttribute('aria-pressed', String(t==='light'));
+    btnDark.setAttribute('aria-pressed', String(t==='dark'));
+  }
+  function setTheme(t){
+    root.dataset.theme=t;
+    syncToggle();
+    initParticles(); // 반딧불이 ↔ 황금 먼지 교체
+  }
+  btnLight.addEventListener('click',function(){ manualTheme=true; setTheme('light'); });
+  btnDark.addEventListener('click',function(){ manualTheme=true; setTheme('dark'); });
+  mqDark.addEventListener('change',function(){
+    if(!manualTheme) setTheme(mqDark.matches?'dark':'light');
+  });
+
+  /* ================= 헤더: 연속 스크롤 적응형 =================
+     range = 배너 높이 기준 (서브페이지 배너 패턴) */
+  var headerEl=document.querySelector('header.site');
+  var bannerEl=document.querySelector('.place-banner');
+  var hdPending=false;
+  function updateHeader(){
+    var y=window.scrollY||0;
+    var range=Math.max(160,(bannerEl?bannerEl.offsetHeight:320)-60);
+    var p=Math.min(1,Math.max(0,y/range));
+    p=p*p*(3-2*p); // smoothstep
+    headerEl.style.setProperty('--hd-p',p.toFixed(4));
+  }
+  function queueHeader(){
+    if(hdPending) return;
+    hdPending=true;
+    requestAnimationFrame(function(){ hdPending=false; updateHeader(); });
+  }
+  window.addEventListener('scroll',queueHeader,{passive:true});
+  window.addEventListener('resize',queueHeader);
+  updateHeader();
+
+  /* ================= 전역 파티클 (문서 좌표 앵커 · 전역 고정) =================
+     다크: 별(반짝임) + 반딧불이(표류+헤일로) · 라이트: 황금 먼지
+     밀도 = 뷰포트 한 화면당 별44 + 발광12 (라이트=다크 동등) */
+  var canvas=document.getElementById('fxCanvas');
+  var ctx=canvas.getContext('2d');
+  var stars=[], movers=[];
+  var rafId=null, dpr=1;
+  var docHpx=0;
+  var frameCount=0;
+
+  function docHeight(){
+    return document.documentElement.scrollHeight;
+  }
+  function sizeCanvas(){
+    dpr=Math.min(window.devicePixelRatio||1,2);
+    canvas.width=window.innerWidth*dpr;
+    canvas.height=window.innerHeight*dpr;
+  }
+  function mkStar(){
+    return {
+      x:Math.random()*canvas.width,
+      y:Math.random()*docHpx,
+      r:(0.5+Math.random()*0.9)*dpr,
+      phase:Math.random()*Math.PI*2,
+      speed:0.008+Math.random()*0.018
+    };
+  }
+  function mkMover(){
+    return {
+      x:Math.random()*canvas.width,
+      y:Math.random()*docHpx,
+      r:(1.4+Math.random()*1.8)*dpr,
+      vx:(Math.random()-0.5)*0.16*dpr,
+      vy:-(0.04+Math.random()*0.1)*dpr,
+      phase:Math.random()*Math.PI*2,
+      speed:0.006+Math.random()*0.012
+    };
+  }
+  function initParticles(){
+    sizeCanvas();
+    docHpx=docHeight()*dpr;
+    var screens=Math.max(1, docHeight()/Math.max(1,window.innerHeight));
+    stars=[]; movers=[];
+    var i;
+    var ns=Math.round(44*screens), nm=Math.round(12*screens);
+    for(i=0;i<ns;i++) stars.push(mkStar());
+    for(i=0;i<nm;i++) movers.push(mkMover());
+    if(mqMotion.matches){
+      if(rafId!==null){ cancelAnimationFrame(rafId); rafId=null; }
+      drawFrame(true);
+      return;
+    }
+    if(rafId===null) loop();
+  }
+  function drawFrame(staticFrame){
+    var dark=effectiveTheme()==='dark';
+    var w=canvas.width,h=canvas.height,i,p,sy;
+    var offY=(window.scrollY||0)*dpr;
+    var margin=100*dpr;
+    ctx.clearRect(0,0,w,h);
+    // 미세 입자 — 다크: 크림빛 별 / 라이트: 진한 금 먼지
+    var starColor=dark?'240,232,206':'184,134,11';
+    for(i=0;i<stars.length;i++){
+      p=stars[i];
+      if(!staticFrame) p.phase+=p.speed;
+      sy=p.y-offY;
+      if(sy<-margin||sy>h+margin) continue;
+      var tw=0.5+0.5*Math.sin(p.phase);
+      ctx.fillStyle='rgba('+starColor+','+(0.16+tw*0.44).toFixed(3)+')';
+      ctx.beginPath();
+      ctx.arc(p.x,sy,p.r,0,Math.PI*2);
+      ctx.fill();
+    }
+    // 발광 입자 — 다크: 반딧불이 / 라이트: 큰 황금 먼지
+    var color=dark?'212,170,48':'139,105,20';
+    for(i=0;i<movers.length;i++){
+      p=movers[i];
+      if(!staticFrame){
+        p.phase+=p.speed;
+        p.x+=p.vx+Math.sin(p.phase)*0.12*dpr;
+        p.y+=p.vy;
+        if(p.y<-10){ p.y=docHpx+5; }
+        if(p.x<-10||p.x>w+10){ movers[i]=mkMover(); continue; }
+      }
+      sy=p.y-offY;
+      if(sy<-margin||sy>h+margin) continue;
+      var pulse=0.5+0.5*Math.sin(p.phase*3);
+      var alpha=0.25+pulse*0.55;
+      var grad=ctx.createRadialGradient(p.x,sy,0,p.x,sy,p.r*6);
+      grad.addColorStop(0,'rgba('+color+','+(alpha*0.5).toFixed(3)+')');
+      grad.addColorStop(1,'rgba('+color+',0)');
+      ctx.fillStyle=grad;
+      ctx.beginPath();
+      ctx.arc(p.x,sy,p.r*6,0,Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle='rgba('+color+','+alpha.toFixed(3)+')';
+      ctx.beginPath();
+      ctx.arc(p.x,sy,p.r,0,Math.PI*2);
+      ctx.fill();
+    }
+  }
+  function loop(){
+    if(document.hidden){ rafId=requestAnimationFrame(loop); return; }
+    frameCount++;
+    if(frameCount%60===0){
+      var dh=docHeight()*dpr;
+      if(Math.abs(dh-docHpx)>2*dpr){
+        initParticles();
+        rafId=requestAnimationFrame(loop);
+        return;
+      }
+    }
+    drawFrame(false);
+    rafId=requestAnimationFrame(loop);
+  }
+  var resizeTimer=null;
+  window.addEventListener('resize',function(){
+    clearTimeout(resizeTimer);
+    resizeTimer=setTimeout(initParticles,150);
+  });
+  mqMotion.addEventListener('change',function(){
+    if(mqMotion.matches && rafId!==null){ cancelAnimationFrame(rafId); rafId=null; }
+    initParticles();
+  });
+  /* 모션 감소: 스크롤 시 현재 위치의 정적 프레임 재그리기 */
+  var staticScrollPending=false;
+  window.addEventListener('scroll',function(){
+    if(!mqMotion.matches || staticScrollPending) return;
+    staticScrollPending=true;
+    requestAnimationFrame(function(){
+      staticScrollPending=false;
+      drawFrame(true);
+    });
+  },{passive:true});
+
+  /* 초기화: 실효 테마를 dataset에 고정 → CSS 3단 오버라이드와 정합 */
+  setTheme(effectiveTheme());
+
+  /* ================= 스크롤 등장 ================= */
+  var targets=document.querySelectorAll('[data-animate]');
+  if(mqMotion.matches || !('IntersectionObserver' in window)){
+    targets.forEach(function(el){ el.classList.add('is-visible'); });
+  }else{
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){ e.target.classList.add('is-visible'); io.unobserve(e.target); }
+      });
+    },{threshold:0.12,rootMargin:'0px 0px -40px 0px'});
+    targets.forEach(function(el){ io.observe(el); });
+  }
+})();
+</script>
+</body>
+</html>

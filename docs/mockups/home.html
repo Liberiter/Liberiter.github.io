@@ -1,0 +1,1900 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Wanderer's Crossroads — 최종 조합안</title>
+<style>
+/* ============================================================
+   6안 「최종 조합안」
+   구성 = 1안(현행) · 프레임/오너먼트 = 2안 · 히어로 B/파티클 = 4안
+   다크: 초록 반 단계 ↑ + 황금 발광 비중 ↑
+   ============================================================ */
+
+/* ---------- 토큰: 라이트 "새벽의 양피지" ---------- */
+:root{
+  --bg:#FAF5E9;
+  --card:#F3EBD8;
+  --card-hover:#EFE4CD;
+  --ink:#3A3226;
+  --muted:#6E6353;
+  --line:#DFD3B8;
+  --gold:#8B6914;
+  --gold-dim:#A67C1A;
+  --gold-text:#7A5C10;                 /* 카드 위 소형 금 텍스트 (AA 확보) */
+  --gold-soft:rgba(139,105,20,.12);
+  --viridian:#40826D;
+  --viridian-text:#356F5D;             /* 카드 위 소형 비리디안 텍스트 (AA 확보) */
+  --card-border:color-mix(in srgb, var(--gold) 12%, var(--line));
+  --corner-op:.5;
+  --header-h:60px;
+  /* 수채 워시: 라이트 = 극히 옅은 여명(장미빛→앰버)이 카드 상단에서 번짐 */
+  --wash:linear-gradient(160deg, color-mix(in srgb, #C0655B 4%, var(--card)) 0%, var(--card) 46%, color-mix(in srgb, var(--gold-dim) 3%, var(--card)) 100%);
+  --wash-hover:linear-gradient(160deg, color-mix(in srgb, #C0655B 6%, var(--card)) 0%, var(--card) 46%, color-mix(in srgb, var(--gold-dim) 5%, var(--card)) 100%);
+  --hover-border:var(--gold);
+  --journal-accent:var(--gold);
+  --mist:color-mix(in srgb, var(--ink) 9%, transparent);
+  /* 전역 은은한 그라데이션: 상단 여명 장미빛 3% → 양피지 */
+  --ambient-bg:radial-gradient(120% 85% at 50% -12%, color-mix(in srgb, #C0655B 3%, var(--bg)) 0%, var(--bg) 62%);
+  /* 헤더 투명(at-top) 상태: 여명 하늘 상단(#b8bfce) 위 AA 확보용 진한 잉크 + 크림 halo */
+  --hd-top-brand:#5A4020;
+  --hd-top-link:#4A3010;
+  --hd-halo:0 1px 2px rgba(255,245,220,.65), 0 0 10px rgba(255,245,220,.45);
+  --shadow:0 1px 2px rgba(58,50,38,.05), 0 8px 24px -12px rgba(58,50,38,.18);
+  --grain-opacity:.11;
+  --grain-blend:multiply;
+
+  /* 2안 프레임/오너먼트 */
+  --frame:#B99A55;
+  --frame-in:#8B6914;
+  --glow:none;
+
+  /* 4안 히어로 B — 금박 타이포 (라이트: 여명 하늘 위 어두운 금) */
+  --foil-a:#4A370A;
+  --foil-b:#8B6914;
+  --foil-c:#6F540F;
+  --hero-b-bg:linear-gradient(to bottom,#b8bfce 0%,#d4bcbe 30%,#e4c8a8 60%,#ecd8ba 80%,#faf5e9 100%);
+  --hero-b-veil:radial-gradient(120% 70% at 50% 10%, rgba(255,243,214,.45), transparent 55%);
+  --hero-sub-ink:#554B3C;
+
+  /* 1안 히어로 A — 장면형 */
+  --hero-a-sky:linear-gradient(to bottom,#b8bfce 0%,#d4bcbe 30%,#e4c8a8 60%,#ecd8ba 80%,#faf5e9 100%);
+  --heroA-welcome:#5a4020;
+  --heroA-welcome-sh:0 1px 2px rgba(255,245,220,.6);
+  --heroA-title:#4a3010;
+  --heroA-title-sh:0 1px 2px rgba(255,245,220,.6), 0 0 30px rgba(245,212,136,.35);
+  --heroA-sub:#3a2e20;
+  --heroA-sub-sh:0 1px 2px rgba(255,250,230,.7);
+
+  --disp:Georgia,'Palatino Linotype','Times New Roman',serif;
+  --serif:'Gowun Batang','Nanum Myeongjo',Batang,Georgia,serif;
+  --body:'Pretendard Variable',Pretendard,-apple-system,'Malgun Gothic',sans-serif;
+  --code:'Nanum Gothic Coding',D2Coding,Consolas,monospace;
+}
+
+/* ---------- 토큰: 다크 "칠흑의 숲, 황금 등불" (반 단계 밝힘) ---------- */
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15211A;
+    --card:#1D2C23;
+    --card-hover:#243529;
+    --ink:#E5E0D1;
+    --muted:#9BB0A4;
+    --line:#33473B;
+    --gold:#D4AA30;
+    --gold-dim:#B8932A;
+    --gold-text:#D4AA30;
+    --gold-soft:rgba(212,170,48,.14);
+    --viridian:#5FA88B;
+    --viridian-text:#5FA88B;
+    --card-border:color-mix(in srgb, var(--gold) 32%, var(--line));
+    --corner-op:.85;
+    /* 수채 워시: 다크 = 좌상단 비리디안(이끼의 인광) → 우하단 금빛 온기 */
+    --wash:linear-gradient(155deg, color-mix(in srgb, var(--viridian) 9%, var(--card)) 0%, var(--card) 48%, color-mix(in srgb, var(--gold) 4%, var(--card)) 100%);
+    --wash-hover:linear-gradient(155deg, color-mix(in srgb, var(--viridian) 13%, var(--card-hover)) 0%, var(--card-hover) 48%, color-mix(in srgb, var(--gold) 6%, var(--card-hover)) 100%);
+    --hover-border:color-mix(in srgb, var(--gold) 72%, var(--viridian));
+    --journal-accent:var(--viridian);
+    --mist:color-mix(in srgb, var(--viridian) 14%, transparent);
+    /* 전역 은은한 그라데이션: 상단 등불빛 금 3% → 깊은 숲 */
+    --ambient-bg:radial-gradient(120% 85% at 50% -12%, color-mix(in srgb, var(--gold) 3%, var(--bg)) 0%, var(--bg) 62%);
+    /* 헤더 투명(at-top) 상태: 칠흑 하늘 위 — 현행 색 유지 + 어두운 halo */
+    --hd-top-brand:var(--gold);
+    --hd-top-link:var(--muted);
+    --hd-halo:0 0 14px rgba(0,0,0,.75), 0 0 6px rgba(0,0,0,.5);
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    --grain-opacity:.15;
+    --grain-blend:overlay;
+
+    --frame:#B8932A;
+    --frame-in:#D4AA30;
+    --glow:drop-shadow(0 0 4px rgba(212,170,48,.45));
+
+    --foil-a:#8A6C1E;
+    --foil-b:#F2D878;
+    --foil-c:#D4AA30;
+    --hero-b-bg:linear-gradient(180deg,#0B120E 0%,#101C16 46%,#13221B 78%,#15211A 100%);
+    --hero-b-veil:radial-gradient(90% 62% at 50% 88%, rgba(212,170,48,.10), transparent 62%);
+    --hero-sub-ink:#9BB0A4;
+
+    --hero-a-sky:linear-gradient(to bottom,#02040a 0%,#070d18 35%,#0e1a15 70%,#15211a 100%);
+    --heroA-welcome:#D4AA30;
+    --heroA-welcome-sh:0 0 18px rgba(0,0,0,.8), 0 0 8px rgba(0,0,0,.6);
+    --heroA-title:#D4AA30;
+    --heroA-title-sh:0 0 20px rgba(0,0,0,.55), 0 0 40px rgba(212,170,48,.22), 0 0 80px rgba(212,170,48,.12);
+    --heroA-sub:#E5E0D1;
+    --heroA-sub-sh:0 1px 3px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15211A;
+  --card:#1D2C23;
+  --card-hover:#243529;
+  --ink:#E5E0D1;
+  --muted:#9BB0A4;
+  --line:#33473B;
+  --gold:#D4AA30;
+  --gold-dim:#B8932A;
+  --gold-text:#D4AA30;
+  --gold-soft:rgba(212,170,48,.14);
+  --viridian:#5FA88B;
+  --viridian-text:#5FA88B;
+  --card-border:color-mix(in srgb, var(--gold) 32%, var(--line));
+  --corner-op:.85;
+  --wash:linear-gradient(155deg, color-mix(in srgb, var(--viridian) 9%, var(--card)) 0%, var(--card) 48%, color-mix(in srgb, var(--gold) 4%, var(--card)) 100%);
+  --wash-hover:linear-gradient(155deg, color-mix(in srgb, var(--viridian) 13%, var(--card-hover)) 0%, var(--card-hover) 48%, color-mix(in srgb, var(--gold) 6%, var(--card-hover)) 100%);
+  --hover-border:color-mix(in srgb, var(--gold) 72%, var(--viridian));
+  --journal-accent:var(--viridian);
+  --mist:color-mix(in srgb, var(--viridian) 14%, transparent);
+  --ambient-bg:radial-gradient(120% 85% at 50% -12%, color-mix(in srgb, var(--gold) 3%, var(--bg)) 0%, var(--bg) 62%);
+  --hd-top-brand:var(--gold);
+  --hd-top-link:var(--muted);
+  --hd-halo:0 0 14px rgba(0,0,0,.75), 0 0 6px rgba(0,0,0,.5);
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  --grain-opacity:.15;
+  --grain-blend:overlay;
+  --frame:#B8932A;
+  --frame-in:#D4AA30;
+  --glow:drop-shadow(0 0 4px rgba(212,170,48,.45));
+  --foil-a:#8A6C1E;
+  --foil-b:#F2D878;
+  --foil-c:#D4AA30;
+  --hero-b-bg:linear-gradient(180deg,#0B120E 0%,#101C16 46%,#13221B 78%,#15211A 100%);
+  --hero-b-veil:radial-gradient(90% 62% at 50% 88%, rgba(212,170,48,.10), transparent 62%);
+  --hero-sub-ink:#9BB0A4;
+  --hero-a-sky:linear-gradient(to bottom,#02040a 0%,#070d18 35%,#0e1a15 70%,#15211a 100%);
+  --heroA-welcome:#D4AA30;
+  --heroA-welcome-sh:0 0 18px rgba(0,0,0,.8), 0 0 8px rgba(0,0,0,.6);
+  --heroA-title:#D4AA30;
+  --heroA-title-sh:0 0 20px rgba(0,0,0,.55), 0 0 40px rgba(212,170,48,.22), 0 0 80px rgba(212,170,48,.12);
+  --heroA-sub:#E5E0D1;
+  --heroA-sub-sh:0 1px 3px rgba(0,0,0,.5);
+}
+:root[data-theme="light"]{
+  --bg:#FAF5E9; --card:#F3EBD8; --card-hover:#EFE4CD;
+  --ink:#3A3226; --muted:#6E6353; --line:#DFD3B8;
+  --gold:#8B6914; --gold-dim:#A67C1A; --gold-text:#7A5C10;
+  --gold-soft:rgba(139,105,20,.12); --viridian:#40826D; --viridian-text:#356F5D;
+  --card-border:color-mix(in srgb, var(--gold) 12%, var(--line));
+  --corner-op:.5;
+  --wash:linear-gradient(160deg, color-mix(in srgb, #C0655B 4%, var(--card)) 0%, var(--card) 46%, color-mix(in srgb, var(--gold-dim) 3%, var(--card)) 100%);
+  --wash-hover:linear-gradient(160deg, color-mix(in srgb, #C0655B 6%, var(--card)) 0%, var(--card) 46%, color-mix(in srgb, var(--gold-dim) 5%, var(--card)) 100%);
+  --hover-border:var(--gold);
+  --journal-accent:var(--gold);
+  --mist:color-mix(in srgb, var(--ink) 9%, transparent);
+  --ambient-bg:radial-gradient(120% 85% at 50% -12%, color-mix(in srgb, #C0655B 3%, var(--bg)) 0%, var(--bg) 62%);
+  --hd-top-brand:#5A4020;
+  --hd-top-link:#4A3010;
+  --hd-halo:0 1px 2px rgba(255,245,220,.65), 0 0 10px rgba(255,245,220,.45);
+  --shadow:0 1px 2px rgba(58,50,38,.05), 0 8px 24px -12px rgba(58,50,38,.18);
+  --grain-opacity:.11; --grain-blend:multiply;
+  --frame:#B99A55; --frame-in:#8B6914; --glow:none;
+  --foil-a:#4A370A; --foil-b:#8B6914; --foil-c:#6F540F;
+  --hero-b-bg:linear-gradient(to bottom,#b8bfce 0%,#d4bcbe 30%,#e4c8a8 60%,#ecd8ba 80%,#faf5e9 100%);
+  --hero-b-veil:radial-gradient(120% 70% at 50% 10%, rgba(255,243,214,.45), transparent 55%);
+  --hero-sub-ink:#554B3C;
+  --hero-a-sky:linear-gradient(to bottom,#b8bfce 0%,#d4bcbe 30%,#e4c8a8 60%,#ecd8ba 80%,#faf5e9 100%);
+  --heroA-welcome:#5a4020;
+  --heroA-welcome-sh:0 1px 2px rgba(255,245,220,.6);
+  --heroA-title:#4a3010;
+  --heroA-title-sh:0 1px 2px rgba(255,245,220,.6), 0 0 30px rgba(245,212,136,.35);
+  --heroA-sub:#3a2e20;
+  --heroA-sub-sh:0 1px 2px rgba(255,250,230,.7);
+}
+
+/* ---------- 장소 문장색 주입 (1안 .tinted 방식) ---------- */
+.tinted{ --place:var(--place-l, var(--gold)); }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .tinted{ --place:var(--place-d, var(--gold)); }
+}
+:root[data-theme="dark"] .tinted{ --place:var(--place-d, var(--gold)); }
+:root[data-theme="light"] .tinted{ --place:var(--place-l, var(--gold)); }
+
+/* ---------- 기본 ---------- */
+*,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
+html{ scroll-behavior:smooth; }
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:var(--body); font-size:16px; line-height:1.75;
+  word-break:keep-all; overflow-wrap:break-word;
+  overflow-x:hidden; /* 풀블리드 히어로(100vw)의 스크롤바 폭 보정 */
+  -webkit-font-smoothing:antialiased;
+  padding:var(--header-h) clamp(22px,4vw,54px) 40px; /* 상단 = 고정 헤더 높이 */
+  transition:background-color .4s ease, color .4s ease;
+}
+section{ scroll-margin-top:calc(var(--header-h) + 12px); }
+/* 전역 양피지 grain (1안) */
+body::before{
+  content:""; position:fixed; inset:0; z-index:9999; pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:180px 180px;
+  opacity:var(--grain-opacity); mix-blend-mode:var(--grain-blend);
+}
+/* 전역 은은한 그라데이션 레이어 (Ambient=전체에서만) — grain과 공존 */
+body::after{
+  content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background:var(--ambient-bg);
+  opacity:0; transition:opacity .5s ease;
+}
+:root:not([data-ambient="hero"]) body::after{ opacity:1; }
+/* 전역 파티클 캔버스(z1) 위로 콘텐츠 승격 —
+   파티클은 여백·배경에서만 보이고 카드·본문·헤더 아래에 깔린다 */
+.realms-intro,.home-section,.orn,footer.site{ position:relative; z-index:2; }
+a{ color:inherit; text-decoration:none; }
+button{ font:inherit; color:inherit; background:none; border:0; cursor:pointer; }
+svg{ display:block; }
+time{ font-variant-numeric:tabular-nums; }
+::selection{ background:var(--gold); color:var(--bg); }
+:focus-visible{ outline:2px solid var(--gold); outline-offset:3px; }
+.wrap{ max-width:1080px; margin:0 auto; }
+
+/* ---------- 페이지 프레임: 이중 괘선 + 코너 플러리시 (2안)
+     3단 전환: [data-frame] full=전체 / corner=코너만(기본) / none=없음 ---------- */
+.folio-frame{
+  position:fixed; inset:10px;
+  top:calc(var(--header-h) + 10px); /* 헤더 불침범 — 코너 장식은 헤더 아래부터 */
+  z-index:80; /* 헤더(z 100)보다 낮게 */
+  pointer-events:none;
+  border:1px solid transparent;
+  transition:border-color .3s ease;
+}
+:root[data-frame="full"] .folio-frame{ border-color:var(--frame); }
+.folio-frame::before{
+  content:""; position:absolute; inset:5px;
+  border:2px solid var(--frame-in);
+  opacity:0; transition:opacity .3s ease;
+}
+:root[data-frame="full"] .folio-frame::before{ opacity:1; }
+:root[data-frame="none"] .folio-frame{ display:none; }
+.folio-frame .corner{
+  position:absolute; width:64px; height:64px; color:var(--frame-in);
+  filter:var(--glow);
+}
+.folio-frame .corner svg{ width:100%; height:100%; }
+/* 코너만 모드: 코너에서 뻗어나가다 페이드아웃되는 이중 괘선 스텁 (tapering rule)
+   — 아치 끝점(y=3/11, 64 기준)과 정렬. 코너 div의 미러 transform이 방향을 자동 처리 */
+.folio-frame .corner::before,
+.folio-frame .corner::after{
+  content:""; position:absolute; display:none; opacity:.85;
+}
+.folio-frame .corner::before{ /* 수평 스텁 */
+  left:86%; top:3.5%; width:clamp(90px,15vw,180px); height:15.5%;
+  background:
+    linear-gradient(to right, currentColor 0%, transparent 100%) left top/100% 1.5px no-repeat,
+    linear-gradient(to right, currentColor 0%, transparent 100%) left bottom/100% 2px no-repeat;
+}
+.folio-frame .corner::after{ /* 수직 스텁 */
+  top:86%; left:3.5%; height:clamp(90px,15vw,180px); width:15.5%;
+  background:
+    linear-gradient(to bottom, currentColor 0%, transparent 100%) left top/1.5px 100% no-repeat,
+    linear-gradient(to bottom, currentColor 0%, transparent 100%) right top/2px 100% no-repeat;
+}
+/* 기본값(속성 없음 포함) = 코너만 */
+:root:not([data-frame="full"]):not([data-frame="none"]) .folio-frame .corner::before,
+:root:not([data-frame="full"]):not([data-frame="none"]) .folio-frame .corner::after{ display:block; }
+.folio-frame .c-tl{ top:9px; left:9px; }
+.folio-frame .c-tr{ top:9px; right:9px; transform:scaleX(-1); }
+.folio-frame .c-bl{ bottom:9px; left:9px; transform:scaleY(-1); }
+.folio-frame .c-br{ bottom:9px; right:9px; transform:scale(-1,-1); }
+@media (max-width:720px){
+  body{ padding:var(--header-h) 18px 30px; }
+  .folio-frame{ inset:6px; top:calc(var(--header-h) + 6px); }
+  .folio-frame::before{ inset:3px; }
+  .folio-frame .corner{ width:40px; height:40px; }
+  .folio-frame .c-tl{ top:5px; left:5px; } .folio-frame .c-tr{ top:5px; right:5px; }
+  .folio-frame .c-bl{ bottom:5px; left:5px; } .folio-frame .c-br{ bottom:5px; right:5px; }
+}
+
+/* ---------- 헤더: 상단 고정 · 한 줄 · 얇게 · 스크롤 적응형 2상태 ---------- */
+header.site{
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  height:var(--header-h);
+  /* 연속 적응형: --hd-p = 0(히어로 최상단, 완전 투명) ~ 1(콘텐츠 도달).
+     최종 상태도 불투명 바가 아닌 "프로스트 글라스" — 배경은 55%에서 멈추고
+     블러(10px)가 가독성을 책임진다. JS 미동작 시 기본 1(안전한 글라스 상태) */
+  --hd-p:1;
+  background:color-mix(in srgb, var(--bg) calc(var(--hd-p) * 55%), transparent);
+  backdrop-filter:blur(calc(var(--hd-p) * 10px));
+  -webkit-backdrop-filter:blur(calc(var(--hd-p) * 10px));
+  border-bottom:1px solid color-mix(in srgb, var(--line) calc(var(--hd-p) * 75%), transparent);
+}
+/* 텍스트·컨트롤도 같은 진행도로 보간 — 상단(히어로 위) 색 ↔ 스크롤(바탕 위) 색 */
+header.site .brand svg{
+  color:color-mix(in srgb, var(--gold) calc(var(--hd-p) * 100%), var(--hd-top-brand));
+}
+header.site .brand .en{
+  color:color-mix(in srgb, var(--gold) calc(var(--hd-p) * 100%), var(--hd-top-brand));
+  text-shadow:var(--hd-halo);
+}
+header.site nav.primary a{
+  color:color-mix(in srgb, var(--muted) calc(var(--hd-p) * 100%), var(--hd-top-link));
+  text-shadow:var(--hd-halo);
+}
+header.site nav.primary a:hover,
+header.site nav.primary a[aria-current="page"]{
+  color:var(--gold); border-bottom-color:var(--gold);
+}
+header.site .ask-guide{
+  color:color-mix(in srgb, var(--muted) calc(var(--hd-p) * 100%), var(--hd-top-link));
+  text-shadow:var(--hd-halo);
+}
+header.site .ask-guide:hover{ color:var(--gold); }
+header.site .ask-guide .dia{
+  color:color-mix(in srgb, var(--gold) calc(var(--hd-p) * 100%), var(--hd-top-brand));
+}
+header.site .theme-toggle button{
+  color:color-mix(in srgb, var(--muted) calc(var(--hd-p) * 100%), var(--hd-top-link));
+  text-shadow:var(--hd-halo);
+}
+/* 활성 토글: 금 배경 ↔ 고스트(테두리만)를 연속 보간 */
+header.site .theme-toggle button[aria-pressed="true"]{
+  background:color-mix(in srgb, var(--gold) calc(var(--hd-p) * 100%), transparent);
+  color:color-mix(in srgb, var(--bg) calc(var(--hd-p) * 100%), var(--hd-top-brand));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--hd-top-brand) calc((1 - var(--hd-p)) * 100%), transparent);
+  text-shadow:none;
+}
+.hd-in{
+  max-width:calc(1080px + 2*clamp(22px,4vw,54px));
+  margin:0 auto; height:100%;
+  padding:0 clamp(22px,4vw,54px);
+  display:flex; align-items:center; gap:16px;
+}
+.brand{ display:flex; align-items:center; gap:9px; flex:none; }
+.brand svg{ color:var(--gold); flex:none; filter:var(--glow); }
+.brand .en{
+  font-family:var(--disp); font-size:12.5px; font-weight:700;
+  letter-spacing:.18em; text-transform:uppercase; color:var(--gold);
+  white-space:nowrap;
+}
+nav.primary{ display:flex; gap:0; margin-left:auto; }
+nav.primary a{
+  color:var(--muted); font-size:13.5px; padding:5px 9px; white-space:nowrap;
+  border-bottom:1px solid transparent;
+  transition:color .2s, border-color .2s;
+}
+nav.primary a:hover{ color:var(--gold); border-bottom-color:var(--gold); }
+nav.primary a[aria-current="page"]{ color:var(--gold); border-bottom-color:var(--gold); }
+.ask-guide{
+  display:inline-flex; align-items:center; gap:7px; flex:none;
+  font-family:var(--serif); font-size:12.5px; color:var(--muted);
+  border:1px solid var(--card-border); padding:5px 11px;
+  transition:border-color .2s, color .2s;
+}
+.ask-guide:hover{ border-color:var(--gold); color:var(--gold); }
+.ask-guide .dia{ color:var(--gold); font-size:9px; }
+.theme-toggle{ display:inline-flex; flex:none; border:1px solid var(--card-border); }
+.theme-toggle button{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:5px 10px; font-family:var(--serif); font-size:12px; color:var(--muted);
+  transition:background-color .25s, color .25s;
+}
+.theme-toggle button + button{ border-left:1px solid var(--card-border); }
+.theme-toggle button svg{
+  width:13px; height:13px; stroke:currentColor; stroke-width:1.8;
+  fill:none; stroke-linecap:round; stroke-linejoin:round;
+}
+.theme-toggle button[aria-pressed="true"]{ background:var(--gold); color:var(--bg); }
+@media (max-width:980px){ nav.primary a{ padding:5px 6px; font-size:12.5px; } }
+@media (max-width:820px){ nav.primary{ display:none; } .brand .en{ letter-spacing:.12em; } }
+@media (max-width:520px){ .ask-guide{ display:none; } .theme-toggle{ margin-left:auto; } }
+
+/* ---------- 오너먼트 (2안 헤드피스/테일피스 + 1안 구분선) ---------- */
+.orn-line{ display:flex; justify-content:center; color:var(--gold); filter:var(--glow); }
+.orn-line svg{ max-width:100%; height:auto; }
+.orn{
+  display:flex; align-items:center; justify-content:center; gap:18px;
+  color:var(--gold-dim); font-size:11px; margin:52px auto; max-width:420px;
+  filter:var(--glow);
+}
+.orn::before,.orn::after{ content:""; flex:1; height:1px; }
+.orn::before{ background:linear-gradient(to right, transparent, color-mix(in srgb, var(--gold) 55%, transparent)); }
+.orn::after{ background:linear-gradient(to left, transparent, color-mix(in srgb, var(--gold) 55%, transparent)); }
+
+/* 섹션 제목: 헤드피스 → eyebrow → 제목 → 테일피스 → 링크 */
+.section-head{ text-align:center; margin:0 0 36px; }
+.section-head .eyebrow{
+  display:block; font-family:var(--disp); font-size:12px; font-weight:600;
+  letter-spacing:.4em; text-transform:uppercase; color:var(--gold);
+  margin:13px 0 7px;
+}
+.section-head h2{
+  font-family:var(--serif); font-size:clamp(23px,3.2vw,30px); font-weight:700;
+  letter-spacing:.04em; color:var(--ink); line-height:1.4;
+}
+.section-head .tail{ margin-top:13px; }
+.section-head .sec-link{
+  display:inline-block; margin-top:13px; font-size:13px; color:var(--gold-dim);
+  border-bottom:1px solid transparent; transition:color .2s, border-color .2s;
+}
+.section-head .sec-link:hover{ color:var(--gold); border-bottom-color:var(--gold); }
+
+/* ---------- 스크롤 등장 (1안) ---------- */
+[data-animate]{ opacity:0; transform:translateY(18px); transition:opacity .6s ease, transform .6s ease; }
+[data-animate].is-visible{ opacity:1; transform:none; }
+.map-grid > [data-animate]:nth-child(2){ transition-delay:.05s; }
+.map-grid > [data-animate]:nth-child(3){ transition-delay:.1s; }
+.map-grid > [data-animate]:nth-child(4){ transition-delay:.15s; }
+.map-grid > [data-animate]:nth-child(5){ transition-delay:.2s; }
+.map-grid > [data-animate]:nth-child(6){ transition-delay:.25s; }
+.map-grid > [data-animate]:nth-child(7){ transition-delay:.3s; }
+.map-grid > [data-animate]:nth-child(8){ transition-delay:.35s; }
+
+/* ============================================================
+   히어로 — A(1안 장면형) / B(4안 시네마틱형) 전환
+   ============================================================ */
+.hero{
+  position:relative; overflow:hidden;
+  /* 풀블리드: .wrap을 뚫고 뷰포트 가로 전체.
+     헤더 뒤까지 끌어올려(음수 마진) 투명 헤더의 배경이 히어로가 되게 한다 */
+  margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
+  margin-top:calc(-1 * var(--header-h));
+  height:100vh; height:100dvh;
+  min-height:600px;
+}
+.hero-a,.hero-b{
+  position:absolute; inset:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+}
+.hero[data-hero="a"] .hero-b{ display:none; }
+.hero[data-hero="b"] .hero-a{ display:none; }
+
+/* 하단 fade — body bg와 이어붙임 */
+.hero-fade{
+  position:absolute; left:0; right:0; bottom:0; height:30%;
+  z-index:4; pointer-events:none;
+  background:linear-gradient(to bottom, rgba(0,0,0,0) 0%, var(--bg) 100%);
+}
+/* 파티클 캔버스 — Ambient=전체(기본): 뷰포트 고정, 배경 위·콘텐츠/프레임(z80)/헤더(z100) 아래
+   Ambient=히어로만: 히어로 내부 한정 (현행) */
+#heroCanvas{
+  position:fixed; inset:0; width:100%; height:100%;
+  z-index:1; pointer-events:none;
+}
+:root[data-ambient="hero"] #heroCanvas{
+  position:absolute; z-index:6;
+}
+
+/* 히어로 A/B + 프레임 전환 컨트롤 (테마 토글과 독립) */
+.hero-ctrls{
+  position:absolute; right:24px; bottom:96px; z-index:8;
+  display:flex; flex-direction:column; gap:6px; align-items:flex-end;
+}
+.hero-switch{
+  display:flex; align-items:center;
+  border:1px solid var(--card-border);
+  background:color-mix(in srgb, var(--bg) 78%, transparent);
+  backdrop-filter:blur(3px);
+}
+.hero-switch .hs-label{
+  font-family:var(--disp); font-size:10px; letter-spacing:.26em;
+  text-transform:uppercase; color:var(--muted); padding:0 6px 0 12px;
+}
+.hero-switch button{
+  font-family:var(--disp); font-size:12.5px; font-weight:700;
+  padding:7px 13px; color:var(--muted);
+  border-left:1px solid var(--card-border);
+  transition:background-color .25s, color .25s;
+}
+.hero-switch button[aria-pressed="true"]{ background:var(--gold); color:var(--bg); }
+
+/* ----- 히어로 A: 장면형 (1안 이식) ----- */
+.hero-sky{
+  position:absolute; inset:0; z-index:0;
+  background:var(--hero-a-sky);
+  transition:background 1s ease;
+}
+.hero-scene{
+  position:absolute; inset:0; width:100%; height:100%;
+  z-index:1; pointer-events:none;
+}
+.scene-dark{ display:none; }
+.scene-light{ display:block; }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .scene-dark{ display:block; }
+  :root:not([data-theme="light"]) .scene-light{ display:none; }
+}
+:root[data-theme="dark"] .scene-dark{ display:block; }
+:root[data-theme="dark"] .scene-light{ display:none; }
+:root[data-theme="light"] .scene-dark{ display:none; }
+:root[data-theme="light"] .scene-light{ display:block; }
+
+.hero-content-a{
+  position:relative; z-index:5; text-align:center;
+  max-width:720px; padding:0 1.5rem;
+}
+.hero-welcome{
+  font-family:var(--disp); font-size:.95rem;
+  letter-spacing:.22em; text-transform:uppercase;
+  color:var(--heroA-welcome); text-shadow:var(--heroA-welcome-sh);
+  margin-bottom:.75rem;
+  opacity:0; animation:hero-text-in 1s ease .3s forwards;
+}
+.hero-title-a{
+  font-family:var(--serif); font-weight:700;
+  font-size:clamp(28px,5vw,50px); line-height:1.3; letter-spacing:.01em;
+  color:var(--heroA-title); text-shadow:var(--heroA-title-sh);
+  margin-bottom:1rem; text-wrap:balance;
+  opacity:0; animation:hero-text-in 1s ease .6s forwards;
+}
+.hero-sub-a{
+  color:var(--heroA-sub); text-shadow:var(--heroA-sub-sh);
+  font-size:1rem; line-height:1.95; max-width:520px; margin:0 auto;
+  opacity:0; animation:hero-text-in 1s ease .9s forwards;
+  text-wrap:pretty;
+}
+.scroll-cta{
+  position:absolute; bottom:1.9rem; left:50%; transform:translateX(-50%);
+  z-index:5; text-align:center;
+  opacity:0; animation:hero-text-in 1s ease 1.5s forwards;
+}
+.scroll-cta span{
+  display:block; font-family:var(--disp); font-size:.78rem;
+  color:var(--heroA-sub); text-shadow:var(--heroA-sub-sh);
+  letter-spacing:.12em; margin-bottom:.5rem;
+}
+.scroll-arrow{
+  width:18px; height:18px; margin:0 auto;
+  border-right:2px solid var(--gold); border-bottom:2px solid var(--gold);
+  transform:rotate(45deg);
+  animation:arrow-bounce 2s ease-in-out infinite;
+}
+@keyframes hero-text-in{
+  from{ opacity:0; transform:translateY(15px); }
+  to  { opacity:1; transform:translateY(0); }
+}
+@keyframes arrow-bounce{
+  0%,100%{ transform:rotate(45deg) translateY(0);   opacity:.6; }
+  50%    { transform:rotate(45deg) translateY(6px); opacity:1;  }
+}
+/* 장면 애니메이션 (hero.css 이식) */
+.fire-glow{
+  transform-box:fill-box; transform-origin:center;
+  animation:fire-glow-breathe 3s ease-in-out infinite;
+}
+@keyframes fire-glow-breathe{
+  0%,100%{ opacity:.65; transform:scale(1); }
+  50%    { opacity:.9;  transform:scale(1.08); }
+}
+.floating-rune{ animation:rune-float 4s ease-in-out infinite; }
+@keyframes rune-float{
+  0%,100%{ opacity:.75; }
+  50%    { opacity:.35; }
+}
+.moon-core{
+  transform-box:view-box; transform-origin:800px 235px;
+  animation:moon-breathe 8s ease-in-out infinite;
+}
+@keyframes moon-breathe{
+  0%,100%{ opacity:.95; filter:brightness(1); }
+  50%    { opacity:.85; filter:brightness(1.05); }
+}
+.sun-core{
+  transform-box:view-box; transform-origin:800px 235px;
+  animation:sun-breathe 6s ease-in-out infinite;
+}
+@keyframes sun-breathe{
+  0%,100%{ transform:scale(1); }
+  50%    { transform:scale(1.04); }
+}
+.flower-sway{
+  transform-box:fill-box; transform-origin:50% 100%;
+  animation:flower-sway 3.5s ease-in-out infinite alternate;
+}
+@keyframes flower-sway{
+  0%  { transform:rotate(-2deg); }
+  100%{ transform:rotate(2deg); }
+}
+
+/* ----- 히어로 B: 시네마틱형 (4안 이식, 라이트 배경 = 1안 여명 하늘) ----- */
+.hero-b{ background:var(--hero-b-bg); transition:background .5s ease; }
+.hero-b::after{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:var(--hero-b-veil);
+}
+.hb-in{ position:relative; z-index:5; text-align:center; padding:0 24px; }
+.hb-eyebrow{
+  font-family:var(--disp); font-size:12px; letter-spacing:.5em;
+  text-transform:uppercase; color:var(--hero-sub-ink); margin-bottom:30px;
+  opacity:0; animation:rise 1.4s ease .2s forwards;
+}
+.hb-title{
+  font-family:var(--disp); font-weight:400;
+  font-size:clamp(38px,7.6vw,92px); line-height:1.05;
+  letter-spacing:.06em; text-transform:uppercase;
+  color:var(--foil-c);
+  opacity:0; animation:rise 1.8s cubic-bezier(.2,.7,.2,1) .55s forwards;
+}
+@supports ((-webkit-background-clip: text) or (background-clip: text)){
+  .hb-title{
+    background:linear-gradient(105deg, var(--foil-a) 0%, var(--foil-c) 30%, var(--foil-b) 50%, var(--foil-c) 70%, var(--foil-a) 100%);
+    -webkit-background-clip:text; background-clip:text;
+    -webkit-text-fill-color:transparent; color:transparent;
+  }
+}
+.hb-kr{
+  font-family:var(--serif);
+  font-size:clamp(15px,2.2vw,21px);
+  letter-spacing:.42em; text-indent:.42em;
+  color:var(--ink); margin-top:26px;
+  opacity:0; animation:rise 1.6s ease 1.05s forwards;
+}
+.hb-orn{
+  display:flex; align-items:center; justify-content:center; gap:18px;
+  color:var(--gold); font-size:11px; margin:38px auto 0; max-width:380px;
+  filter:var(--glow);
+  opacity:0; animation:rise 1.4s ease 1.35s forwards;
+}
+.hb-orn::before,.hb-orn::after{
+  content:""; height:1px; width:min(110px,16vw);
+  background:color-mix(in srgb, var(--gold) 45%, transparent);
+}
+.hb-line{
+  font-family:var(--serif);
+  font-size:clamp(17px,2.5vw,25px);
+  color:var(--ink); margin-top:38px; letter-spacing:.06em;
+  opacity:0; animation:rise 1.6s ease 1.55s forwards;
+}
+.hb-sub{
+  max-width:520px; margin:20px auto 0;
+  font-size:15px; line-height:2; color:var(--hero-sub-ink);
+  opacity:0; animation:rise 1.6s ease 1.8s forwards;
+}
+.hb-scroll{
+  position:absolute; bottom:30px; left:50%; transform:translateX(-50%);
+  z-index:5; color:var(--hero-sub-ink); font-size:11px; letter-spacing:.3em;
+  font-family:var(--disp); text-transform:uppercase;
+  opacity:0; animation:rise 1.6s ease 2.3s forwards;
+}
+.hb-scroll::after{
+  content:""; display:block; width:1px; height:38px;
+  background:color-mix(in srgb, var(--gold) 45%, transparent);
+  margin:11px auto 0;
+}
+@keyframes rise{
+  from{ opacity:0; transform:translateY(26px); }
+  to  { opacity:1; transform:translateY(0); }
+}
+
+/* ---------- 인트로 (1안 realms-intro) ---------- */
+.realms-intro{ text-align:center; padding:3.6rem 0 .2rem; }
+.ri-title{
+  font-family:var(--disp); font-size:1.65rem; font-weight:700;
+  color:var(--gold); letter-spacing:.12em; margin:0 0 .75rem;
+}
+.ri-sub{ color:var(--muted); font-size:1rem; line-height:1.9; text-wrap:pretty; }
+
+/* ---------- 홈 섹션 리듬 (1안) ---------- */
+.home-section{ margin:3.4rem 0; }
+
+/* ---------- 장소 카드 그리드 (1안 판형 + 황금 강화) ---------- */
+.map-grid{
+  display:grid; gap:1.25rem;
+  grid-template-columns:repeat(auto-fill, minmax(250px, 1fr));
+}
+.place-card{
+  position:relative; isolation:isolate;
+  display:flex; align-items:flex-start; gap:14px;
+  background:var(--wash); /* 옅은 수채 워시 — grain 레이어가 종이 입자 역할 */
+  border:1px solid var(--card-border);
+  padding:18px; color:var(--ink);
+  overflow:hidden;
+}
+/* 카드 양피지 grain */
+.place-card::after,
+.record-card::after,
+.journal-band::after{
+  content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.4 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size:140px 140px; opacity:.1; mix-blend-mode:var(--grain-blend);
+}
+a.place-card{
+  transition:border-color .3s ease, background .3s ease,
+    transform .4s cubic-bezier(.2,.8,.2,1), box-shadow .4s ease;
+}
+a.place-card:hover{
+  background:var(--wash-hover);
+  border-color:var(--hover-border);
+  transform:translateY(-5px);
+  box-shadow:0 10px 28px rgba(0,0,0,.16), 0 0 30px color-mix(in srgb, var(--gold) 18%, transparent);
+}
+/* 네 모서리 금 장식 (1안 → 황금 고정) */
+.card-corner{
+  position:absolute; width:14px; height:14px;
+  border-color:var(--gold); opacity:var(--corner-op);
+  filter:var(--glow);
+  transition:opacity .3s ease, width .3s ease, height .3s ease;
+  pointer-events:none; z-index:2;
+}
+.card-corner-tl{ top:6px; left:6px; border-top:1px solid; border-left:1px solid; }
+.card-corner-tr{ top:6px; right:6px; border-top:1px solid; border-right:1px solid; }
+.card-corner-bl{ bottom:6px; left:6px; border-bottom:1px solid; border-left:1px solid; }
+.card-corner-br{ bottom:6px; right:6px; border-bottom:1px solid; border-right:1px solid; }
+a.place-card:hover .card-corner{ opacity:1; width:18px; height:18px; }
+/* 하단 방사형 글로우 */
+.card-glow{
+  position:absolute; inset:0; pointer-events:none; z-index:-1; opacity:0;
+  background:radial-gradient(ellipse 100% 80% at 50% 100%,
+    color-mix(in srgb, var(--place) 20%, transparent), transparent 70%);
+  transition:opacity .4s ease;
+}
+a.place-card:hover .card-glow{ opacity:1; }
+/* 문장 아이콘 */
+.pc-icon{
+  display:inline-flex; position:relative; flex:none; margin-top:2px;
+  color:var(--place); filter:var(--glow);
+  transition:transform .4s cubic-bezier(.2,.8,.2,1);
+}
+.pc-icon svg{
+  width:38px; height:38px; stroke:currentColor; stroke-width:2.5; fill:none;
+  stroke-linecap:round; stroke-linejoin:round;
+}
+a.place-card:hover .pc-icon{ transform:scale(1.1) rotate(-3deg); }
+.place-card > div{ min-width:0; }
+.pc-name{ font-family:var(--serif); font-size:15.5px; font-weight:700; line-height:1.35; }
+.pc-sub{
+  font-family:var(--disp); font-size:10.5px; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--muted);
+}
+.pc-flavor{
+  font-family:var(--serif); font-size:12.5px; color:var(--muted);
+  line-height:1.65; margin-top:5px;
+}
+.pc-meta{ font-size:12px; color:var(--muted); margin-top:6px; }
+.pc-meta b{ color:var(--gold-text); font-weight:600; }
+.pc-meta .dia{ color:var(--gold); font-size:9px; font-style:normal; margin:0 4px; }
+
+/* 안개 규칙 (1안) */
+.place-card.fog{ border-style:dashed; border-color:var(--line); filter:saturate(.2); opacity:.58; }
+.place-card.fog .card-glow{ display:none; }
+.place-card.fog::before{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(105deg, transparent 30%, var(--mist) 50%, transparent 70%);
+  background-size:250% 100%;
+}
+@media (prefers-reduced-motion: no-preference){
+  .place-card.fog::before{ animation:mist 9s linear infinite; }
+  @keyframes mist{
+    from{ background-position:130% 0; }
+    to  { background-position:-130% 0; }
+  }
+}
+
+/* 방랑자의 수첩 띠 (1안 journal-band) */
+.journal-band{
+  position:relative; isolation:isolate;
+  display:flex; align-items:center; gap:16px;
+  margin-top:1.25rem; padding:16px 22px;
+  border:1px dashed color-mix(in srgb, var(--place) 45%, var(--card-border));
+  background:color-mix(in srgb, var(--place) 6%, var(--card));
+  color:var(--ink); overflow:hidden;
+}
+a.journal-band{ transition:border-color .3s ease, transform .3s ease, box-shadow .3s ease; }
+a.journal-band:hover{
+  border-style:solid;
+  border-color:color-mix(in srgb, var(--place) 75%, transparent);
+  transform:translateY(-2px);
+  box-shadow:0 8px 22px -10px color-mix(in srgb, var(--place) 30%, transparent);
+}
+.journal-band .pc-icon{ margin-top:0; }
+.jb-name{ font-family:var(--serif); font-size:15.5px; font-weight:700; line-height:1.35; }
+.jb-sub{
+  font-family:var(--disp); font-size:10.5px; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--muted);
+}
+.jb-flavor{ flex:1; text-align:center; font-family:var(--serif); font-size:13.5px; color:var(--muted); }
+.jb-meta{ font-size:13px; color:var(--place); white-space:nowrap; }
+@media (max-width:720px){
+  .jb-flavor{ display:none; }
+  .jb-meta{ margin-left:auto; }
+}
+
+/* ---------- 최근 기록 카드 (1안 record-card + 황금 강화) ---------- */
+.record-list{ display:flex; flex-direction:column; gap:1rem; }
+.record-card{
+  position:relative; isolation:isolate; display:block;
+  background:var(--wash); /* 옅은 수채 워시 */
+  border:1px solid var(--card-border);
+  border-left:3px solid color-mix(in srgb, var(--place) 65%, transparent);
+  padding:1.4rem 1.6rem 1.25rem; color:var(--ink); overflow:hidden;
+}
+a.record-card{
+  transition:background .3s ease, border-color .3s ease, transform .3s ease, box-shadow .3s ease;
+}
+a.record-card::before{
+  content:""; position:absolute; top:0; left:-100%; width:100%; height:100%;
+  background:linear-gradient(100deg, transparent 0%,
+    color-mix(in srgb, var(--gold) 10%, transparent) 50%, transparent 100%);
+  transition:left .7s ease; pointer-events:none;
+}
+a.record-card:hover{
+  background:var(--wash-hover);
+  border-color:var(--hover-border);
+  border-left-color:var(--place); border-left-width:4px;
+  transform:translateX(4px);
+  box-shadow:0 6px 20px rgba(0,0,0,.14), 0 0 24px color-mix(in srgb, var(--gold) 14%, transparent);
+}
+a.record-card:hover::before{ left:100%; }
+.rc-place{
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:12px; font-weight:600; letter-spacing:.04em;
+  color:color-mix(in srgb, var(--place) 80%, var(--ink)); margin-bottom:6px;
+}
+/* 밀랍 봉인 점 */
+.rc-seal{
+  width:9px; height:9px; border-radius:50%; flex:none;
+  background:radial-gradient(circle at 34% 30%,
+    color-mix(in srgb, var(--place) 55%, #fff) 0%, var(--place) 55%,
+    color-mix(in srgb, var(--place) 65%, #000) 100%);
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--place) 12%, transparent);
+}
+.record-card h3{ font-family:var(--serif); font-size:1.16rem; font-weight:700; line-height:1.5; margin:0 0 .35rem; }
+.rc-meta{
+  display:flex; align-items:center; gap:.7rem; flex-wrap:wrap;
+  font-size:.84rem; color:var(--muted); margin-top:.55rem;
+}
+.rc-meta time{ font-family:var(--code); font-size:.8rem; }
+.rc-meta .tag{
+  font-family:var(--code); font-size:.74rem; letter-spacing:.03em;
+  color:var(--viridian-text);
+  border:1px solid color-mix(in srgb, var(--viridian) 40%, transparent);
+  padding:1px 8px;
+}
+.rc-meta .journey{ font-family:var(--serif); color:var(--gold-text); }
+.rc-meta .dot{ color:var(--gold); font-size:8px; }
+
+/* ---------- 방랑자의 일지 (1안 journal-row) ---------- */
+.journal-motto{
+  text-align:center; font-family:var(--serif); font-style:italic;
+  font-size:14.5px; color:var(--muted); margin:0 0 22px;
+}
+.journal-motto::before{ content:"— "; color:var(--gold); }
+.journal-motto::after{ content:" —"; color:var(--gold); }
+.journal-list{ display:flex; flex-direction:column; max-width:640px; margin:0 auto; }
+.journal-row{
+  display:flex; align-items:baseline; gap:14px;
+  padding:12px 8px; border-bottom:1px dashed var(--card-border); color:var(--ink);
+  transition:background-color .25s;
+}
+.journal-row:first-child{ border-top:1px dashed var(--card-border); }
+.journal-row:hover{ background:color-mix(in srgb, var(--journal-accent) 9%, transparent); }
+.journal-row time{ font-family:var(--code); font-size:13px; color:var(--gold-text); flex:none; }
+.journal-row .jr-dia{ color:var(--journal-accent); font-size:9px; flex:none; }
+.journal-row .jr-title{ font-size:15px; }
+
+/* ---------- 푸터 (1안) ---------- */
+footer.site{
+  margin-top:84px; padding:8px 0 10px; text-align:center;
+  color:var(--muted); font-size:13px;
+}
+footer.site .tail-orn{ margin-bottom:20px; }
+footer.site .links{ display:flex; gap:28px; justify-content:center; margin-bottom:12px; }
+footer.site .links a{
+  font-family:var(--serif); font-size:13.5px; color:var(--muted);
+  border-bottom:1px solid transparent;
+  transition:color .2s, border-color .2s;
+}
+footer.site .links a:hover{ color:var(--gold); border-bottom-color:var(--gold); }
+footer.site .colophon{ letter-spacing:.04em; }
+
+/* ---------- 모션 감소 존중 ---------- */
+@media (prefers-reduced-motion: reduce){
+  html{ scroll-behavior:auto; }
+  *,*::before,*::after{ transition:none !important; animation:none !important; }
+  .hero-welcome,.hero-title-a,.hero-sub-a,.scroll-cta,
+  .hb-eyebrow,.hb-title,.hb-kr,.hb-orn,.hb-line,.hb-sub,.hb-scroll{ opacity:1; }
+  [data-animate]{ opacity:1 !important; transform:none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- 페이지 프레임: 이중 괘선 + 절차 생성 코너 플러리시 (2안 이식) -->
+<div class="folio-frame" aria-hidden="true">
+  <div class="corner c-tl"></div>
+  <div class="corner c-tr"></div>
+  <div class="corner c-bl"></div>
+  <div class="corner c-br"></div>
+</div>
+
+<div class="wrap">
+
+<header class="site">
+  <div class="hd-in">
+    <a class="brand" href="#top">
+      <!-- 나침반 컴퍼스 로즈 (1안 emblem-crossroads 이식) -->
+      <svg width="21" height="21" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M24 5 L27.6 20.4 L43 24 L27.6 27.6 L24 43 L20.4 27.6 L5 24 L20.4 20.4 Z"/>
+        <circle cx="33" cy="15" r="1.6" fill="currentColor" stroke="none"/>
+        <circle cx="33" cy="33" r="1.6" fill="currentColor" stroke="none"/>
+        <circle cx="15" cy="33" r="1.6" fill="currentColor" stroke="none"/>
+        <circle cx="15" cy="15" r="1.6" fill="currentColor" stroke="none"/>
+      </svg>
+      <span class="en">The Wanderer's Crossroads</span>
+    </a>
+    <nav class="primary" aria-label="주 메뉴">
+      <a href="#top" aria-current="page">교차로</a>
+      <a href="#places">열두 장소</a>
+      <a href="#records">서고</a>
+      <a href="#records">연대기</a>
+      <a href="#journal">방랑자의 일지</a>
+      <a href="#footer">여행자의 쉼터</a>
+    </nav>
+    <button class="ask-guide" type="button"><span class="dia" aria-hidden="true">✦</span>길잡이에게 묻기</button>
+    <div class="theme-toggle" role="group" aria-label="테마 전환">
+      <button type="button" id="btn-light" aria-pressed="false" aria-label="여명 테마로 전환">
+        <!-- 이정표 -->
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M12 21h4M5 7h11l3 2-3 2H5zM19 13H9l-3 2 3 2h10z"/></svg>
+        여명
+      </button>
+      <button type="button" id="btn-dark" aria-pressed="false" aria-label="모닥불 테마로 전환">
+        <!-- 등불 -->
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6M12 4v2M8 6h8l1 10a5 5 0 0 1-10 0zM12 10a2.5 2.5 0 0 1 2 3 2 2 0 0 1-4 0 2.5 2.5 0 0 1 2-3zM10 21h4"/></svg>
+        모닥불
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ============================================================
+     히어로 — A(장면형) / B(시네마틱형)
+     ============================================================ -->
+<section class="hero" id="hero" data-hero="b" aria-label="교차로 입구">
+
+  <!-- ── 변형 A: 1안 장면형 ── -->
+  <div class="hero-a">
+    <div class="hero-sky" aria-hidden="true"></div>
+
+    <!-- DARK SCENE — 숲속 은신처 -->
+    <svg class="hero-scene scene-dark" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <filter id="roughFarD" x="-10%" y="-10%" width="120%" height="120%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.008 0.025" numOctaves="3" seed="11" result="n"/>
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="24" xChannelSelector="R" yChannelSelector="G"/>
+          <feGaussianBlur stdDeviation="2.6"/>
+        </filter>
+        <filter id="roughMidD" x="-10%" y="-10%" width="120%" height="120%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.009 0.028" numOctaves="3" seed="4" result="n"/>
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="16" xChannelSelector="R" yChannelSelector="G"/>
+          <feGaussianBlur stdDeviation="0.6"/>
+        </filter>
+        <filter id="roughGroundD" x="-10%" y="-10%" width="120%" height="120%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.006 0.02" numOctaves="2" seed="27" result="n"/>
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="10" xChannelSelector="R" yChannelSelector="G"/>
+          <feGaussianBlur stdDeviation="0.4"/>
+        </filter>
+        <path id="fir" d="M0 -120 L -17 -82 L -9 -84 L -28 -48 L -16 -51 L -38 -12 L -5 -17 L -5 0 L 5 0 L 5 -17 L 38 -12 L 16 -51 L 28 -48 L 9 -84 L 17 -82 Z"/>
+        <radialGradient id="campFireGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ff7a35" stop-opacity="0.7"/>
+          <stop offset="25%" stop-color="#e85020" stop-opacity="0.38"/>
+          <stop offset="60%" stop-color="#c04018" stop-opacity="0.12"/>
+          <stop offset="100%" stop-color="#c04018" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="moonHalo" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#f5ecd4" stop-opacity="0.7"/>
+          <stop offset="25%" stop-color="#e4d8b8" stop-opacity="0.4"/>
+          <stop offset="55%" stop-color="#c8b890" stop-opacity="0.15"/>
+          <stop offset="100%" stop-color="#c8b890" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="moonBody" cx="45%" cy="42%" r="60%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>
+          <stop offset="35%" stop-color="#fbf6e4" stop-opacity="0.98"/>
+          <stop offset="80%" stop-color="#e8dab8" stop-opacity="0.95"/>
+          <stop offset="100%" stop-color="#c8b890" stop-opacity="0.85"/>
+        </radialGradient>
+        <radialGradient id="moonInnerGlow" cx="50%" cy="45%" r="50%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.55"/>
+          <stop offset="60%" stop-color="#ffffff" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="ridgeFarD" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#1f4a3c"/>
+          <stop offset="55%" stop-color="#122a21"/>
+          <stop offset="100%" stop-color="#0d1d17"/>
+        </linearGradient>
+        <linearGradient id="ridgeMidD" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#17382d"/>
+          <stop offset="60%" stop-color="#0d211a"/>
+          <stop offset="100%" stop-color="#0a1712"/>
+        </linearGradient>
+        <linearGradient id="ridgeGroundD" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#123024"/>
+          <stop offset="100%" stop-color="#071009"/>
+        </linearGradient>
+        <linearGradient id="hazeDark" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#0f1c17" stop-opacity="0"/>
+          <stop offset="50%" stop-color="#12211b" stop-opacity="0.55"/>
+          <stop offset="100%" stop-color="#12211b" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="fadeToBgDark" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#15211a" stop-opacity="0"/>
+          <stop offset="45%" stop-color="#15211a" stop-opacity="0.5"/>
+          <stop offset="100%" stop-color="#15211a" stop-opacity="1"/>
+        </linearGradient>
+      </defs>
+
+      <!-- 달 -->
+      <circle cx="800" cy="235" r="280" fill="url(#moonHalo)"/>
+      <circle class="moon-core" cx="800" cy="235" r="65" fill="url(#moonBody)"/>
+      <circle cx="800" cy="235" r="65" fill="url(#moonInnerGlow)"/>
+      <!-- 먼 능선 -->
+      <g filter="url(#roughFarD)">
+        <path d="M 0 520 L 110 432 L 210 482 L 330 406 L 450 478 L 560 426 L 690 488 L 800 436 L 920 484 L 1040 420 L 1160 480 L 1290 440 L 1400 490 L 1500 456 L 1600 500 L 1600 640 L 0 640 Z" fill="url(#ridgeFarD)" opacity="0.8"/>
+      </g>
+      <!-- 두 번째 능선 + 달빛 림라이트 -->
+      <g filter="url(#roughMidD)">
+        <path d="M 0 560 L 140 470 L 265 522 L 405 444 L 545 516 L 665 470 L 805 528 L 950 458 L 1085 518 L 1225 472 L 1360 524 L 1480 490 L 1600 530 L 1600 700 L 0 700 Z" fill="url(#ridgeMidD)"/>
+        <path d="M 0 560 L 140 470 L 265 522 L 405 444 L 545 516 L 665 470 L 805 528 L 950 458 L 1085 518 L 1225 472 L 1360 524 L 1480 490 L 1600 530" fill="none" stroke="#9fd8c2" stroke-width="1.6" opacity="0.14"/>
+      </g>
+      <!-- 안개 띠 1 -->
+      <rect x="0" y="440" width="1600" height="180" fill="url(#hazeDark)"/>
+      <!-- 먼 전나무 띠 -->
+      <g fill="#0d211a" opacity="0.9">
+        <use href="#fir" transform="translate(60 612) scale(0.5)"/>
+        <use href="#fir" transform="translate(148 605) scale(0.58)"/>
+        <use href="#fir" transform="translate(236 614) scale(0.52)"/>
+        <use href="#fir" transform="translate(322 607) scale(0.6)"/>
+        <use href="#fir" transform="translate(610 610) scale(0.55)"/>
+        <use href="#fir" transform="translate(692 603) scale(0.62)"/>
+        <use href="#fir" transform="translate(1168 608) scale(0.55)"/>
+        <use href="#fir" transform="translate(1254 614) scale(0.6)"/>
+        <use href="#fir" transform="translate(1344 605) scale(0.52)"/>
+        <use href="#fir" transform="translate(1444 612) scale(0.58)"/>
+        <use href="#fir" transform="translate(1534 606) scale(0.5)"/>
+      </g>
+      <!-- 땅 -->
+      <path filter="url(#roughGroundD)" d="M 0 668 C 260 640 520 664 800 648 C 1000 636 1120 622 1300 634 C 1440 644 1540 638 1600 636 L 1600 820 L 0 820 Z" fill="url(#ridgeGroundD)" opacity="0.9"/>
+      <!-- 안개 띠 2 -->
+      <rect x="0" y="560" width="1600" height="180" fill="url(#hazeDark)" opacity="0.6"/>
+      <!-- 가까운 전나무 -->
+      <g fill="#08150f">
+        <use href="#fir" transform="translate(112 758) scale(1.05)"/>
+        <use href="#fir" transform="translate(218 770) scale(0.9)"/>
+        <use href="#fir" transform="translate(1318 762) scale(1.0)"/>
+        <use href="#fir" transform="translate(1430 772) scale(0.92)"/>
+      </g>
+      <!-- 하단 fade -->
+      <rect x="0" y="460" width="1600" height="440" fill="url(#fadeToBgDark)"/>
+      <!-- 가장자리 거목 — 액자 구도 -->
+      <g fill="#06100b">
+        <use href="#fir" transform="translate(28 832) scale(1.9)"/>
+        <use href="#fir" transform="translate(1572 838) scale(2.05)"/>
+        <use href="#fir" transform="translate(1492 852) scale(1.35)"/>
+      </g>
+      <!-- 먼 모닥불 -->
+      <g class="fire-glow">
+        <circle cx="480" cy="655" r="150" fill="url(#campFireGlow)"/>
+        <circle cx="480" cy="660" r="5" fill="#ffb060" opacity="0.95"/>
+        <circle cx="480" cy="660" r="2" fill="#fff4d0"/>
+      </g>
+      <circle class="floating-rune" cx="472" cy="623" r="1.6" fill="#f0c060"/>
+      <circle class="floating-rune" cx="490" cy="605" r="1.2" fill="#f0c060" style="animation-delay:-1.6s"/>
+      <circle class="floating-rune" cx="481" cy="587" r="1" fill="#e8a850" style="animation-delay:-2.9s"/>
+      <ellipse cx="480" cy="676" rx="18" ry="2.5" fill="#020504" opacity="0.45"/>
+      <circle cx="462" cy="673" r="2" fill="#020504" opacity="0.6"/>
+      <circle cx="498" cy="674" r="1.6" fill="#020504" opacity="0.55"/>
+    </svg>
+
+    <!-- LIGHT SCENE — 길의 시작 -->
+    <svg class="hero-scene scene-light" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <filter id="roughFarL" x="-10%" y="-10%" width="120%" height="120%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.008 0.025" numOctaves="3" seed="17" result="n"/>
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="20" xChannelSelector="R" yChannelSelector="G"/>
+          <feGaussianBlur stdDeviation="2.3"/>
+        </filter>
+        <filter id="roughMidL" x="-10%" y="-10%" width="120%" height="120%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.009 0.028" numOctaves="3" seed="8" result="n"/>
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="14" xChannelSelector="R" yChannelSelector="G"/>
+          <feGaussianBlur stdDeviation="0.5"/>
+        </filter>
+        <filter id="roughGroundL" x="-10%" y="-10%" width="120%" height="120%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.006 0.02" numOctaves="2" seed="33" result="n"/>
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="9" xChannelSelector="R" yChannelSelector="G"/>
+          <feGaussianBlur stdDeviation="0.4"/>
+        </filter>
+        <radialGradient id="sunGlowSoft" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#fff3d6" stop-opacity="0.85"/>
+          <stop offset="25%" stop-color="#f5d098" stop-opacity="0.55"/>
+          <stop offset="55%" stop-color="#e8a870" stop-opacity="0.22"/>
+          <stop offset="100%" stop-color="#e8a870" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="farMountL" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#d8b898" stop-opacity="0.5"/>
+          <stop offset="100%" stop-color="#a89080" stop-opacity="0.55"/>
+        </linearGradient>
+        <linearGradient id="midMountL" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#f0c898" stop-opacity="0.55"/>
+          <stop offset="15%" stop-color="#a88878" stop-opacity="0.7"/>
+          <stop offset="100%" stop-color="#7a5f50" stop-opacity="0.85"/>
+        </linearGradient>
+        <linearGradient id="nearHillL" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#8c7258" stop-opacity="0.9"/>
+          <stop offset="100%" stop-color="#5a4838" stop-opacity="0.95"/>
+        </linearGradient>
+        <linearGradient id="hazeLight" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#f0dcc0" stop-opacity="0"/>
+          <stop offset="50%" stop-color="#f0dcc0" stop-opacity="0.5"/>
+          <stop offset="100%" stop-color="#f0dcc0" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="fadeToBgLight" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#faf5e9" stop-opacity="0"/>
+          <stop offset="40%" stop-color="#faf5e9" stop-opacity="0.5"/>
+          <stop offset="75%" stop-color="#faf5e9" stop-opacity="0.9"/>
+          <stop offset="100%" stop-color="#faf5e9" stop-opacity="1"/>
+        </linearGradient>
+      </defs>
+
+      <!-- 새벽 태양 -->
+      <circle cx="800" cy="235" r="280" fill="url(#sunGlowSoft)"/>
+      <circle class="sun-core" cx="800" cy="235" r="65" fill="#fff5dc" opacity="0.85"/>
+      <!-- 먼 산맥 -->
+      <g filter="url(#roughFarL)">
+        <path d="M 0 520 L 110 432 L 210 482 L 330 406 L 450 478 L 560 426 L 690 488 L 800 436 L 920 484 L 1040 420 L 1160 480 L 1290 440 L 1400 490 L 1500 456 L 1600 500 L 1600 640 L 0 640 Z" fill="url(#farMountL)"/>
+      </g>
+      <!-- 안개 띠 -->
+      <rect x="0" y="440" width="1600" height="160" fill="url(#hazeLight)"/>
+      <!-- 중간 산맥 + 림라이트 -->
+      <g filter="url(#roughMidL)">
+        <path d="M 0 560 L 140 470 L 265 522 L 405 444 L 545 516 L 665 470 L 805 528 L 950 458 L 1085 518 L 1225 472 L 1360 524 L 1480 490 L 1600 530 L 1600 700 L 0 700 Z" fill="url(#midMountL)"/>
+        <path d="M 0 560 L 140 470 L 265 522 L 405 444 L 545 516 L 665 470 L 805 528 L 950 458 L 1085 518 L 1225 472 L 1360 524 L 1480 490 L 1600 530" fill="none" stroke="#fff2d4" stroke-width="1.8" opacity="0.45"/>
+      </g>
+      <!-- 가까운 언덕 -->
+      <path filter="url(#roughGroundL)" d="M 0 668 C 260 640 520 664 800 648 C 1000 636 1120 622 1300 634 C 1440 644 1540 638 1600 636 L 1600 820 L 0 820 Z" fill="url(#nearHillL)"/>
+      <!-- 굽이치는 길 -->
+      <path d="M 620 900 C 608 852 613 822 625 800 C 652 750 820 738 912 721 C 982 707 1040 676 1070 650 L 1086 653 C 1054 682 1006 703 985 722 C 895 740 792 762 776 801 C 760 846 812 876 880 900 Z" fill="#ead9b8" opacity="0.55"/>
+      <!-- 이정표 -->
+      <g transform="translate(1120 620)">
+        <ellipse cx="0" cy="10" rx="26" ry="4" fill="#3a2818" opacity="0.75"/>
+        <rect x="-3" y="-128" width="6" height="138" fill="#4a3525"/>
+        <polygon points="-22,-116 22,-116 30,-106 22,-96 -22,-96" fill="#4a3525"/>
+        <polygon points="-30,-88 -22,-98 22,-98 22,-78 -22,-78" fill="#4a3525"/>
+        <polygon points="-22,-70 22,-70 30,-60 22,-50 -22,-50" fill="#4a3525"/>
+        <path d="M -5 -128 L 5 -128 L 4 -134 L -4 -134 Z" fill="#5a4530"/>
+        <g fill="none" stroke="#5a4838" stroke-width="1.5" opacity="0.8">
+          <path d="M -36 7 q -2 -8 -6 -11"/>
+          <path d="M -32 8 q 0 -9 -3 -13"/>
+          <path d="M 32 7 q 2 -8 6 -11"/>
+          <path d="M 36 8 q 1 -9 4 -12"/>
+        </g>
+        <g class="flower-sway">
+          <path d="M -44 6 q -1 -8 1 -13" fill="none" stroke="#5a4838" stroke-width="1.3"/>
+          <circle cx="-43" cy="-8" r="2.2" fill="#c46240" opacity="0.85"/>
+        </g>
+        <g class="flower-sway" style="animation-delay:-1.8s">
+          <path d="M 44 7 q 1 -8 -1 -13" fill="none" stroke="#5a4838" stroke-width="1.3"/>
+          <circle cx="43" cy="-7" r="2" fill="#b5674c" opacity="0.85"/>
+        </g>
+      </g>
+      <!-- 하단 fade -->
+      <rect x="0" y="460" width="1600" height="440" fill="url(#fadeToBgLight)"/>
+    </svg>
+
+    <div class="hero-content-a">
+      <p class="hero-welcome">The Wanderer's Crossroads</p>
+      <h1 class="hero-title-a">세상의 모든 길이<br>만나는 곳</h1>
+      <p class="hero-sub-a">
+        한 방랑자가 이곳에 멈추어, 길마다 배운 것을 세우기 시작했다.<br>
+        탑을 쌓고, 서고를 열고, 모닥불을 피웠다.
+      </p>
+    </div>
+    <div class="scroll-cta" aria-hidden="true">
+      <span>Enter the Crossroads</span>
+      <div class="scroll-arrow"></div>
+    </div>
+  </div>
+
+  <!-- ── 변형 B: 4안 시네마틱형 (라이트 배경 = 1안 여명 하늘) ── -->
+  <div class="hero-b">
+    <div class="hb-in">
+      <p class="hb-eyebrow">Ubi omnes viae conveniunt</p>
+      <p class="hb-title" role="heading" aria-level="2">The<br>Wanderer's<br>Crossroads</p>
+      <p class="hb-kr">방랑자의 교차로</p>
+      <div class="hb-orn" aria-hidden="true">✦</div>
+      <p class="hb-line">세상의 모든 길이 만나는 곳</p>
+      <p class="hb-sub">한 방랑자가 이곳에 멈추어, 길마다 배운 것을 세우기 시작했다.<br>탑을 쌓고, 서고를 열고, 모닥불을 피웠다.</p>
+    </div>
+    <div class="hb-scroll" aria-hidden="true">Descend</div>
+  </div>
+
+  <!-- 파티클 (A/B 공통 · 다크: 별+반딧불이 / 라이트: 황금 먼지) -->
+  <canvas id="heroCanvas" aria-hidden="true"></canvas>
+  <div class="hero-fade" aria-hidden="true"></div>
+
+  <!-- 히어로 A/B + 프레임 전환 컨트롤 -->
+  <div class="hero-ctrls">
+    <div class="hero-switch" role="group" aria-label="히어로 변형 전환">
+      <span class="hs-label" aria-hidden="true">Hero</span>
+      <button type="button" id="hero-btn-a" aria-pressed="false" aria-label="장면형 히어로 A">A</button>
+      <button type="button" id="hero-btn-b" aria-pressed="true" aria-label="시네마틱 히어로 B">B</button>
+    </div>
+    <div class="hero-switch" role="group" aria-label="프레임 장식 전환">
+      <span class="hs-label" aria-hidden="true">Frame</span>
+      <button type="button" id="frame-btn-full" aria-pressed="false">전체</button>
+      <button type="button" id="frame-btn-corner" aria-pressed="true">코너만</button>
+      <button type="button" id="frame-btn-none" aria-pressed="false">없음</button>
+    </div>
+    <div class="hero-switch" role="group" aria-label="분위기 파티클 범위 전환">
+      <span class="hs-label" aria-hidden="true">Ambient</span>
+      <button type="button" id="ambient-btn-hero" aria-pressed="false">히어로만</button>
+      <button type="button" id="ambient-btn-global" aria-pressed="true">전체</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 인트로 (1안 realms-intro) ============ -->
+<section class="realms-intro" data-animate>
+  <h2 class="ri-title">The Realms Await</h2>
+  <p class="ri-sub">
+    열두 갈래 길이 이곳에서 만납니다.<br>
+    기록이 남은 곳부터, 안개가 걷힙니다.
+  </p>
+</section>
+
+<div class="orn" aria-hidden="true">✦&nbsp;&nbsp;✦&nbsp;&nbsp;✦</div>
+
+<!-- ============ 열두 장소 ============ -->
+<section class="home-section" id="places" aria-label="교차로의 장소들">
+  <div class="section-head" data-animate>
+    <div class="orn-line" data-orn="headpiece" aria-hidden="true"></div>
+    <span class="eyebrow">The Twelve Places</span>
+    <h2>열두 장소</h2>
+    <div class="orn-line tail" data-orn="tailpiece" aria-hidden="true"></div>
+    <a class="sec-link" href="#places">여정 전체 보기 →</a>
+  </div>
+
+  <div class="map-grid">
+
+    <a class="place-card tinted" href="#records" data-animate style="--place-l:#8a6640;--place-d:#b08458">
+      <span class="card-corner card-corner-tl" aria-hidden="true"></span>
+      <span class="card-corner card-corner-tr" aria-hidden="true"></span>
+      <span class="card-corner card-corner-bl" aria-hidden="true"></span>
+      <span class="card-corner card-corner-br" aria-hidden="true"></span>
+      <span class="card-glow" aria-hidden="true"></span>
+      <span class="pc-icon" aria-hidden="true">
+        <svg viewBox="0 0 48 48"><path d="M16 10h18a4 4 0 0 1 4 4 4 4 0 0 1-4 4"/><path d="M16 10a4 4 0 0 0-4 4v22a4 4 0 0 0 4 4h18"/><path d="M34 40a4 4 0 0 0 4-4V18"/><path d="M19 20h11M19 26h11M19 32h7"/></svg>
+      </span>
+      <div>
+        <div class="pc-name">역사가의 기록관</div>
+        <div class="pc-sub">Historian's Archive</div>
+        <div class="pc-flavor">"잊힌 것은 사라진 것이 아니다. 아직 읽히지 않았을 뿐."</div>
+        <div class="pc-meta"><b>기록 3편</b><i class="dia" aria-hidden="true">✦</i>견습 필경사</div>
+      </div>
+    </a>
+
+    <a class="place-card tinted" href="#records" data-animate style="--place-l:#52689c;--place-d:#7a93c4">
+      <span class="card-corner card-corner-tl" aria-hidden="true"></span>
+      <span class="card-corner card-corner-tr" aria-hidden="true"></span>
+      <span class="card-corner card-corner-bl" aria-hidden="true"></span>
+      <span class="card-corner card-corner-br" aria-hidden="true"></span>
+      <span class="card-glow" aria-hidden="true"></span>
+      <span class="pc-icon" aria-hidden="true">
+        <svg viewBox="0 0 48 48"><path d="M17 40V12M31 40V12"/><path d="M17 12V7h4v3h6V7h4v5"/><path d="M13 40h22"/><path d="M21 40v-5a3 3 0 0 1 6 0v5"/><path d="M24 19v5"/></svg>
+      </span>
+      <div>
+        <div class="pc-name">수학자의 탑</div>
+        <div class="pc-sub">Mathematician's Tower</div>
+        <div class="pc-flavor">"한 층을 오를 때마다, 세계는 더 단순해진다."</div>
+        <div class="pc-meta"><b>기록 7편</b><i class="dia" aria-hidden="true">✦</i>산술사</div>
+      </div>
+    </a>
+
+    <a class="place-card tinted" href="#records" data-animate style="--place-l:#3e7d5f;--place-d:#5fa886">
+      <span class="card-corner card-corner-tl" aria-hidden="true"></span>
+      <span class="card-corner card-corner-tr" aria-hidden="true"></span>
+      <span class="card-corner card-corner-bl" aria-hidden="true"></span>
+      <span class="card-corner card-corner-br" aria-hidden="true"></span>
+      <span class="card-glow" aria-hidden="true"></span>
+      <span class="pc-icon" aria-hidden="true">
+        <svg viewBox="0 0 48 48"><path d="M20 7h8"/><path d="M22 7v11l-8.5 15a6 6 0 0 0 5.2 9h10.6a6 6 0 0 0 5.2-9L26 18V7"/><path d="M17 31h14"/><circle cx="22" cy="36" r="1.6" fill="currentColor" stroke="none"/><circle cx="27" cy="38.5" r="1.2" fill="currentColor" stroke="none"/></svg>
+      </span>
+      <div>
+        <div class="pc-name">연금술사의 연구실</div>
+        <div class="pc-sub">Alchemist's Laboratory</div>
+        <div class="pc-flavor">"만물은 변한다. 이해한 자만이 그 변화를 이끈다."</div>
+        <div class="pc-meta"><b>기록 2편</b><i class="dia" aria-hidden="true">✦</i>견습 연금술사</div>
+      </div>
+    </a>
+
+    <a class="place-card tinted" href="#records" data-animate style="--place-l:#44607a;--place-d:#5e7d95">
+      <span class="card-corner card-corner-tl" aria-hidden="true"></span>
+      <span class="card-corner card-corner-tr" aria-hidden="true"></span>
+      <span class="card-corner card-corner-bl" aria-hidden="true"></span>
+      <span class="card-corner card-corner-br" aria-hidden="true"></span>
+      <span class="card-glow" aria-hidden="true"></span>
+      <span class="pc-icon" aria-hidden="true">
+        <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="9"/><circle cx="24" cy="24" r="2.6"/><path d="M33 24h5M24 33v5M15 24h-5M24 15v-5M30.4 30.4l3.5 3.5M17.6 17.6l-3.5-3.5M30.4 17.6l3.5-3.5M17.6 30.4l-3.5 3.5"/></svg>
+      </span>
+      <div>
+        <div class="pc-name">공학자 길드</div>
+        <div class="pc-sub">Engineers' Guild</div>
+        <div class="pc-flavor">"우리는 마법을 믿지 않는다. 다만 동작하는 것을 믿는다."</div>
+        <div class="pc-meta"><b>기록 12편</b><i class="dia" aria-hidden="true">✦</i>장인</div>
+      </div>
+    </a>
+
+    <a class="place-card tinted" href="#records" data-animate style="--place-l:#6a3f6a;--place-d:#9c6b9c">
+      <span class="card-corner card-corner-tl" aria-hidden="true"></span>
+      <span class="card-corner card-corner-tr" aria-hidden="true"></span>
+      <span class="card-corner card-corner-bl" aria-hidden="true"></span>
+      <span class="card-corner card-corner-br" aria-hidden="true"></span>
+      <span class="card-glow" aria-hidden="true"></span>
+      <span class="pc-icon" aria-hidden="true">
+        <svg viewBox="0 0 48 48"><path d="M24 18c-3-2.6-8-3.6-13-2.8V38c5-.8 10 .2 13 2.8 3-2.6 8-3.6 13-2.8V15.2c-5-.8-10 .2-13 2.8z"/><path d="M24 18v22.8"/><path d="M24 4v7M20.5 7.5h7"/></svg>
+      </span>
+      <div>
+        <div class="pc-name">마법사의 도서관</div>
+        <div class="pc-sub">Wizard's Library</div>
+        <div class="pc-flavor">"모든 책은 주문서다. 읽는 순간 발동된다."</div>
+        <div class="pc-meta"><b>기록 5편</b><i class="dia" aria-hidden="true">✦</i>사서</div>
+      </div>
+    </a>
+
+    <a class="place-card tinted" href="#records" data-animate style="--place-l:#b56a2a;--place-d:#e89255">
+      <span class="card-corner card-corner-tl" aria-hidden="true"></span>
+      <span class="card-corner card-corner-tr" aria-hidden="true"></span>
+      <span class="card-corner card-corner-bl" aria-hidden="true"></span>
+      <span class="card-corner card-corner-br" aria-hidden="true"></span>
+      <span class="card-glow" aria-hidden="true"></span>
+      <span class="pc-icon" aria-hidden="true">
+        <svg viewBox="0 0 48 48"><path d="M24 7c4 5 8 8 8 13.5a8 8 0 0 1-16 0C16 15 20 12 24 7z"/><path d="M24 20c1.8 2 3 3.2 3 5.2a3 3 0 0 1-6 0c0-2 1.2-3.2 3-5.2z"/><path d="M13 41l22-6M13 35l22 6"/></svg>
+      </span>
+      <div>
+        <div class="pc-name">모닥불</div>
+        <div class="pc-sub">The Campfire</div>
+        <div class="pc-flavor">"장작은 넉넉하다. 앉아서 몸을 녹이고 가시게."</div>
+        <div class="pc-meta"><b>기록 9편</b><i class="dia" aria-hidden="true">✦</i>이야기 손님</div>
+      </div>
+    </a>
+
+    <div class="place-card fog tinted" data-animate aria-label="광장 — 안개에 싸인 땅" style="--place-l:#6E6353;--place-d:#9BB0A4">
+      <span class="pc-icon" aria-hidden="true">
+        <svg viewBox="0 0 48 48"><path d="M11 13l13-6 13 6"/><path d="M11 13h26"/><path d="M14 17h20M14 37h20"/><path d="M17 17v20M24 17v20M31 17v20"/><path d="M11 41h26"/></svg>
+      </span>
+      <div>
+        <div class="pc-name">광장</div>
+        <div class="pc-sub">The Agora</div>
+        <div class="pc-flavor">안개에 싸인 땅</div>
+        <div class="pc-meta">아직 열리지 않았다</div>
+      </div>
+    </div>
+
+    <div class="place-card fog tinted" data-animate aria-label="예언자의 거울 — 안개에 싸인 땅" style="--place-l:#6E6353;--place-d:#9BB0A4">
+      <span class="pc-icon" aria-hidden="true">
+        <svg viewBox="0 0 48 48"><circle cx="24" cy="21" r="10"/><path d="M17 33h14l2.5 6h-19z"/><path d="M19.5 18a5.5 5.5 0 0 1 4-3"/></svg>
+      </span>
+      <div>
+        <div class="pc-name">예언자의 거울</div>
+        <div class="pc-sub">Oracle's Mirror</div>
+        <div class="pc-flavor">안개에 싸인 땅</div>
+        <div class="pc-meta">아직 열리지 않았다</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 방랑자의 수첩 띠 (1안 journal-band) -->
+  <a class="journal-band tinted" href="#journal" data-animate style="--place-l:#40826D;--place-d:#5FA88B">
+    <span class="pc-icon" aria-hidden="true">
+      <svg viewBox="0 0 48 48" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 8h20v32H14z"/><path d="M14 8c-2.5 0-4 1.8-4 4v24c0 2.2 1.5 4 4 4"/><path d="M20 18h8M20 25h8M20 32h5"/></svg>
+    </span>
+    <div>
+      <div class="jb-name">방랑자의 일지</div>
+      <div class="jb-sub">Wanderer's Journal · TIL</div>
+    </div>
+    <span class="jb-flavor">"완성되지 않아도 좋다. 오늘 걸은 만큼만 적는다."</span>
+    <span class="jb-meta">2편의 낱장 →</span>
+  </a>
+</section>
+
+<div class="orn" aria-hidden="true">✦&nbsp;&nbsp;✦&nbsp;&nbsp;✦</div>
+
+<!-- ============ 최근 기록 ============ -->
+<section class="home-section" id="records" aria-label="최근 기록">
+  <div class="section-head" data-animate>
+    <div class="orn-line" data-orn="headpiece" aria-hidden="true"></div>
+    <span class="eyebrow">Recent Records</span>
+    <h2>최근 기록</h2>
+    <div class="orn-line tail" data-orn="tailpiece" aria-hidden="true"></div>
+    <a class="sec-link" href="#records">서고에서 전체 보기 →</a>
+  </div>
+
+  <div class="record-list">
+
+    <a class="record-card tinted" href="#records" data-animate style="--place-l:#44607a;--place-d:#5e7d95">
+      <div class="rc-place"><span class="rc-seal" aria-hidden="true"></span>공학자 길드</div>
+      <h3>Python 데코레이터, 제대로 이해하기</h3>
+      <div class="rc-meta">
+        <time datetime="2026-07-02">2026-07-02</time>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="tag">python</span><span class="tag">decorator</span>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="journey">약 12분의 여정</span>
+      </div>
+    </a>
+
+    <a class="record-card tinted" href="#records" data-animate style="--place-l:#b56a2a;--place-d:#e89255">
+      <div class="rc-place"><span class="rc-seal" aria-hidden="true"></span>모닥불</div>
+      <h3>유월의 모닥불 — 상반기를 태우며</h3>
+      <div class="rc-meta">
+        <time datetime="2026-06-30">2026-06-30</time>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="tag">retrospect</span>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="journey">약 6분의 여정</span>
+      </div>
+    </a>
+
+    <a class="record-card tinted" href="#records" data-animate style="--place-l:#52689c;--place-d:#7a93c4">
+      <div class="rc-place"><span class="rc-seal" aria-hidden="true"></span>수학자의 탑</div>
+      <h3>괴델의 불완전성 정리를 산책하듯 읽기</h3>
+      <div class="rc-meta">
+        <time datetime="2026-06-28">2026-06-28</time>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="tag">logic</span><span class="tag">godel</span>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="journey">약 18분의 여정</span>
+      </div>
+    </a>
+
+    <a class="record-card tinted" href="#records" data-animate style="--place-l:#3e7d5f;--place-d:#5fa886">
+      <div class="rc-place"><span class="rc-seal" aria-hidden="true"></span>연금술사의 연구실</div>
+      <h3>엔트로피는 왜 항상 증가하는가</h3>
+      <div class="rc-meta">
+        <time datetime="2026-06-21">2026-06-21</time>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="tag">thermodynamics</span>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span class="journey">약 9분의 여정</span>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+<div class="orn" aria-hidden="true">✦&nbsp;&nbsp;✦&nbsp;&nbsp;✦</div>
+
+<!-- ============ 방랑자의 일지 ============ -->
+<section class="home-section" id="journal" aria-label="방랑자의 일지">
+  <div class="section-head" data-animate>
+    <div class="orn-line" data-orn="headpiece" aria-hidden="true"></div>
+    <span class="eyebrow">Wanderer's Journal</span>
+    <h2>방랑자의 일지</h2>
+    <div class="orn-line tail" data-orn="tailpiece" aria-hidden="true"></div>
+    <a class="sec-link" href="#journal">일지 전체 보기 →</a>
+  </div>
+
+  <div data-animate>
+    <p class="journal-motto">완성되지 않아도 좋다. 오늘 걸은 만큼만 적는다.</p>
+    <div class="journal-list">
+      <a class="journal-row" href="#journal">
+        <time datetime="2026-07-08">2026-07-08</time>
+        <span class="jr-dia" aria-hidden="true">✦</span>
+        <span class="jr-title">glob 패턴과 pathlib</span>
+      </a>
+      <a class="journal-row" href="#journal">
+        <time datetime="2026-07-05">2026-07-05</time>
+        <span class="jr-dia" aria-hidden="true">✦</span>
+        <span class="jr-title">CSS color-mix()로 문장색 파생하기</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="site" id="footer">
+  <div class="orn-line tail-orn" data-orn="tailpiece" aria-hidden="true"></div>
+  <div class="links">
+    <a href="#footer">전서구 (RSS)</a>
+    <a href="#footer">GitHub</a>
+  </div>
+  <p class="colophon">© 2026 The Wanderer — 이 교차로는 GitHub의 대지 위에 서 있다.</p>
+</footer>
+
+</div><!-- /.wrap -->
+
+<script>
+(function(){
+  'use strict';
+  var SVGNS='http://www.w3.org/2000/svg';
+  var root=document.documentElement;
+  var mqDark=window.matchMedia('(prefers-color-scheme: dark)');
+  var mqMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  /* ================= 절차 생성 오너먼트 (2안 이식) ================= */
+  function mk(name,attrs,parent){
+    var n=document.createElementNS(SVGNS,name);
+    for(var k in attrs) n.setAttribute(k,attrs[k]);
+    if(parent) parent.appendChild(n);
+    return n;
+  }
+  function fmt(v){ return Math.round(v*100)/100; }
+
+  /* 아르키메데스 나선 (덩굴 끝 소용돌이) */
+  function spiralD(cx,cy,r0,turns,startAngle,dir){
+    var steps=Math.max(18,Math.round(turns*22)), d='', i, a, r, x, y;
+    for(i=0;i<=steps;i++){
+      a=startAngle+dir*(i/steps)*turns*Math.PI*2;
+      r=r0*(1-(i/steps)*0.86);
+      x=cx+r*Math.cos(a); y=cy+r*Math.sin(a);
+      d+=(i===0?'M':'L')+fmt(x)+' '+fmt(y);
+    }
+    return d;
+  }
+  function diamond(cx,cy,r,parent){
+    mk('path',{d:'M'+fmt(cx)+' '+fmt(cy-r)+'L'+fmt(cx+r)+' '+fmt(cy)+
+      'L'+fmt(cx)+' '+fmt(cy+r)+'L'+fmt(cx-r)+' '+fmt(cy)+'Z',
+      fill:'currentColor',stroke:'none'},parent);
+  }
+  function berry(cx,cy,r,parent){
+    mk('circle',{cx:fmt(cx),cy:fmt(cy),r:r,fill:'currentColor',stroke:'none'},parent);
+  }
+
+  /* 코너 플러리시 (프레임 네 모서리) */
+  function cornerFlourish(){
+    var s=mk('svg',{viewBox:'0 0 64 64','aria-hidden':'true'});
+    var g=mk('g',{fill:'none',stroke:'currentColor','stroke-width':'1.5',
+      'stroke-linecap':'round'},s);
+    mk('path',{d:'M3 61 C3 25 25 3 61 3'},g);
+    mk('path',{d:'M11 61 C11 30 30 11 61 11'},g);
+    mk('path',{d:spiralD(18,52,8,1.35,Math.PI*0.5,-1)},g);
+    mk('path',{d:spiralD(52,18,8,1.35,Math.PI,1)},g);
+    diamond(30,30,4,g);
+    berry(40,22,1.8,g);
+    berry(22,40,1.8,g);
+    berry(48,10,1.4,g);
+    berry(10,48,1.4,g);
+    return s;
+  }
+
+  /* 물결 덩굴 반쪽 (헤드피스용) */
+  function vineHalfD(x0,x1,cy,amp){
+    var d='M'+fmt(x0)+' '+fmt(cy), n=3, seg=(x1-x0)/n, i, xa, xb, s;
+    for(i=0;i<n;i++){
+      xa=x0+seg*i; xb=xa+seg; s=(i%2===0)?-1:1;
+      d+=' C '+fmt(xa+seg*0.35)+' '+fmt(cy+s*amp)+', '+
+              fmt(xb-seg*0.35)+' '+fmt(cy+s*amp)+', '+fmt(xb)+' '+fmt(cy);
+    }
+    return d;
+  }
+
+  /* 헤드피스: 중앙 ✦ + 좌우 대칭 덩굴 + 끝 소용돌이 */
+  function headpiece(){
+    var W=300,H=30,cy=15;
+    var s=mk('svg',{viewBox:'0 0 '+W+' '+H,width:W,height:H,'aria-hidden':'true'});
+    var half=mk('g',{fill:'none',stroke:'currentColor','stroke-width':'1.4',
+      'stroke-linecap':'round'},s);
+    half.appendChild(mkPath(vineHalfD(132,36,cy,9)));
+    half.appendChild(mkPath(spiralD(26,cy,7,1.4,0,1)));
+    berry(116,cy-8,1.7,half);
+    berry(84,cy+8,1.7,half);
+    berry(52,cy-8,1.7,half);
+    var mirror=half.cloneNode(true);
+    mirror.setAttribute('transform','translate('+W+',0) scale(-1,1)');
+    s.appendChild(mirror);
+    diamond(W/2,cy,5,s);
+    mk('circle',{cx:W/2,cy:cy,r:8.5,fill:'none',stroke:'currentColor',
+      'stroke-width':'1'},s);
+    return s;
+
+    function mkPath(d){ return mk('path',{d:d}); }
+  }
+
+  /* 테일피스: 작은 대칭 마무리 */
+  function tailpiece(){
+    var W=170,H=22,cy=11;
+    var s=mk('svg',{viewBox:'0 0 '+W+' '+H,width:W,height:H,'aria-hidden':'true'});
+    var half=mk('g',{fill:'none',stroke:'currentColor','stroke-width':'1.3',
+      'stroke-linecap':'round'},s);
+    mk('path',{d:'M72 '+cy+' C 58 '+(cy-7)+', 44 '+(cy+7)+', 30 '+cy},half);
+    mk('path',{d:spiralD(22,cy,5.5,1.3,0,1)},half);
+    berry(51,cy,1.5,half);
+    var mirror=half.cloneNode(true);
+    mirror.setAttribute('transform','translate('+W+',0) scale(-1,1)');
+    s.appendChild(mirror);
+    diamond(W/2,cy,4,s);
+    return s;
+  }
+
+  document.querySelectorAll('.folio-frame .corner').forEach(function(c){
+    c.appendChild(cornerFlourish());
+  });
+  document.querySelectorAll('[data-orn="headpiece"]').forEach(function(n){
+    n.appendChild(headpiece());
+  });
+  document.querySelectorAll('[data-orn="tailpiece"]').forEach(function(n){
+    n.appendChild(tailpiece());
+  });
+
+  /* ================= 테마: 여명 ↔ 모닥불 ================= */
+  var btnLight=document.getElementById('btn-light');
+  var btnDark=document.getElementById('btn-dark');
+  var manualTheme=false;
+
+  function effectiveTheme(){
+    return root.dataset.theme || (mqDark.matches?'dark':'light');
+  }
+  function syncToggle(){
+    var t=effectiveTheme();
+    btnLight.setAttribute('aria-pressed', String(t==='light'));
+    btnDark.setAttribute('aria-pressed', String(t==='dark'));
+  }
+  function setTheme(t){
+    root.dataset.theme=t;
+    syncToggle();
+    initParticles(); // 반딧불이 ↔ 황금 먼지 교체
+  }
+  btnLight.addEventListener('click',function(){ manualTheme=true; setTheme('light'); });
+  btnDark.addEventListener('click',function(){ manualTheme=true; setTheme('dark'); });
+  mqDark.addEventListener('change',function(){
+    if(!manualTheme) setTheme(mqDark.matches?'dark':'light');
+  });
+
+  /* ================= 히어로 A/B 전환 (테마와 독립) ================= */
+  var hero=document.getElementById('hero');
+  var heroBtnA=document.getElementById('hero-btn-a');
+  var heroBtnB=document.getElementById('hero-btn-b');
+  function setHero(v){
+    hero.dataset.hero=v;
+    heroBtnA.setAttribute('aria-pressed', String(v==='a'));
+    heroBtnB.setAttribute('aria-pressed', String(v==='b'));
+  }
+  heroBtnA.addEventListener('click',function(){ setHero('a'); });
+  heroBtnB.addEventListener('click',function(){ setHero('b'); });
+
+  /* ================= 프레임 3단 전환 (테마·히어로와 독립) ================= */
+  var frameBtns={
+    full:document.getElementById('frame-btn-full'),
+    corner:document.getElementById('frame-btn-corner'),
+    none:document.getElementById('frame-btn-none')
+  };
+  function setFrame(v){
+    root.dataset.frame=v;
+    for(var k in frameBtns) frameBtns[k].setAttribute('aria-pressed', String(k===v));
+  }
+  frameBtns.full.addEventListener('click',function(){ setFrame('full'); });
+  frameBtns.corner.addEventListener('click',function(){ setFrame('corner'); });
+  frameBtns.none.addEventListener('click',function(){ setFrame('none'); });
+  setFrame('corner'); // 기본값: 코너만
+
+  /* ================= Ambient 전환: 히어로만 ↔ 전체 (테마·히어로·프레임과 독립) ================= */
+  var ambientBtns={
+    hero:document.getElementById('ambient-btn-hero'),
+    global:document.getElementById('ambient-btn-global')
+  };
+  function setAmbient(v){
+    root.dataset.ambient=v;
+    ambientBtns.hero.setAttribute('aria-pressed', String(v==='hero'));
+    ambientBtns.global.setAttribute('aria-pressed', String(v==='global'));
+    initParticles();
+  }
+  ambientBtns.hero.addEventListener('click',function(){ setAmbient('hero'); });
+  ambientBtns.global.addEventListener('click',function(){ setAmbient('global'); });
+  root.dataset.ambient='global'; // 기본값: 전체 (초기 파티클 생성은 아래 setTheme에서)
+
+  /* ================= 헤더: 연속 스크롤 적응형 =================
+     --hd-p(0~1)를 스크롤 진행도로 갱신 — 히어로 최상단 완전 투명에서
+     콘텐츠가 헤더에 닿는 지점(히어로 끝)에 정확히 100% 반투명 도달.
+     smoothstep으로 초반은 투명을 오래 유지, 끝에서 완만히 수렴 */
+  var headerEl=document.querySelector('header.site');
+  var heroSec=document.querySelector('.hero');
+  var hdPending=false;
+  function updateHeader(){
+    var y=window.scrollY||0;
+    var range=Math.max(240,(heroSec?heroSec.offsetHeight:window.innerHeight)-60);
+    var p=Math.min(1,Math.max(0,y/range));
+    p=p*p*(3-2*p); // smoothstep
+    headerEl.style.setProperty('--hd-p',p.toFixed(4));
+  }
+  function queueHeader(){
+    if(hdPending) return;
+    hdPending=true;
+    requestAnimationFrame(function(){ hdPending=false; updateHeader(); });
+  }
+  window.addEventListener('scroll',queueHeader,{passive:true});
+  window.addEventListener('resize',queueHeader);
+  updateHeader();
+
+  /* ================= 파티클 (4안 기반 · A/B 공통) =================
+     다크: 별(반짝임) + 반딧불이(표류+헤일로) · 라이트: 황금 먼지
+     Ambient=전체(기본): 파티클을 "문서 좌표"에 앵커 — 스크롤하면 콘텐츠와
+       함께 흘러가고, 아래 화면엔 거기 뿌려져 있던 새 파티클이 나타난다.
+       캔버스는 성능상 fixed, 매 프레임 worldY - scrollY 위치에 그린다.
+       밀도 = 뷰포트 한 화면당 히어로 모드와 동일 (문서 높이에 비례 생성).
+     Ambient=히어로만: 히어로 내부 한정 (현행) */
+  var canvas=document.getElementById('heroCanvas');
+  var ctx=canvas.getContext('2d');
+  var stars=[], movers=[];
+  var rafId=null, dpr=1;
+  var docHpx=0;      // 문서 전체 높이 (캔버스 픽셀 단위)
+  var frameCount=0;
+
+  function isGlobalAmbient(){
+    return (root.dataset.ambient||'global')!=='hero';
+  }
+  function docHeight(){
+    return document.documentElement.scrollHeight;
+  }
+  function sizeCanvas(){
+    dpr=Math.min(window.devicePixelRatio||1,2);
+    if(isGlobalAmbient()){
+      canvas.width=window.innerWidth*dpr;
+      canvas.height=window.innerHeight*dpr;
+    }else{
+      canvas.width=hero.clientWidth*dpr;
+      canvas.height=hero.clientHeight*dpr;
+    }
+  }
+  /* 파티클 분포 공간 높이: 전역 = 문서 전체, 히어로만 = 캔버스(히어로) */
+  function fieldHeight(){
+    return isGlobalAmbient() ? docHpx : canvas.height;
+  }
+  function mkStar(dark){
+    var fh=fieldHeight();
+    return {
+      x:Math.random()*canvas.width,
+      /* 히어로 모드: 다크 별은 하늘(상단 60%), 라이트 미세 먼지는 전체에 */
+      y:isGlobalAmbient() ? Math.random()*fh : Math.random()*fh*(dark?0.6:1),
+      r:(0.5+Math.random()*0.9)*dpr,
+      phase:Math.random()*Math.PI*2,
+      speed:0.008+Math.random()*0.018
+    };
+  }
+  function mkMover(dark){
+    var w=canvas.width, fh=fieldHeight();
+    return {
+      x:Math.random()*w,
+      y:isGlobalAmbient() ? Math.random()*fh
+        : (dark ? fh*(0.35+Math.random()*0.6) : Math.random()*fh),
+      /* 크기·표류 속도 라이트=다크 동일 (발광 먼지 = 반딧불이급) */
+      r:(1.4+Math.random()*1.8)*dpr,
+      vx:(Math.random()-0.5)*0.16*dpr,
+      vy:-(0.04+Math.random()*0.1)*dpr,
+      phase:Math.random()*Math.PI*2,
+      speed:0.006+Math.random()*0.012
+    };
+  }
+  function initParticles(){
+    sizeCanvas();
+    docHpx=docHeight()*dpr;
+    var dark=effectiveTheme()==='dark';
+    var g=isGlobalAmbient();
+    /* 밀도: 전역 = 뷰포트 한 화면(100dvh)당 히어로 모드와 동일한 개수.
+       라이트=다크 동일 밀도 (미세 먼지 44 + 발광 먼지 12 per 화면) */
+    var screens=g ? Math.max(1, docHeight()/Math.max(1,window.innerHeight)) : 1;
+    stars=[]; movers=[];
+    var i;
+    var ns=Math.round(44*screens), nm=Math.round(12*screens);
+    for(i=0;i<ns;i++) stars.push(mkStar(dark));
+    for(i=0;i<nm;i++) movers.push(mkMover(dark));
+    if(mqMotion.matches){
+      if(rafId!==null){ cancelAnimationFrame(rafId); rafId=null; }
+      drawFrame(true);
+      return;
+    }
+    if(rafId===null) loop();
+  }
+  function drawFrame(staticFrame){
+    var dark=effectiveTheme()==='dark';
+    var g=isGlobalAmbient();
+    var w=canvas.width,h=canvas.height,i,p,sy;
+    var offY=g ? (window.scrollY||0)*dpr : 0; // 문서 좌표 → 화면 좌표
+    var margin=100*dpr;                        // 뷰포트 밖 ±100px 스킵
+    var fh=fieldHeight();
+    ctx.clearRect(0,0,w,h);
+    // 미세 입자 — 다크: 크림빛 별 / 라이트: 진한 금(#B8860B) 먼지. 문서 공간 고정, 반짝임만
+    var starColor=dark?'240,232,206':'184,134,11';
+    for(i=0;i<stars.length;i++){
+      p=stars[i];
+      if(!staticFrame) p.phase+=p.speed;
+      sy=p.y-offY;
+      if(sy<-margin||sy>h+margin) continue;
+      var tw=0.5+0.5*Math.sin(p.phase);
+      ctx.fillStyle='rgba('+starColor+','+(0.16+tw*0.44).toFixed(3)+')';
+      ctx.beginPath();
+      ctx.arc(p.x,sy,p.r,0,Math.PI*2);
+      ctx.fill();
+    }
+    // 발광 입자 — 다크: 반딧불이 / 라이트: 큰 황금 먼지(웜 골드). 문서 좌표 기준 느린 표류
+    var color=dark?'212,170,48':'139,105,20';
+    for(i=0;i<movers.length;i++){
+      p=movers[i];
+      if(!staticFrame){
+        p.phase+=p.speed;
+        p.x+=p.vx+Math.sin(p.phase)*0.12*dpr;
+        p.y+=p.vy;
+        if(p.y<-10){ p.y=fh+5; }              // 분포 공간 상단 이탈 → 하단 재진입
+        if(p.x<-10||p.x>w+10){ movers[i]=mkMover(dark); continue; }
+      }
+      sy=p.y-offY;
+      if(sy<-margin||sy>h+margin) continue;
+      var pulse=0.5+0.5*Math.sin(p.phase*3);
+      var alpha=0.25+pulse*0.55; /* 라이트=다크 동일 밝기 */
+      var grad=ctx.createRadialGradient(p.x,sy,0,p.x,sy,p.r*6);
+      grad.addColorStop(0,'rgba('+color+','+(alpha*0.5).toFixed(3)+')');
+      grad.addColorStop(1,'rgba('+color+',0)');
+      ctx.fillStyle=grad;
+      ctx.beginPath();
+      ctx.arc(p.x,sy,p.r*6,0,Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle='rgba('+color+','+alpha.toFixed(3)+')';
+      ctx.beginPath();
+      ctx.arc(p.x,sy,p.r,0,Math.PI*2);
+      ctx.fill();
+    }
+  }
+  function loop(){
+    if(document.hidden){ rafId=requestAnimationFrame(loop); return; }
+    frameCount++;
+    /* 문서 높이 변화 감지(1초 주기) → 재분포 */
+    if(isGlobalAmbient() && frameCount%60===0){
+      var dh=docHeight()*dpr;
+      if(Math.abs(dh-docHpx)>2*dpr){
+        initParticles();
+        rafId=requestAnimationFrame(loop);
+        return;
+      }
+    }
+    drawFrame(false);
+    rafId=requestAnimationFrame(loop);
+  }
+  var resizeTimer=null;
+  window.addEventListener('resize',function(){
+    clearTimeout(resizeTimer);
+    resizeTimer=setTimeout(initParticles,150);
+  });
+  mqMotion.addEventListener('change',function(){
+    if(mqMotion.matches && rafId!==null){ cancelAnimationFrame(rafId); rafId=null; }
+    initParticles();
+  });
+  /* 모션 감소 + 전역 모드: 스크롤 시 현재 위치의 정적 프레임 재그리기 (rAF 스로틀)
+     — 문서 좌표 앵커이므로 스크롤에 따라 보이는 파티클이 달라져야 한다 */
+  var staticScrollPending=false;
+  window.addEventListener('scroll',function(){
+    if(!mqMotion.matches || !isGlobalAmbient() || staticScrollPending) return;
+    staticScrollPending=true;
+    requestAnimationFrame(function(){
+      staticScrollPending=false;
+      drawFrame(true);
+    });
+  },{passive:true});
+
+  /* 초기화: 실효 테마를 dataset에 고정 → CSS 3단 오버라이드와 정합 */
+  setTheme(effectiveTheme());
+
+  /* ================= 스크롤 등장 (1안 data-animate) ================= */
+  var targets=document.querySelectorAll('[data-animate]');
+  if(mqMotion.matches || !('IntersectionObserver' in window)){
+    targets.forEach(function(el){ el.classList.add('is-visible'); });
+  }else{
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){ e.target.classList.add('is-visible'); io.unobserve(e.target); }
+      });
+    },{threshold:0.12,rootMargin:'0px 0px -40px 0px'});
+    targets.forEach(function(el){ io.observe(el); });
+  }
+})();
+</script>
+</body>
+</html>

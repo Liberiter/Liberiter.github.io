@@ -1,31 +1,574 @@
 ---
-import { getCollection } from 'astro:content';
+// 방랑자의 일지 v4 — "여행자의 수첩" (스펙: docs/mockups/journal.html, 문구: docs/copy-deck.md §6)
+// 좌측 점선 여정 레일 + 월 구분 + details/summary 인라인 펼침.
+// 일지는 짧으므로 본문 전문을 빌드 시 포함한다 — 펼치면 그 자리에서 읽는다.
+import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import Emblem from '../../components/Emblem.astro';
-import { JOURNAL, tintStyle } from '../../data/places';
+import PageBanner from '../../components/PageBanner.astro';
+import { JOURNAL } from '../../data/places';
+
+const KO_MONTHS = ['일월', '이월', '삼월', '사월', '오월', '유월', '칠월', '팔월', '구월', '시월', '십일월', '십이월'];
+const EN_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+// 월 낱장 수 세기용 한글 수사 (한 달 최대 31장)
+const KO_ONES = ['', '한', '두', '세', '네', '다섯', '여섯', '일곱', '여덟', '아홉'];
+const KO_TENS = ['', '열', '스물', '서른'];
+const koCount = (n: number) =>
+  n >= 1 && n <= 39 ? KO_TENS[Math.floor(n / 10)] + KO_ONES[n % 10] : String(n);
+
+function roman(n: number): string {
+  const table: [number, string][] = [
+    [1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'],
+    [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I'],
+  ];
+  let out = '';
+  for (const [v, s] of table) while (n >= v) { out += s; n -= v; }
+  return out;
+}
+
+// 마크다운 → 미리보기용 평문 (2줄 클램프는 CSS가 담당)
+function previewText(md: string): string {
+  return md
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/`([^`]*)`/g, '$1')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/^\s*(?:[-*+]|\d+\.)\s+/gm, '')
+    .replace(/[*_~]/g, '')
+    .replace(/^\s*>\s?/gm, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 const entries = (await getCollection('journal')).sort((a, b) => (a.id < b.id ? 1 : -1));
+const items = await Promise.all(
+  entries.map(async (entry) => {
+    const { Content } = await render(entry);
+    const d = new Date(`${entry.id}T00:00:00`);
+    return {
+      entry,
+      Content,
+      preview: previewText(entry.body ?? ''),
+      dateLabel: `${entry.id.slice(5)} ${WEEKDAYS[d.getDay()]}`,
+    };
+  })
+);
+
+// 월별 그룹 (엔트리가 날짜 내림차순이므로 월도 내림차순으로 쌓인다)
+type Item = (typeof items)[number];
+const groups: { key: string; items: Item[] }[] = [];
+for (const item of items) {
+  const key = item.entry.id.slice(0, 7);
+  const last = groups[groups.length - 1];
+  if (last && last.key === key) last.items.push(item);
+  else groups.push({ key, items: [item] });
+}
+
+// 이번 달 낱장이 없으면 빈 달 그룹을 맨 앞에 (copy-deck §6 빈 달)
+const now = new Date();
+const nowKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+if (!groups.some((g) => g.key === nowKey)) groups.unshift({ key: nowKey, items: [] });
+
+// 연속 기록 위젯 — 빌드 시 계산. 이번 달에 기록된 날 수 (과장 금지)
+const monthCount = groups.find((g) => g.key === nowKey)?.items.length ?? 0;
+
+const monthMeta = (key: string) => {
+  const y = Number(key.slice(0, 4));
+  const m = Number(key.slice(5, 7));
+  return {
+    ko: `${KO_MONTHS[m - 1]}의 길`,
+    en: `${EN_MONTHS[m - 1]} · ${roman(y)}`,
+    label: `${y}년 ${m}월의 일지`,
+  };
+};
 ---
 
-<Base title="방랑자의 일지" description="매일의 짧은 학습 기록 (TIL).">
-  <div class="tinted" style={tintStyle(JOURNAL)}>
-    <section class="place-banner">
-      <Emblem id="wanderers-journal" size={56} />
-      <h1>방랑자의 일지</h1>
-      <div class="eyebrow">{JOURNAL.en} · TIL</div>
-      <p class="flavor">“{JOURNAL.flavor}”</p>
-    </section>
-    <div class="orn">✦</div>
-    <div class="journal-list">
+<Base title="방랑자의 일지" description="매일의 짧은 학습 기록 (TIL) — 날짜순 일지 목록.">
+  <!-- 공용 배너(작은 히어로): 수첩의 표지 — 나침반 심볼은 top 슬롯으로 -->
+  <PageBanner slot="hero" eyebrow="Wanderer's Journal" title="방랑자의 일지" flavor={JOURNAL.flavor}>
+    <div slot="top" class="pb-compass" aria-hidden="true">
+      <Emblem id="wanderers-journal" size={40} />
+    </div>
+  </PageBanner>
+
+  <!-- 연속 기록 위젯 -->
+  <div class="journal-lead" data-animate>
+    {
+      monthCount > 0 && (
+        <p class="streak">
+          <span class="dia" aria-hidden="true">✦</span>이번 달 <b>{monthCount}일째</b> 기록 중
+          <span class="dia" aria-hidden="true">✦</span>
+        </p>
+      )
+    }
+    {
+      items.length > 0 && (
+        <p class="streak-sub">{items.length}장의 낱장이 쌓였다 · 낱장을 누르면 그 자리에서 펼쳐진다</p>
+      )
+    }
+  </div>
+
+  <!-- 타임라인: 좌측 점선 여정 레일 + 월 구분 -->
+  <div class="trail-wrap">
+    <div class="trail">
       {
-        entries.map((entry) => (
-          <a class="journal-row" href={`/journal/${entry.id}/`}>
-            <time>{entry.id}</time>
-            <span class="jr-title">{entry.data.title ?? '이 날의 기록'}</span>
-            <span class="jr-tags">{entry.data.tags.join(' · ')}</span>
-          </a>
-        ))
+        groups.map((group) => {
+          const meta = monthMeta(group.key);
+          return (
+            <section class="month-group" aria-label={meta.label}>
+              <div class="month-head" data-animate>
+                <i class="mh-node" aria-hidden="true">✦</i>
+                <h2>{meta.ko}</h2>
+                <span class="mh-en">{meta.en}</span>
+                <span class="mh-rule" aria-hidden="true"></span>
+                {group.items.length > 0 && <span class="mh-count">{koCount(group.items.length)} 낱장</span>}
+              </div>
+
+              {group.items.length === 0 ? (
+                <p class="empty-month" data-animate>이 달의 수첩은 비어 있다. 길이 없었던 것은 아니다.</p>
+              ) : (
+                group.items.map(({ entry, Content, preview, dateLabel }) => (
+                  <details class="til" data-animate>
+                    <summary>
+                      <i class="til-node" aria-hidden="true"></i>
+                      <span class="til-top">
+                        <time datetime={entry.id}>{dateLabel}</time>
+                        <i class="tt-dia" aria-hidden="true">✦</i>
+                        <span class="tt">{entry.data.title ?? '이 날의 기록'}</span>
+                        <i class="chev" aria-hidden="true"></i>
+                      </span>
+                      {preview && <span class="til-preview">{preview}</span>}
+                      {entry.data.tags.length > 0 && (
+                        <span class="til-tags">
+                          {entry.data.tags.map((tag) => (
+                            <span class="tag">{tag}</span>
+                          ))}
+                        </span>
+                      )}
+                    </summary>
+                    <div class="til-body">
+                      <div class="til-body-in">
+                        <Content />
+                        <a class="til-perma" href={`/journal/${entry.id}/`}>이 낱장만 보기 →</a>
+                      </div>
+                    </div>
+                  </details>
+                ))
+              )}
+            </section>
+          );
+        })
       }
     </div>
+
+    {items.length > 0 && (
+      <p class="trail-end" data-animate>여기서 길이 시작되었다. 첫 낱장 이전의 기록은 없다.</p>
+    )}
   </div>
 </Base>
+
+<script>
+  import { initScrollAnimations } from '../../scripts/scroll-animations';
+  initScrollAnimations();
+</script>
+
+<style>
+  /* ═══ 배너 위 고유 요소 — 나침반 심볼 (PageBanner top 슬롯) ═══ */
+  .pb-compass {
+    display: flex;
+    justify-content: center;
+    color: var(--gold);
+    filter: var(--glow);
+  }
+
+  /* ═══ 연속 기록 위젯 ═══ */
+  .journal-lead {
+    text-align: center;
+  }
+  .streak {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    max-width: 400px;
+    margin: 30px auto 0;
+    font-family: var(--serif);
+    font-size: 13.5px;
+    color: var(--muted);
+  }
+  .streak .dia {
+    color: var(--gold);
+    font-size: 9px;
+    font-style: normal;
+  }
+  .streak b {
+    color: var(--gold-text);
+    font-weight: 600;
+  }
+  .streak::before,
+  .streak::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+  }
+  .streak::before {
+    background: linear-gradient(to right, transparent, color-mix(in srgb, var(--gold) 40%, transparent));
+  }
+  .streak::after {
+    background: linear-gradient(to left, transparent, color-mix(in srgb, var(--gold) 40%, transparent));
+  }
+  .streak-sub {
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.03em;
+  }
+
+  /* ═══ 타임라인 — 좌측 점선 여정 레일 + 월 구분 ═══ */
+  .trail-wrap {
+    margin: 2.6rem auto 0;
+  }
+  .trail {
+    position: relative;
+    max-width: 720px;
+    margin: 0 auto;
+    padding-left: 34px;
+  }
+  /* 점선 여정 레일 (상하 페이드) */
+  .trail::before {
+    content: '';
+    position: absolute;
+    left: 9px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: repeating-linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--gold) 45%, var(--line)) 0 4px,
+      transparent 4px 10px
+    );
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 40px, #000 calc(100% - 40px), transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 40px, #000 calc(100% - 40px), transparent);
+  }
+
+  /* 월 구분 — 작은 헤드피스 */
+  .month-head {
+    position: relative;
+    display: flex;
+    align-items: baseline;
+    gap: 11px;
+    margin: 40px 0 16px;
+  }
+  .month-group:first-child .month-head {
+    margin-top: 0;
+  }
+  .month-head .mh-node {
+    position: absolute;
+    left: -30.5px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gold);
+    font-size: 12px;
+    font-style: normal;
+    line-height: 1;
+    background: var(--bg);
+    padding: 4px 0;
+    filter: var(--glow);
+  }
+  .month-head h2 {
+    font-family: var(--serif);
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--ink);
+    margin: 0;
+  }
+  .month-head .mh-en {
+    font-family: var(--display);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--gold-text);
+    white-space: nowrap;
+  }
+  .month-head .mh-rule {
+    flex: 1;
+    height: 1px;
+    align-self: center;
+    background: linear-gradient(to right, color-mix(in srgb, var(--gold) 40%, transparent), transparent);
+  }
+  .month-head .mh-count {
+    font-family: var(--serif);
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* 빈 달 (copy-deck §6) */
+  .empty-month {
+    margin: 0;
+    padding: 18px 16px;
+    border: 1px dashed var(--line);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 13.5px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  /* ═══ 일지 엔트리 — 기록 카드보다 가벼운 "낱장" ═══
+     워시 없음: 옅은 배경 + 헤어라인, 밀랍 봉인 대신 작은 나침반 점 */
+  details.til {
+    position: relative;
+    background: color-mix(in srgb, var(--card) 55%, var(--bg));
+    border: 1px solid var(--line);
+    transition: border-color 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+  }
+  details.til + details.til {
+    margin-top: 10px;
+  }
+  details.til:hover {
+    border-color: color-mix(in srgb, var(--gold) 38%, var(--line));
+    background: color-mix(in srgb, var(--card) 85%, var(--bg));
+  }
+  details.til[open] {
+    background: var(--card);
+    border-color: color-mix(in srgb, var(--gold) 45%, var(--line));
+    box-shadow: var(--shadow);
+  }
+  /* 레일 위 여정 노드 (마름모) — 펼치면 금빛으로 점등 */
+  .til-node {
+    position: absolute;
+    left: -28px;
+    top: 21px;
+    width: 7px;
+    height: 7px;
+    transform: rotate(45deg);
+    background: color-mix(in srgb, var(--gold-dim) 55%, var(--bg));
+    box-shadow: 0 0 0 3px var(--bg);
+    transition: background-color 0.25s ease, box-shadow 0.25s ease;
+  }
+  details.til[open] .til-node,
+  details.til:hover .til-node {
+    background: var(--gold);
+    box-shadow: 0 0 0 3px var(--bg), 0 0 10px color-mix(in srgb, var(--gold) 55%, transparent);
+  }
+  details.til summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 13px 16px 12px;
+  }
+  details.til summary::-webkit-details-marker {
+    display: none;
+  }
+  .til-top {
+    display: flex;
+    align-items: baseline;
+    gap: 11px;
+  }
+  .til-top time {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--gold-text);
+    flex: none;
+    letter-spacing: 0.02em;
+  }
+  /* 작은 나침반 점 (밀랍 봉인의 수첩 버전) */
+  .til-top .tt-dia {
+    color: var(--gold-dim);
+    font-size: 8px;
+    font-style: normal;
+    flex: none;
+    align-self: center;
+  }
+  .til-top .tt {
+    font-family: var(--serif);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.45;
+    color: var(--ink);
+    min-width: 0;
+  }
+  .til-top .chev {
+    margin-left: auto;
+    align-self: center;
+    flex: none;
+    width: 7px;
+    height: 7px;
+    border-right: 1.5px solid var(--gold-dim);
+    border-bottom: 1.5px solid var(--gold-dim);
+    transform: rotate(45deg) translate(-1px, -1px);
+    transition: transform 0.25s ease;
+  }
+  details.til[open] .chev {
+    transform: rotate(-135deg) translate(-1px, -1px);
+  }
+  .til-preview {
+    margin-top: 5px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  details.til[open] .til-preview {
+    display: none;
+  }
+  .til-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 9px;
+  }
+  .til-tags .tag {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+    color: var(--viridian-text);
+    background: transparent;
+    border: 1px solid color-mix(in srgb, var(--viridian) 40%, transparent);
+    padding: 0 7px;
+  }
+
+  /* 펼친 본문 — 가벼운 조판 (콘텐츠 컬렉션 본문이 그대로 렌더된다) */
+  .til-body {
+    padding: 0 16px 15px;
+  }
+  .til-body-in {
+    border-top: 1px dashed var(--line);
+    padding-top: 12px;
+    display: grid;
+    gap: 9px;
+    font-size: 13.5px;
+    line-height: 1.85;
+    color: var(--ink);
+  }
+  details.til[open] .til-body-in {
+    animation: til-in 0.3s ease;
+  }
+  @keyframes til-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .til-body-in :global(p) {
+    margin: 0;
+  }
+  .til-body-in :global(ul),
+  .til-body-in :global(ol) {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 4px;
+  }
+  .til-body-in :global(li) {
+    position: relative;
+    padding-left: 16px;
+  }
+  .til-body-in :global(li::before) {
+    content: '✦';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--gold-dim);
+    font-size: 9px;
+  }
+  .til-body-in :global(code) {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    color: var(--gold-text);
+    background: var(--gold-soft);
+    border: 1px solid color-mix(in srgb, var(--gold) 18%, transparent);
+    padding: 0 5px;
+  }
+  .til-body-in :global(pre) {
+    margin: 0;
+    border: 1px solid var(--line);
+    padding: 10px 13px;
+    overflow-x: auto;
+    line-height: 1.65;
+    font-size: 12.5px;
+  }
+  .til-body-in :global(pre code) {
+    background: none;
+    border: 0;
+    padding: 0;
+    color: inherit;
+  }
+  .til-body-in :global(a) {
+    color: var(--gold-text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .til-body-in :global(strong) {
+    font-weight: 700;
+    color: var(--ink);
+  }
+  /* 낱장 고유 주소 (RSS·공유용 /journal/{날짜}/ 유지) */
+  .til-perma {
+    justify-self: end;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .til-perma:hover {
+    color: var(--gold);
+  }
+
+  /* 여정의 끝 문구 */
+  .trail-end {
+    text-align: center;
+    margin: 34px 0 0;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  @media (max-width: 720px) {
+    .trail {
+      padding-left: 26px;
+    }
+    .trail::before {
+      left: 5px;
+    }
+    .month-head .mh-node {
+      left: -26.5px;
+    }
+    .til-node {
+      left: -24px;
+    }
+    .month-head .mh-en {
+      display: none;
+    }
+    .til-top {
+      flex-wrap: wrap;
+      gap: 6px 11px;
+    }
+    .til-top .chev {
+      margin-left: auto;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    details.til,
+    .til-node,
+    .til-top .chev {
+      transition: none;
+    }
+    details.til[open] .til-body-in {
+      animation: none;
+    }
+  }
+</style>

@@ -1,0 +1,12 @@
+---
+// 폴리오 프레임 (v4) — 뷰포트 네 모서리의 코너 플러리시 + 페이드아웃 괘선 스텁.
+// 전체 괘선 프레임은 쓰지 않는다 (WORLDBOOK §3.3). 스타일은 global.css .folio-frame,
+// 플러리시 SVG는 ornaments.ts가 절차 생성해 심는다 (Base.astro에서 초기화).
+---
+
+<div class="folio-frame" aria-hidden="true">
+  <div class="corner c-tl"></div>
+  <div class="corner c-tr"></div>
+  <div class="corner c-bl"></div>
+  <div class="corner c-br"></div>
+</div>

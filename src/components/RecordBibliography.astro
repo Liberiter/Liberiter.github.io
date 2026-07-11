@@ -1,0 +1,210 @@
+---
+// 연도 구분 서지 리스트 (v4) — 문장색 봉인 점 · 제목 ⋯ 점선 리더 ⋯ 날짜.
+// 스펙 원본: docs/mockups/archive.html. 서고(/records/)와 표식(/tags/{tag}/)이 공유한다.
+// 서고의 장소 필터 JS는 li[data-place]의 hidden만 토글한다 — JS 미동작 시 전체 노출.
+import type { CollectionEntry } from 'astro:content';
+import { placeBySlug, tintStyle } from '../data/places';
+
+interface Props {
+  records: CollectionEntry<'records'>[];
+}
+const { records } = Astro.props;
+
+// 연도별 그룹 — 최신 연도부터, 그룹 안은 날짜 역순
+const sorted = [...records].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const byYear = new Map<number, CollectionEntry<'records'>[]>();
+for (const rec of sorted) {
+  const year = rec.data.date.getUTCFullYear();
+  if (!byYear.has(year)) byYear.set(year, []);
+  byYear.get(year)!.push(rec);
+}
+const years = [...byYear.keys()];
+const iso = (d: Date) => d.toISOString().slice(0, 10);
+
+// 결과 없음 문구 — copy-deck §5
+const EMPTY = '이 서가는 비어 있다. 방랑자가 게으른 것이 아니라, 아직 그 길을 걷지 않았을 뿐이다.';
+---
+
+{
+  years.map((year, i) => (
+    <>
+      {i > 0 && (
+        <div class="orn" aria-hidden="true" data-year-orn>
+          ✦&nbsp;&nbsp;✦&nbsp;&nbsp;✦
+        </div>
+      )}
+      <section class="year-group" data-animate>
+        <div class="year-head">
+          <span class="yr-dia" aria-hidden="true">✦</span>
+          <h2 class="yr">{year}</h2>
+          <span class="yr-count">{byYear.get(year)!.length}편</span>
+        </div>
+        <ol class="bib-list">
+          {byYear.get(year)!.map((rec) => {
+            const place = placeBySlug(rec.data.place);
+            return (
+              <li class="bib-item tinted" data-place={place.slug} style={tintStyle(place)}>
+                <a class="bib-row" href={`/records/${rec.id}/`}>
+                  <span class="seal" aria-hidden="true" />
+                  <span class="bib-title">{rec.data.title}</span>
+                  <span class="leader" aria-hidden="true" />
+                  <time datetime={iso(rec.data.date)}>{iso(rec.data.date)}</time>
+                </a>
+              </li>
+            );
+          })}
+        </ol>
+      </section>
+    </>
+  ))
+}
+
+<p class="empty-note" data-filter-empty hidden={years.length > 0}>{EMPTY}</p>
+
+<style>
+  .year-group {
+    margin: 0 0 34px;
+  }
+  /* 연도 헤딩: ✦ + 연도 + 금 헤어라인 + 편수 */
+  .year-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 26px 0 8px;
+  }
+  .year-head .yr-dia {
+    color: var(--gold);
+    font-size: 11px;
+    filter: var(--glow);
+  }
+  .year-head .yr {
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: clamp(24px, 3.2vw, 30px);
+    letter-spacing: 0.1em;
+    color: var(--ink);
+    line-height: 1.2;
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .year-head::after {
+    /* 헤어라인 — order로 연도와 편수 사이에 놓는다 */
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, color-mix(in srgb, var(--gold) 50%, transparent), transparent);
+  }
+  .year-head .yr-count {
+    order: 1;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    flex: none;
+  }
+
+  /* 한 줄 서지 */
+  .bib-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .bib-row {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 10px 10px 9px;
+    color: var(--ink);
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+    transition: background-color 0.25s;
+  }
+  .bib-row:hover {
+    text-decoration: none;
+    background: color-mix(in srgb, var(--gold) 7%, transparent); /* 행 워시 */
+  }
+  .bib-row .seal {
+    /* 장소 문장색 밀랍 봉인 점 */
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex: none;
+    align-self: center;
+    background: radial-gradient(
+      circle at 34% 30%,
+      color-mix(in srgb, var(--place) 55%, #fff) 0%,
+      var(--place) 55%,
+      color-mix(in srgb, var(--place) 65%, #000) 100%
+    );
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--place) 12%, transparent);
+  }
+  .bib-title {
+    font-family: var(--serif);
+    font-size: 15.5px;
+    font-weight: 600;
+    line-height: 1.55;
+    min-width: 0;
+    text-underline-offset: 5px;
+  }
+  .bib-row:hover .bib-title {
+    /* 금빛 밑줄 */
+    text-decoration: underline;
+    text-decoration-color: var(--gold);
+    text-decoration-thickness: 1px;
+  }
+  .leader {
+    /* 점선 리더 */
+    flex: 1;
+    min-width: 28px;
+    align-self: center;
+    border-bottom: 1px dotted color-mix(in srgb, var(--muted) 55%, transparent);
+    transform: translateY(3px);
+  }
+  .bib-row time {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--muted);
+    flex: none;
+  }
+  @media (max-width: 560px) {
+    .bib-row {
+      gap: 9px;
+      padding: 9px 4px 8px;
+    }
+    .bib-title {
+      font-size: 14.5px;
+    }
+    .leader {
+      min-width: 14px;
+    }
+    .bib-row time {
+      font-size: 12px;
+    }
+  }
+
+  /* 결과 없음 (copy-deck §5) */
+  .empty-note {
+    text-align: center;
+    font-family: var(--serif);
+    font-size: 14.5px;
+    color: var(--muted);
+    line-height: 2;
+    margin: 56px 0;
+    text-wrap: pretty;
+  }
+  .empty-note::before {
+    content: '— ';
+    color: var(--gold);
+  }
+  .empty-note::after {
+    content: ' —';
+    color: var(--gold);
+  }
+
+  /* 필터 JS가 hidden을 토글한다 — .orn(display:flex) 등 전역 display를 확실히 이긴다 */
+  .year-group[hidden],
+  .bib-item[hidden],
+  [data-year-orn][hidden],
+  .empty-note[hidden] {
+    display: none !important;
+  }
+</style>

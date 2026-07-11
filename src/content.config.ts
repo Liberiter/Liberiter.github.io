@@ -22,6 +22,8 @@ const records = defineCollection({
       series: z.string().optional(),
       seriesTitle: z.string().optional(),
       seriesOrder: z.number().optional(),
+      seriesDescription: z.string().optional(), // 연대기 서문 — 한 화에만 적어도 목차 페이지가 집어 쓴다
+      seriesStatus: z.enum(['ongoing', 'completed']).optional(), // 어느 한 화에 completed가 있으면 완결
       draft: z.boolean().default(false), // true = 봉인된 기록
     })
     .refine((d) => d.place !== 'authors-den' || !!d.series, {

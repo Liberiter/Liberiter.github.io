@@ -1,50 +1,867 @@
 ---
+// 장소 상세 (v4) — 배너·칭호 카드·기록 목록·연대기 서가·이웃 내비.
+// 스펙: docs/mockups/place.html · 문구: docs/copy-deck.md §3·§8 · 칭호: WORLDBOOK §2.3.
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import Emblem from '../../components/Emblem.astro';
 import RecordCard from '../../components/RecordCard.astro';
 import RuneRing from '../../components/RuneRing.astro';
-import { PLACES, rankFor, tintStyle } from '../../data/places';
+import { PLACES, tintStyle, type Place } from '../../data/places';
+import { fmtDate } from '../../lib/format';
 
 export function getStaticPaths() {
-  return PLACES.map((place) => ({ params: { place: place.slug }, props: { place } }));
+  return PLACES.map((place, index) => ({ params: { place: place.slug }, props: { place, index } }));
 }
-const { place } = Astro.props;
+interface Props {
+  place: Place;
+  index: number;
+}
+const { place, index } = Astro.props;
 
-const records = (
-  await getCollection('records', ({ data }) => data.place === place.slug && !data.draft)
-).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+// 전체 기록 1회 조회 — 이 장소의 목록 + 이웃 장소의 안개 판정에 함께 쓴다
+const all = await getCollection('records', ({ data }) => !data.draft);
+const countBy = new Map<string, number>();
+for (const rec of all) countBy.set(rec.data.place, (countBy.get(rec.data.place) ?? 0) + 1);
 
-const rank = rankFor(place, records.length);
+const records = all
+  .filter((rec) => rec.data.place === place.slug)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const count = records.length;
+
+// ── 칭호 4단계 (WORLDBOOK §2.3): 1+ / 5+ / 15+ / 30+ — 빌드 시 자동 계산 ──
+const RANK_MIN = [1, 5, 15, 30];
+const RANK_NUM = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ'];
+const rankIdx = RANK_MIN.filter((min) => count >= min).length - 1; // 0편이면 -1
+const rank = rankIdx >= 0 ? place.ranks[rankIdx] : null;
+const nextMin = rankIdx < RANK_MIN.length - 1 ? RANK_MIN[rankIdx + 1] : null;
+const nextRank = nextMin !== null ? place.ranks[rankIdx + 1] : null;
+const progress = nextMin !== null ? Math.min(100, Math.round((count / nextMin) * 100)) : 100;
+
+// ── 배너 Locus 번호 (여정 순서 = PLACES 배열 순서) ──
+const LOCI = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ', 'Ⅶ', 'Ⅷ', 'Ⅸ', 'Ⅹ', 'Ⅺ', 'Ⅻ'];
+
+// ── 이 장소의 연대기 서가 — series가 있는 기록을 그룹핑 ──
+type Rec = (typeof records)[number];
+const bySeries = new Map<string, Rec[]>();
+for (const rec of records) {
+  if (!rec.data.series) continue;
+  const eps = bySeries.get(rec.data.series) ?? [];
+  eps.push(rec);
+  bySeries.set(rec.data.series, eps);
+}
+const chronicles = [...bySeries.entries()]
+  .map(([slug, eps]) => {
+    const sorted = [...eps].sort((a, b) => (a.data.seriesOrder ?? 0) - (b.data.seriesOrder ?? 0));
+    return {
+      slug,
+      title: eps.find((e) => e.data.seriesTitle)?.data.seriesTitle ?? slug,
+      desc: eps.find((e) => e.data.seriesDescription)?.data.seriesDescription,
+      completed: eps.some((e) => e.data.seriesStatus === 'completed'),
+      latest: Math.max(...eps.map((e) => e.data.date.valueOf())),
+      eps: sorted,
+    };
+  })
+  .sort((a, b) => b.latest - a.latest);
+
+// ── 다른 길로 — 이웃 장소 (PLACES 순서 기준, 여정은 순환한다) ──
+const prevPlace = PLACES[(index + PLACES.length - 1) % PLACES.length];
+const nextPlace = PLACES[(index + 1) % PLACES.length];
+const roads = [
+  { place: prevPlace, dir: '이전 장소', arrow: '←', cls: 'prev' },
+  { place: nextPlace, dir: '다음 장소', arrow: '→', cls: 'next' },
+];
+// 안개 장소는 채도를 죽인다 (PlaceCard와 동일한 잿빛 문장색)
+const fogTint = '--place-light:#6E6353;--place-dark:#9BB0A4';
 ---
 
-<Base title={`${place.ko} — ${place.topic}`} description={`${place.topic}에 대한 기록들. ${place.flavor}`}>
-  <div class="tinted" style={tintStyle(place)}>
-    <section class="place-banner">
-      <div class="banner-visual">
+<Base title={`${place.ko} — ${place.topic}`} description={`${place.topic}에 대한 기록 목록. ${place.flavor}`}>
+  <!-- 장소 배너 — 문장색 기운 하늘 + 문장 + 룬 원 (풀블리드, 헤더 적응 범위) -->
+  <section class="place-hero tinted" style={tintStyle(place)} data-hd-range slot="hero">
+    <div class="ph-in">
+      <div class="ph-emblem" aria-hidden="true">
         <RuneRing />
-        <Emblem id={place.slug} size={56} />
+        <Emblem id={place.slug} size={78} />
       </div>
-      <h1>{place.ko}</h1>
-      <div class="eyebrow">{place.en} · {place.topic}</div>
-      <p class="flavor">“{place.flavor}”</p>
-      {rank && <div class="rank-badge">방랑자의 칭호 — {rank}</div>}
-    </section>
+      <p class="ph-locus">The Twelve Places · Locus {LOCI[index]}</p>
+      <h1 class="ph-name">{place.ko}</h1>
+      <p class="ph-en">{place.en}</p>
+      <p class="ph-plaque">“{place.flavor}”</p>
+    </div>
+  </section>
 
-    <div class="orn">✦</div>
-
+  <div class="tinted" style={tintStyle(place)}>
     {
-      records.length > 0 ? (
-        <div class="record-list">
-          {records.map((rec) => (
-            <RecordCard rec={rec} />
-          ))}
-        </div>
-      ) : (
-        <p style="text-align:center; color: var(--ink-soft)">
-          이 땅은 아직 안개에 싸여 있다. 첫 기록이 남는 순간, 안개가 걷힌다.
-        </p>
+      rank && (
+        <>
+        <section class="home-section" aria-label="이 장소에서의 칭호">
+          <div class="rank-card" data-animate>
+            <span class="card-corner card-corner-tl" aria-hidden="true" />
+            <span class="card-corner card-corner-tr" aria-hidden="true" />
+            <span class="card-corner card-corner-bl" aria-hidden="true" />
+            <span class="card-corner card-corner-br" aria-hidden="true" />
+
+            <div class="rank-head">
+              <span class="rank-eyebrow">Wanderer's Standing</span>
+              <p class="rank-line">
+                이곳에서의 방랑자 — <b class="rank-now">{rank}</b>
+              </p>
+              <p class="rank-count">
+                이곳에 남긴 <b>기록 {count}편</b>
+              </p>
+            </div>
+
+            <ol class="rank-steps" aria-label="칭호 4단계 계보">
+              {place.ranks.map((r, i) => (
+                <li
+                  class:list={[{ done: i <= rankIdx, cur: i === rankIdx }]}
+                  aria-current={i === rankIdx ? 'step' : undefined}
+                >
+                  <span class="rs-num" aria-hidden="true">
+                    {RANK_NUM[i]}
+                  </span>
+                  {r}
+                </li>
+              ))}
+            </ol>
+
+            <div
+              class="rank-bar"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={nextMin ?? RANK_MIN[RANK_MIN.length - 1]}
+              aria-valuenow={Math.min(count, nextMin ?? RANK_MIN[RANK_MIN.length - 1])}
+              aria-label={nextRank ? `다음 칭호 ${nextRank}까지의 진행도` : '칭호 진행도 완료'}
+            >
+              <div class="rank-fill" style={`width:${progress}%`} />
+            </div>
+            <p class="rank-note">
+              {nextRank && nextMin !== null ? (
+                <span>
+                  다음 칭호 <b>「{nextRank}」</b>까지 {nextMin - count}편
+                </span>
+              ) : (
+                <span>이 길의 마지막 칭호에 이르렀다</span>
+              )}
+              <span class="rn-frac">
+                {count} / {nextMin ?? RANK_MIN[RANK_MIN.length - 1]}
+              </span>
+            </p>
+          </div>
+        </section>
+
+        <div class="orn" aria-hidden="true">✦&nbsp;&nbsp;✦&nbsp;&nbsp;✦</div>
+        </>
       )
     }
+
+    <section class="home-section" aria-label="기록 목록">
+      <div class="section-head" data-animate>
+        <div class="orn-line" data-orn="headpiece" aria-hidden="true"></div>
+        <span class="eyebrow">Records of {place.en}</span>
+        <h2>이곳의 기록</h2>
+        {
+          count > 0 && (
+            <p class="section-sub">
+              이곳에 남긴 기록 {count}편 — 최근 것부터
+            </p>
+          )
+        }
+        <div class="orn-line tail" data-orn="tailpiece" aria-hidden="true"></div>
+      </div>
+
+      {
+        count > 0 ? (
+          <div class="record-grid" data-stagger>
+            {records.map((rec) => (
+              <div data-animate>
+                <RecordCard rec={rec} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p class="empty-note" data-animate>
+            첫 기록의 잉크가 마르는 중이다.
+          </p>
+        )
+      }
+    </section>
+
+    {
+      chronicles.length > 0 && (
+        <>
+          <div class="orn" aria-hidden="true">✦&nbsp;&nbsp;✦&nbsp;&nbsp;✦</div>
+
+          <section class="home-section" aria-label="이 장소의 연대기">
+            <div class="section-head" data-animate>
+              <div class="orn-line" data-orn="headpiece" aria-hidden="true" />
+              <span class="eyebrow">Chronicles</span>
+              <h2>이 장소의 연대기</h2>
+              <p class="section-sub">이어지는 이야기 — 이곳에서 쓰인 연대기 {chronicles.length}권</p>
+              <div class="orn-line tail" data-orn="tailpiece" aria-hidden="true" />
+            </div>
+
+            {chronicles.map((ch) => (
+              <div class="chron-card" data-animate>
+                <span class="card-corner card-corner-tl" aria-hidden="true" />
+                <span class="card-corner card-corner-tr" aria-hidden="true" />
+                <span class="card-corner card-corner-bl" aria-hidden="true" />
+                <span class="card-corner card-corner-br" aria-hidden="true" />
+
+                <div class="chron-head">
+                  <span class="chron-icon" aria-hidden="true">
+                    <Emblem id={place.slug} size={36} />
+                  </span>
+                  <div class="chron-title">
+                    <div class="chron-name">{ch.title}</div>
+                  </div>
+                  <span class="chron-status">
+                    {ch.eps.length}화 {ch.completed ? '완결' : '진행 중'}
+                  </span>
+                </div>
+                {ch.desc && <p class="chron-desc">{ch.desc}</p>}
+
+                <ol class="chron-toc">
+                  {ch.eps.map((ep, i) => (
+                    <li>
+                      <a href={`/records/${ep.id}/`}>
+                        <span class="ep">제{ep.data.seriesOrder ?? i + 1}화</span>
+                        <span class="ep-title">{ep.data.title}</span>
+                        <time datetime={ep.data.date.toISOString()}>{fmtDate(ep.data.date)}</time>
+                      </a>
+                    </li>
+                  ))}
+                </ol>
+
+                <a class="chron-more" href={`/chronicles/${ch.slug}/`}>
+                  연대기 목차로 →
+                </a>
+              </div>
+            ))}
+          </section>
+        </>
+      )
+    }
+
+    <div class="orn" aria-hidden="true">✦&nbsp;&nbsp;✦&nbsp;&nbsp;✦</div>
+
+    <section class="home-section" aria-label="이웃 장소로 가는 길">
+      <div class="section-head" data-animate>
+        <span class="eyebrow">Other Roads</span>
+        <h2>다른 길로</h2>
+        <div class="orn-line tail" data-orn="tailpiece" aria-hidden="true"></div>
+      </div>
+
+      <nav class="roads" aria-label="이전·다음 장소">
+        {
+          roads.map(({ place: p, dir, arrow, cls }) => {
+            const fogged = (countBy.get(p.slug) ?? 0) === 0;
+            const inner = (
+              <>
+                <span class="road-arrow" aria-hidden="true">{arrow}</span>
+                <span class="road-icon" aria-hidden="true">
+                  <Emblem id={p.slug} size={32} />
+                </span>
+                <div>
+                  <div class="road-dir">{dir}</div>
+                  <div class="road-name">{p.ko}</div>
+                  <div class="road-en">{fogged ? '안개에 싸인 땅 · 아직 열리지 않았다' : p.en}</div>
+                </div>
+              </>
+            );
+            return fogged ? (
+              <div
+                class:list={['road-card', 'fogged', 'tinted', cls]}
+                style={fogTint}
+                title="첫 기록이 쓰이는 날, 안개가 걷힌다"
+                data-animate
+              >
+                {inner}
+              </div>
+            ) : (
+              <a class:list={['road-card', 'tinted', cls]} href={`/places/${p.slug}/`} style={tintStyle(p)} data-animate>
+                {inner}
+              </a>
+            );
+          })
+        }
+      </nav>
+    </section>
   </div>
 </Base>
+
+<script>
+  import { initScrollAnimations } from '../../scripts/scroll-animations';
+  initScrollAnimations();
+</script>
+
+<style>
+  /* ══════════════════════════════════════════════════════
+     장소 배너 — 컴팩트 배너보다 한 단계 웅장하게 (~400px)
+     문장색은 배너 하늘에만 은은하게 기운다 (본문 침투 금지)
+     ══════════════════════════════════════════════════════ */
+  .place-hero {
+    /* 배너 하늘 기본값 = 라이트 (여명의 절제된 축소판) */
+    --sky-a: #b8bfce;
+    --sky-b: #e8d5ba;
+    position: relative;
+    overflow: hidden;
+    margin-top: calc(-1 * var(--header-h)); /* 투명 헤더 뒤까지 차오른다 */
+    min-height: 400px;
+    height: clamp(400px, 58vh, 500px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background:
+      radial-gradient(90% 72% at 50% 26%, color-mix(in srgb, var(--place) 11%, transparent) 0%, transparent 68%),
+      linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--place) 16%, var(--sky-a)) 0%,
+        color-mix(in srgb, var(--place) 6%, var(--sky-b)) 58%,
+        var(--bg) 100%
+      );
+    transition: background 0.5s ease;
+  }
+  /* 다크 "칠흑의 숲" — global.css와 같은 3중 테마 선택자 패턴 */
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) .place-hero {
+      --sky-a: #0b120e;
+      --sky-b: #12211a;
+    }
+  }
+  :global(:root[data-theme='dark']) .place-hero {
+    --sky-a: #0b120e;
+    --sky-b: #12211a;
+  }
+  /* 파티클 캔버스(z1)는 배너 하늘 위, 배너 텍스트는 그 위 */
+  .ph-in {
+    position: relative;
+    z-index: 2;
+    padding: calc(var(--header-h) + 18px) 24px 30px;
+  }
+
+  /* 문장 + 룬 원 (RuneRing은 inset:-25% absolute — 부모가 기준) */
+  .ph-emblem {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--place);
+    filter: var(--glow);
+  }
+  .ph-emblem > :global(.emblem) {
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 0 14px color-mix(in srgb, var(--place) 30%, transparent));
+  }
+
+  .ph-locus {
+    font-family: var(--display);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.4em;
+    text-indent: 0.4em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--place) 40%, var(--ink));
+    text-shadow: var(--hd-halo);
+    margin: 0 0 8px;
+  }
+  .ph-name {
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: clamp(30px, 4.6vw, 42px);
+    line-height: 1.25;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    text-shadow: var(--hd-halo);
+    margin: 0;
+  }
+  .ph-en {
+    font-family: var(--display);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.34em;
+    text-indent: 0.34em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--place) 40%, var(--ink));
+    text-shadow: var(--hd-halo);
+    margin: 9px 0 0;
+  }
+  /* 입간판 플레이버 */
+  .ph-plaque {
+    display: inline-block;
+    margin: 22px 0 0;
+    padding: 9px 22px;
+    font-family: var(--serif);
+    font-size: 14.5px;
+    font-style: italic;
+    color: var(--ink);
+    text-shadow: var(--hd-halo);
+    border: 1px solid color-mix(in srgb, var(--place) 45%, transparent);
+    background: color-mix(in srgb, var(--bg) 40%, transparent);
+    position: relative;
+  }
+  .ph-plaque::before,
+  .ph-plaque::after {
+    content: '✦';
+    position: absolute;
+    top: 50%;
+    transform: translateY(-52%);
+    font-size: 8px;
+    font-style: normal;
+    color: color-mix(in srgb, var(--place) 70%, var(--ink));
+  }
+  .ph-plaque::before {
+    left: 8px;
+  }
+  .ph-plaque::after {
+    right: 8px;
+  }
+  @media (max-width: 560px) {
+    .place-hero {
+      height: auto;
+      min-height: 380px;
+    }
+    .ph-emblem {
+      width: 122px;
+      height: 122px;
+      margin-bottom: 20px;
+    }
+    .ph-plaque {
+      padding: 8px 26px;
+      font-size: 13.5px;
+    }
+  }
+
+  /* ══════════════════════════════════════════════════════
+     방랑자의 칭호 카드
+     ══════════════════════════════════════════════════════ */
+  .rank-card {
+    position: relative;
+    isolation: isolate;
+    max-width: 760px;
+    margin: 0 auto;
+    background: var(--wash);
+    border: 1px solid var(--card-border);
+    padding: 26px clamp(20px, 4.5vw, 42px) 24px;
+    overflow: hidden;
+  }
+  /* 카드 양피지 grain (record-card와 동일한 문법) */
+  .rank-card::after,
+  .chron-card::after,
+  .road-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.4 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)'/%3E%3C/svg%3E");
+    background-size: 140px 140px;
+    opacity: 0.1;
+    mix-blend-mode: var(--grain-blend);
+  }
+
+  .rank-head {
+    text-align: center;
+  }
+  .rank-eyebrow {
+    display: block;
+    font-family: var(--display);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+  .rank-line {
+    font-family: var(--serif);
+    font-size: 15px;
+    color: var(--muted);
+    margin: 0;
+  }
+  .rank-line .rank-now {
+    font-size: 21px;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 2px;
+  }
+  .rank-count {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 3px 0 0;
+  }
+  .rank-count b {
+    color: var(--gold-text);
+    font-weight: 600;
+  }
+
+  /* 4단계 계보 */
+  .rank-steps {
+    list-style: none;
+    display: flex;
+    margin: 24px 0 20px;
+    padding: 0;
+  }
+  .rank-steps li {
+    flex: 1;
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--muted);
+    position: relative;
+    padding-top: 18px;
+    line-height: 1.5;
+  }
+  .rank-steps li::before {
+    content: '';
+    position: absolute;
+    top: 5px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--card-border);
+  }
+  .rank-steps li:first-child::before {
+    left: 50%;
+  }
+  .rank-steps li:last-child::before {
+    right: 50%;
+  }
+  .rank-steps li::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 50%;
+    width: 9px;
+    height: 9px;
+    transform: translateX(-50%) rotate(45deg);
+    background: var(--card);
+    border: 1px solid var(--card-border);
+  }
+  .rank-steps li.done {
+    color: var(--gold-text);
+  }
+  .rank-steps li.done::before {
+    background: color-mix(in srgb, var(--gold) 55%, var(--card-border));
+  }
+  .rank-steps li.done::after {
+    background: var(--gold);
+    border-color: var(--gold);
+  }
+  .rank-steps li.cur {
+    font-family: var(--serif);
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .rank-steps li.cur::after {
+    box-shadow:
+      0 0 0 3px var(--gold-soft),
+      0 0 10px color-mix(in srgb, var(--gold) 35%, transparent);
+  }
+  .rank-steps .rs-num {
+    display: block;
+    font-family: var(--display);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    color: inherit;
+    opacity: 0.75;
+  }
+
+  /* 진행 바 — 각진 판형 · 황금 채움 */
+  .rank-bar {
+    height: 11px;
+    position: relative;
+    border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--card-border));
+    background: color-mix(in srgb, var(--ink) 6%, transparent);
+  }
+  .rank-fill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  }
+  .rank-fill::after {
+    /* 끝단 마름모 촉 */
+    content: '';
+    position: absolute;
+    right: -4px;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    transform: translateY(-50%) rotate(45deg);
+    background: var(--gold);
+  }
+  .rank-note {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--muted);
+    margin: 11px 0 0;
+  }
+  .rank-note b {
+    color: var(--gold-text);
+    font-weight: 600;
+  }
+  .rank-note .rn-frac {
+    font-family: var(--mono);
+    font-size: 12.5px;
+  }
+
+  /* ══════════════════════════════════════════════════════
+     기록 목록 — RecordCard(전역 스타일)를 2열 그리드에
+     ══════════════════════════════════════════════════════ */
+  .record-grid {
+    display: grid;
+    gap: 1.1rem;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+  @media (max-width: 400px) {
+    .record-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .record-grid > div {
+    display: grid; /* data-animate 래퍼가 카드 높이를 채우도록 */
+  }
+
+  /* 기록 0편 — 개방 직후 (copy-deck §3) */
+  .empty-note {
+    text-align: center;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 15.5px;
+    color: var(--muted);
+    margin: 48px 0;
+  }
+  .empty-note::before {
+    content: '— ';
+    color: var(--gold);
+  }
+  .empty-note::after {
+    content: ' —';
+    color: var(--gold);
+  }
+
+  /* ══════════════════════════════════════════════════════
+     연대기 서가
+     ══════════════════════════════════════════════════════ */
+  .chron-card {
+    position: relative;
+    isolation: isolate;
+    max-width: 760px;
+    margin: 0 auto;
+    background: var(--wash);
+    border: 1px solid var(--card-border);
+    padding: 24px clamp(20px, 4vw, 36px) 20px;
+    overflow: hidden;
+  }
+  .chron-card + .chron-card {
+    margin-top: 1.25rem;
+  }
+  .chron-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .chron-icon {
+    flex: none;
+    margin-top: 3px;
+    color: var(--place);
+    filter: var(--glow);
+  }
+  .chron-title {
+    min-width: 0;
+  }
+  .chron-name {
+    font-family: var(--serif);
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--ink);
+  }
+  .chron-status {
+    margin-left: auto;
+    flex: none;
+    align-self: center;
+    font-family: var(--serif);
+    font-size: 12.5px;
+    color: color-mix(in srgb, var(--place) 60%, var(--ink));
+    border: 1px solid color-mix(in srgb, var(--place) 40%, transparent);
+    background: color-mix(in srgb, var(--place) 8%, transparent);
+    padding: 2px 10px;
+    white-space: nowrap;
+  }
+  .chron-desc {
+    font-size: 13.5px;
+    color: var(--muted);
+    margin: 10px 0 4px;
+  }
+  .chron-toc {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+  }
+  .chron-toc a {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 10px 6px;
+    color: var(--ink);
+    border-bottom: 1px dashed var(--card-border);
+    transition: background-color 0.25s;
+  }
+  .chron-toc li:first-child a {
+    border-top: 1px dashed var(--card-border);
+  }
+  .chron-toc a:hover {
+    text-decoration: none;
+    background: color-mix(in srgb, var(--place) 8%, transparent);
+  }
+  .chron-toc .ep {
+    flex: none;
+    font-family: var(--serif);
+    font-size: 12.5px;
+    font-weight: 700;
+    color: color-mix(in srgb, var(--place) 75%, var(--ink));
+  }
+  .chron-toc .ep-title {
+    font-size: 14.5px;
+    min-width: 0;
+  }
+  .chron-toc time {
+    margin-left: auto;
+    flex: none;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .chron-more {
+    display: inline-block;
+    margin-top: 14px;
+    font-size: 13px;
+    color: var(--gold-text);
+    border-bottom: 1px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .chron-more:hover {
+    text-decoration: none;
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+  }
+  @media (max-width: 560px) {
+    .chron-head {
+      flex-wrap: wrap;
+    }
+    .chron-status {
+      margin-left: 50px;
+      align-self: flex-start;
+    }
+    .chron-toc time {
+      display: none;
+    }
+  }
+
+  /* ══════════════════════════════════════════════════════
+     이웃 장소 내비 — 다른 길로
+     ══════════════════════════════════════════════════════ */
+  .roads {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  @media (max-width: 600px) {
+    .roads {
+      grid-template-columns: 1fr;
+    }
+  }
+  .road-card {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    background: var(--wash);
+    border: 1px solid var(--card-border);
+    padding: 15px 18px;
+    color: var(--ink);
+    overflow: hidden;
+    transition:
+      border-color 0.3s ease,
+      background 0.3s ease,
+      transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 0.35s ease;
+  }
+  a.road-card:hover {
+    text-decoration: none;
+    background: var(--wash-hover);
+    border-color: color-mix(in srgb, var(--place) 65%, var(--card-border));
+    transform: translateY(-4px);
+    box-shadow: 0 8px 22px -10px color-mix(in srgb, var(--place) 32%, transparent);
+  }
+  .road-card.next {
+    flex-direction: row-reverse;
+    text-align: right;
+  }
+  .road-icon {
+    flex: none;
+    color: var(--place);
+    filter: var(--glow);
+  }
+  .road-card > div {
+    min-width: 0;
+  }
+  .road-dir {
+    font-family: var(--display);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .road-name {
+    font-family: var(--serif);
+    font-size: 15.5px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--ink);
+  }
+  .road-en {
+    font-family: var(--display);
+    font-size: 10.5px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .road-arrow {
+    margin-left: auto;
+    flex: none;
+    font-size: 15px;
+    color: color-mix(in srgb, var(--place) 75%, var(--ink));
+  }
+  .road-card.next .road-arrow {
+    margin-left: 0;
+    margin-right: auto;
+  }
+  /* 안개에 싸인 이웃 — 입장 불가 (WORLDBOOK §5.1) */
+  .road-card.fogged {
+    border-style: dashed;
+    border-color: var(--line);
+    filter: saturate(0.2);
+    opacity: 0.58;
+    cursor: help;
+  }
+  .road-card.fogged .road-en {
+    font-family: var(--serif);
+    text-transform: none;
+    letter-spacing: 0.02em;
+  }
+</style>

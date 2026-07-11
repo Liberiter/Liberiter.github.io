@@ -1,6 +1,6 @@
 ---
+// 기록 카드 (v4) — 수채 워시 + 밀랍 봉인 점 + 표식/여정 메타.
 import type { CollectionEntry } from 'astro:content';
-import Emblem from './Emblem.astro';
 import { placeBySlug, tintStyle } from '../data/places';
 import { fmtDate, readingTime } from '../lib/format';
 
@@ -9,15 +9,23 @@ interface Props {
 }
 const { rec } = Astro.props;
 const place = placeBySlug(rec.data.place);
+const tags = rec.data.tags.slice(0, 3);
 ---
 
 <a class="record-card tinted" href={`/records/${rec.id}/`} style={tintStyle(place)}>
-  <div class="rc-place"><Emblem id={place.slug} size={15} />{place.ko}</div>
+  <div class="rc-place"><span class="rc-seal" aria-hidden="true"></span>{place.ko}</div>
   <h3>{rec.data.title}</h3>
-  <p>{rec.data.description}</p>
   <div class="rc-meta">
     <time datetime={rec.data.date.toISOString()}>{fmtDate(rec.data.date)}</time>
-    <span>약 {readingTime(rec.body)}분의 여정</span>
-    {rec.data.series && <span>연대기 · {rec.data.seriesTitle ?? rec.data.series}</span>}
+    {tags.length > 0 && <span class="dot" aria-hidden="true">✦</span>}
+    {tags.map((tag) => <span class="tag">{tag}</span>)}
+    <span class="dot" aria-hidden="true">✦</span>
+    <span class="journey">약 {readingTime(rec.body)}분의 여정</span>
+    {rec.data.series && (
+      <>
+        <span class="dot" aria-hidden="true">✦</span>
+        <span>연대기 · {rec.data.seriesTitle ?? rec.data.series}</span>
+      </>
+    )}
   </div>
 </a>

@@ -1,7 +1,11 @@
 ---
+// 기록 상세 (v4) — 컴팩트 배너 + 68ch 본문 조판 + sticky 목차 + 글 끝 의식.
+// 스펙: docs/mockups/record.html, 문구: docs/copy-deck.md §4, 규칙: WORLDBOOK §3.3.
 import { getCollection, render } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import Emblem from '../../components/Emblem.astro';
+import PageBanner from '../../components/PageBanner.astro';
 import { placeBySlug, tintStyle, ESSAY_PLACES } from '../../data/places';
 import { fmtDate, readingTime } from '../../lib/format';
 
@@ -9,79 +13,1015 @@ export async function getStaticPaths() {
   const records = await getCollection('records', ({ data }) => !data.draft);
   return records.map((rec) => ({ params: { slug: rec.id }, props: { rec } }));
 }
-const { rec } = Astro.props;
+
+type Rec = CollectionEntry<'records'>;
+const { rec } = Astro.props as { rec: Rec };
 const place = placeBySlug(rec.data.place);
-const { Content } = await render(rec);
+const { Content, headings } = await render(rec);
+
+// 목차 — h2/h3만 (copy-deck §4: "이 기록의 지도")
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+
+// 드롭캡 — 에세이 장소(정원·예배당·집필실·모닥불)에만 (WORLDBOOK §3.3)
+const isEssay = ESSAY_PLACES.includes(place.slug);
+const minutes = readingTime(rec.body);
 
 // 연대기(시리즈) 내비게이션
-let chapters: typeof rec[] = [];
+let chapters: Rec[] = [];
 if (rec.data.series) {
   chapters = (
     await getCollection('records', ({ data }) => data.series === rec.data.series && !data.draft)
   ).sort((a, b) => (a.data.seriesOrder ?? 0) - (b.data.seriesOrder ?? 0));
 }
-const idx = chapters.findIndex((c) => c.id === rec.id);
-const prev = idx > 0 ? chapters[idx - 1] : null;
-const next = idx >= 0 && idx < chapters.length - 1 ? chapters[idx + 1] : null;
+const chIdx = chapters.findIndex((c) => c.id === rec.id);
+const prevCh = chIdx > 0 ? chapters[chIdx - 1] : null;
+const nextCh = chIdx >= 0 && chIdx < chapters.length - 1 ? chapters[chIdx + 1] : null;
 const seriesTitle =
   chapters.find((c) => c.data.seriesTitle)?.data.seriesTitle ?? rec.data.series;
+const seriesCompleted = chapters.some((c) => c.data.seriesStatus === 'completed');
+// 화수 — seriesOrder가 없으면 정렬 순서로 대신한다
+const epNo = rec.data.seriesOrder ?? (chIdx >= 0 ? chIdx + 1 : 1);
+
+// 이전/다음 기록 — 전체 기록 시간순 (copy-deck §4: 먼저/나중에 쓰인 기록)
+const all = (await getCollection('records', ({ data }) => !data.draft)).sort(
+  (a, b) => a.data.date.valueOf() - b.data.date.valueOf()
+);
+const idx = all.findIndex((r) => r.id === rec.id);
+const prevRec = idx > 0 ? all[idx - 1] : null;
+const nextRec = idx >= 0 && idx < all.length - 1 ? all[idx + 1] : null;
+const prevPlace = prevRec ? placeBySlug(prevRec.data.place) : null;
+const nextPlace = nextRec ? placeBySlug(nextRec.data.place) : null;
+
+const campfirePlace = placeBySlug('campfire');
 ---
 
 <Base title={rec.data.title} description={rec.data.description}>
-  <article class="tinted" style={tintStyle(place)}>
-    <header class="record-head">
-      <a class="rc-place" href={`/places/${place.slug}/`}>
-        <Emblem id={place.slug} size={20} />
-        {place.ko}
-      </a>
-      <h1>{rec.data.title}</h1>
-      <p class="rc-desc">{rec.data.description}</p>
-      <div class="rc-meta">
-        <time datetime={rec.data.date.toISOString()}>{fmtDate(rec.data.date)}</time>
-        · 약 {readingTime(rec.body)}분의 여정
-        {rec.data.updated && <span> · {fmtDate(rec.data.updated)} 다듬음</span>}
-      </div>
-    </header>
-
-    {
-      rec.data.series && (
-        <aside class="series-box">
-          연대기 <a href={`/chronicles/${rec.data.series}/`}>{seriesTitle}</a> — 제{' '}
-          {rec.data.seriesOrder}화 / 전 {chapters.length}화
-        </aside>
-      )
-    }
-
-    <div class="orn">✦</div>
-
-    <div class={`prose ${ESSAY_PLACES.includes(place.slug) ? 'dropcap' : ''}`}>
-      <Content />
+  <!-- 공용 배너(작은 히어로) — 장소 리본·메타 행은 슬롯으로 (헤더는 data-hd-range로 스크롤 적응) -->
+  <PageBanner
+    slot="hero"
+    class="tinted"
+    style={tintStyle(place)}
+    height="tall"
+    kind="article"
+    eyebrow={place.en}
+    title={rec.data.title}
+  >
+    <a slot="top" class="place-ribbon" href={`/places/${place.slug}/`}>
+      <span class="rb-ink" aria-hidden="true"><Emblem id={place.slug} size={17} /></span>
+      {place.ko}
+      <span class="rb-en">{place.en}</span>
+    </a>
+    <div slot="meta" class="banner-meta">
+      <time datetime={rec.data.date.toISOString()}>{fmtDate(rec.data.date)}</time>
+      <span class="dot" aria-hidden="true">✦</span>
+      <span class="journey">약 {minutes}분의 여정</span>
+      {rec.data.tags.length > 0 && <span class="dot" aria-hidden="true">✦</span>}
+      {rec.data.tags.map((tag) => (
+        <a class="bn-tag" href={`/tags/${tag}/`}>{tag}</a>
+      ))}
+      {
+        rec.data.updated && (
+          <>
+            <span class="dot" aria-hidden="true">✦</span>
+            <span class="revised">{fmtDate(rec.data.updated)}에 다시 손질함</span>
+          </>
+        )
+      }
     </div>
+  </PageBanner>
 
+  <div class="page-body">
     {
-      rec.data.series && (
-        <nav class="series-nav" aria-label="연재물 이동">
-          <span>{prev && <a href={`/records/${prev.id}/`}>← {prev.data.title}</a>}</span>
-          <a class="toc" href={`/chronicles/${rec.data.series}/`}>
-            목차
-          </a>
-          <span class="next">{next && <a href={`/records/${next.id}/`}>{next.data.title} →</a>}</span>
+      toc.length > 0 && (
+        <nav class="toc-mobile" aria-label="목차">
+          <details>
+            <summary>
+              <span class="dia" aria-hidden="true">✦</span>이 기록의 지도
+              <span class="arrow" aria-hidden="true">▸</span>
+            </summary>
+            <ul class="toc-list">
+              {toc.map((h) => (
+                <li>
+                  <a class={h.depth === 3 ? 'lv3' : undefined} href={`#${h.slug}`}>
+                    {h.text}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </details>
         </nav>
       )
     }
 
-    {
-      rec.data.tags.length > 0 && (
-        <footer class="prose" style="margin-top: 36px">
-          <div class="tags">
-            {rec.data.tags.map((tag) => (
-              <a class="tag" href={`/tags/${tag}/`}>
-                {tag}
-              </a>
-            ))}
+    <div class={`article-layout${toc.length > 0 ? '' : ' no-toc'}`}>
+      <article
+        class={`record tinted${isEssay ? ' dropcap' : ''}`}
+        id="record-article"
+        style={tintStyle(place)}
+      >
+        {
+          rec.data.series && (
+            <aside class="chronicle" aria-label="시리즈 정보">
+              <div class="ch-eyebrow">Chronicle</div>
+              <p class="ch-name">
+                연대기 <a href={`/chronicles/${rec.data.series}/`}>「{seriesTitle}」</a> — 제{epNo}화 / 전 {chapters.length}화
+              </p>
+              <div class="ch-nav">
+                <span class="ch-prev">
+                  {prevCh && <a href={`/records/${prevCh.id}/`}>← 지난 이야기 · {prevCh.data.title}</a>}
+                </span>
+                <span class="ch-next">
+                  {nextCh ? (
+                    <a href={`/records/${nextCh.id}/`}>다음 이야기 · {nextCh.data.title} →</a>
+                  ) : seriesCompleted ? (
+                    <span class="ch-sealed">완결 — 이야기가 잠들었다</span>
+                  ) : (
+                    <span class="ch-sealed">다음 화 — 봉인된 기록</span>
+                  )}
+                </span>
+              </div>
+            </aside>
+          )
+        }
+
+        <Content />
+      </article>
+
+      {
+        toc.length > 0 && (
+          <nav class="toc-side" id="toc" aria-label="목차">
+            <div class="toc-title">
+              <span class="dia" aria-hidden="true">✦</span>이 기록의 지도
+            </div>
+            <ul class="toc-list">
+              {toc.map((h) => (
+                <li>
+                  <a class={h.depth === 3 ? 'lv3' : undefined} href={`#${h.slug}`}>
+                    {h.text}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )
+      }
+    </div>
+
+    <!-- ── 글 끝 의식: 서명 → 표식 → 이웃 기록 → 모닥불 곁 대화 ── -->
+    <div class="after-article">
+      <div class="signature" data-animate>
+        <span class="sig-mark" aria-hidden="true"><Emblem id="crossroads" size={26} /></span>
+        <div class="sig-name">— The Wanderer</div>
+        <div class="sig-place">교차로에서, {fmtDate(rec.data.date)}</div>
+      </div>
+
+      {
+        rec.data.tags.length > 0 && (
+          <div class="post-tags-wrap" data-animate>
+            <p class="tags-lead">이 기록에 매인 표식</p>
+            <div class="post-tags">
+              {rec.data.tags.map((tag) => (
+                <a class="tag" href={`/tags/${tag}/`}>
+                  {tag}
+                </a>
+              ))}
+            </div>
           </div>
-        </footer>
-      )
-    }
-  </article>
+        )
+      }
+
+      <nav class="post-nav" aria-label="이전/다음 기록">
+        {
+          prevRec && prevPlace ? (
+            <a class="nav-card tinted" href={`/records/${prevRec.id}/`} style={tintStyle(prevPlace)} data-animate>
+              <span class="nv-label">← 먼저 쓰인 기록</span>
+              <span class="nv-title">{prevRec.data.title}</span>
+              <span class="nv-place">
+                <span class="rc-seal" aria-hidden="true" /> {prevPlace.ko} · {fmtDate(prevRec.data.date)}
+              </span>
+            </a>
+          ) : (
+            <span class="nav-hole" aria-hidden="true" />
+          )
+        }
+        {
+          nextRec && nextPlace ? (
+            <a class="nav-card next tinted" href={`/records/${nextRec.id}/`} style={tintStyle(nextPlace)} data-animate>
+              <span class="nv-label">나중에 쓰인 기록 →</span>
+              <span class="nv-title">{nextRec.data.title}</span>
+              <span class="nv-place">
+                <span class="rc-seal" aria-hidden="true" /> {nextPlace.ko} · {fmtDate(nextRec.data.date)}
+              </span>
+            </a>
+          ) : (
+            <div class="nav-card next fog" data-animate>
+              <span class="nv-label">이 길의 끝</span>
+              <span class="nv-title">아직 쓰이지 않은 길</span>
+              <span class="nv-place">방랑자가 먼저 걸어야 지도가 생긴다</span>
+            </div>
+          )
+        }
+      </nav>
+
+      <section class="campfire-talks" aria-label="댓글">
+        <div class="section-head" data-animate>
+          <div class="orn-line" data-orn="headpiece" aria-hidden="true"></div>
+          <span class="eyebrow">The Campfire Talks</span>
+          <h2>모닥불 곁 대화</h2>
+        </div>
+        <!-- giscus 위젯은 운영 단계에서 이 박스 자리에 마운트한다 -->
+        <div class="campfire-box tinted" id="comments" style={tintStyle(campfirePlace)} data-animate>
+          <span class="cf-ink" aria-hidden="true"><Emblem id="campfire" size={40} /></span>
+          <p>장작은 넉넉하다. GitHub 계정으로 모닥불 곁에 앉으시게.</p>
+          <p class="cf-sub">아직 아무도 불가에 앉지 않았다. 첫 번째 손님이 되시게.</p>
+        </div>
+      </section>
+    </div>
+  </div>
 </Base>
+
+<script>
+  import { initScrollAnimations } from '../../scripts/scroll-animations';
+
+  initScrollAnimations();
+
+  // ── 목차 스크롤 스파이 (rAF) — 기준선(헤더 60px + 여유 90px)을
+  //    지난 마지막 표제를 현재 위치로 삼는다 (mockup record.html 이식) ──
+  const headings = Array.from(
+    document.querySelectorAll<HTMLElement>('#record-article h2[id], #record-article h3[id]')
+  );
+  const tocLinks = Array.from(document.querySelectorAll<HTMLAnchorElement>('.toc-list a'));
+  let spyPending = false;
+
+  function updateSpy() {
+    const baseline = (window.scrollY || 0) + 60 + 90;
+    let current: string | null = null;
+    for (const h of headings) {
+      const top = h.getBoundingClientRect().top + (window.scrollY || 0);
+      if (top <= baseline) current = h.id;
+      else break;
+    }
+    for (const a of tocLinks) {
+      const on = current !== null && a.getAttribute('href') === `#${current}`;
+      a.classList.toggle('active', on);
+      if (on) a.setAttribute('aria-current', 'true');
+      else a.removeAttribute('aria-current');
+    }
+  }
+  function queueSpy() {
+    if (spyPending) return;
+    spyPending = true;
+    requestAnimationFrame(() => {
+      spyPending = false;
+      updateSpy();
+    });
+  }
+  if (headings.length > 0 && tocLinks.length > 0) {
+    window.addEventListener('scroll', queueSpy, { passive: true });
+    window.addEventListener('resize', queueSpy);
+    updateSpy();
+  }
+
+  // 접이식 목차: 항목 선택 시 자동으로 접기
+  const mobileToc = document.querySelector('.toc-mobile details');
+  if (mobileToc) {
+    mobileToc.querySelectorAll('a').forEach((a) => {
+      a.addEventListener('click', () => mobileToc.removeAttribute('open'));
+    });
+  }
+</script>
+
+<style>
+  /* ══ 기록 배너 위 고유 요소 — 장소 리본 + 메타 행 (PageBanner 슬롯 내용) ══ */
+  /* 장소 리본 — 문장 + 장소명, 클릭 시 장소 페이지 */
+  .place-ribbon {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 16px;
+    font-family: var(--serif);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: color-mix(in srgb, var(--place) 55%, var(--ink));
+    border: 1px solid color-mix(in srgb, var(--place) 55%, transparent);
+    background: color-mix(in srgb, var(--place) 11%, var(--bg));
+    box-shadow: var(--shadow);
+    transition: border-color 0.25s, background-color 0.25s, transform 0.25s;
+  }
+  .place-ribbon:hover {
+    text-decoration: none;
+    border-color: var(--place);
+    background: color-mix(in srgb, var(--place) 18%, var(--bg));
+    transform: translateY(-2px);
+  }
+  .place-ribbon .rb-ink {
+    display: inline-flex;
+    color: var(--place);
+    filter: var(--glow);
+  }
+  .place-ribbon .rb-en {
+    font-family: var(--display);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--place) 45%, var(--muted));
+  }
+  /* 메타 행 — 색·그림자는 PageBanner의 --pbn-sub 토큰을 상속 */
+  .banner-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    font-size: 0.86rem;
+  }
+  .banner-meta time {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+  }
+  .banner-meta .journey,
+  .banner-meta .revised {
+    font-family: var(--serif);
+  }
+  .banner-meta .dot {
+    color: var(--gold);
+    font-size: 8px;
+    text-shadow: none;
+  }
+  .banner-meta .bn-tag {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.03em;
+    color: var(--viridian-text);
+    text-shadow: none;
+    border: 1px solid color-mix(in srgb, var(--viridian) 40%, transparent);
+    background: color-mix(in srgb, var(--bg) 55%, transparent);
+    padding: 1px 8px;
+  }
+  .banner-meta .bn-tag:hover {
+    text-decoration: none;
+    border-color: var(--viridian);
+  }
+
+  /* ══ 본문 레이아웃 — 68ch 본문 + 우측 sticky 목차 ══ */
+  .page-body {
+    margin-top: 26px;
+  }
+  .article-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 68ch) 216px;
+    gap: clamp(36px, 5vw, 76px);
+    justify-content: center;
+    align-items: start;
+  }
+  .article-layout.no-toc {
+    grid-template-columns: minmax(0, 68ch);
+  }
+  @media (max-width: 1023px) {
+    .article-layout {
+      display: block;
+      max-width: 68ch;
+      margin: 0 auto;
+    }
+    .toc-side {
+      display: none;
+    }
+  }
+
+  /* ── 목차: 이 기록의 지도 ── */
+  .toc-side {
+    position: sticky;
+    top: calc(var(--header-h) + 30px);
+    font-size: 13px;
+    padding-left: 2px;
+  }
+  .toc-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--display);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--gold-text);
+    margin-bottom: 12px;
+  }
+  .toc-title .dia {
+    color: var(--gold);
+    font-size: 9px;
+    filter: var(--glow);
+  }
+  .toc-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-left: 1px solid var(--line);
+  }
+  .toc-list a {
+    display: block;
+    padding: 5px 0 5px 14px;
+    margin-left: -1px;
+    color: var(--muted);
+    line-height: 1.5;
+    border-left: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .toc-list a:hover {
+    color: var(--gold);
+    text-decoration: none;
+  }
+  .toc-list a.lv3 {
+    padding-left: 27px;
+    font-size: 12px;
+  }
+  .toc-list a.active {
+    color: var(--gold-text);
+    font-weight: 600;
+    border-left-color: var(--gold);
+  }
+
+  /* 좁은 화면: 접이식 목차 */
+  .toc-mobile {
+    display: none;
+    max-width: 68ch;
+    margin: 0 auto 30px;
+  }
+  @media (max-width: 1023px) {
+    .toc-mobile {
+      display: block;
+    }
+  }
+  .toc-mobile details {
+    border: 1px solid var(--card-border);
+    background: var(--wash);
+  }
+  .toc-mobile summary {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    cursor: pointer;
+    padding: 11px 16px;
+    list-style: none;
+    font-family: var(--display);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold-text);
+  }
+  .toc-mobile summary::-webkit-details-marker {
+    display: none;
+  }
+  .toc-mobile summary .dia {
+    color: var(--gold);
+    font-size: 9px;
+  }
+  .toc-mobile summary .arrow {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--muted);
+    transition: transform 0.25s;
+  }
+  .toc-mobile details[open] summary .arrow {
+    transform: rotate(90deg);
+  }
+  .toc-mobile .toc-list {
+    margin: 2px 16px 14px;
+  }
+
+  /* ══ 본문 조판 (주인공) — 68ch / 17px / 1.8 ══ */
+  .record {
+    font-size: 17px;
+    line-height: 1.8;
+  }
+  .record :global(p) {
+    margin: 0 0 1.25em;
+    text-wrap: pretty;
+  }
+  .record :global(h2) {
+    font-family: var(--serif);
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.45;
+    letter-spacing: 0.02em;
+    margin: 2.4em 0 0.85em;
+    padding-bottom: 0.4em;
+    border-bottom: 1px solid color-mix(in srgb, var(--gold) 30%, var(--line));
+    scroll-margin-top: calc(var(--header-h) + 22px);
+  }
+  .record :global(h2)::before {
+    content: '✦';
+    color: var(--gold);
+    font-size: 12px;
+    margin-right: 10px;
+    vertical-align: 3px;
+    filter: var(--glow);
+  }
+  .record :global(h3) {
+    font-family: var(--serif);
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 1.5;
+    margin: 1.9em 0 0.7em;
+    color: var(--ink);
+    scroll-margin-top: calc(var(--header-h) + 22px);
+  }
+  .record :global(h3)::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-right: 9px;
+    vertical-align: 1px;
+    border: 1.5px solid var(--viridian);
+    transform: rotate(45deg);
+  }
+  .record :global(h4) {
+    font-family: var(--serif);
+    font-size: 17px;
+    margin: 1.7em 0 0.6em;
+    scroll-margin-top: calc(var(--header-h) + 22px);
+  }
+  .record :global(strong) {
+    color: var(--ink);
+    font-weight: 700;
+  }
+  .record :global(a) {
+    color: var(--gold-text);
+    border-bottom: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .record :global(a:hover) {
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+    text-decoration: none;
+  }
+  .record :global(ul),
+  .record :global(ol) {
+    margin: 0 0 1.25em;
+    padding-left: 1.5em;
+  }
+  .record :global(li) {
+    margin: 0.35em 0;
+  }
+  .record :global(li::marker) {
+    color: var(--gold-dim);
+  }
+  .record :global(img) {
+    display: block;
+    margin: 1.7em auto;
+    border: 1px solid var(--card-border);
+    box-shadow: var(--shadow);
+  }
+
+  /* 인라인 코드 — 필사 노트와 같은 세피아/숲 바탕 + 비리디안 잉크 */
+  .record :global(:not(pre) > code) {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    color: var(--viridian-text);
+    background: color-mix(in srgb, var(--viridian) 5%, var(--code-bg));
+    border: 1px solid color-mix(in srgb, var(--viridian) 26%, transparent);
+    padding: 1px 6px;
+    margin: 0 1px;
+  }
+
+  /* 코드 블록 — 필사 노트 (배경은 전역 --code-bg, 여기선 액자와 헤더 바) */
+  .record :global(pre.astro-code) {
+    margin: 1.7em 0;
+    padding: 16px 18px;
+    border: 1px solid color-mix(in srgb, var(--gold) 32%, var(--line)); /* 가는 금 헤어라인 */
+    box-shadow: var(--shadow);
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 13.5px;
+    line-height: 1.75;
+    tab-size: 4;
+  }
+  /* 헤더 바(언어 라벨) — 잉크·금 톤: 세피아 위 옅은 금 워시 + 금 괘선 */
+  .record :global(pre.astro-code)::before {
+    content: '✦ ' attr(data-language);
+    display: block;
+    margin: -16px -18px 16px;
+    padding: 7px 15px;
+    font-family: var(--display);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--gold-text);
+    background: color-mix(in srgb, var(--gold) 9%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--gold) 30%, transparent);
+  }
+  .record :global(pre.astro-code code) {
+    background: none;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    font-size: inherit;
+    color: inherit;
+  }
+
+  /* 인용 블록 — 황금 괘선 + 비리디안 내선 + 수채 워시 카드 */
+  .record :global(blockquote) {
+    position: relative;
+    margin: 1.7em 0;
+    padding: 18px 22px 18px 26px;
+    background: var(--wash);
+    border: 1px solid var(--card-border);
+    border-left: 3px solid var(--gold);
+    box-shadow: inset 3px 0 0 color-mix(in srgb, var(--viridian) 45%, transparent);
+    font-family: var(--serif);
+    font-size: 16px;
+    line-height: 1.85;
+    color: var(--ink);
+  }
+  .record :global(blockquote p) {
+    margin: 0 0 0.6em;
+  }
+  .record :global(blockquote p:last-child) {
+    margin-bottom: 0;
+  }
+
+  /* 구분선 hr = ✦ ── ✦ 오너먼트 */
+  .record :global(hr) {
+    border: 0;
+    margin: 44px auto;
+    max-width: 340px;
+    height: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold-dim);
+    filter: var(--glow);
+    background:
+      linear-gradient(to right, transparent, color-mix(in srgb, var(--gold) 55%, transparent))
+        left center / calc(50% - 46px) 1px no-repeat,
+      linear-gradient(to left, transparent, color-mix(in srgb, var(--gold) 55%, transparent))
+        right center / calc(50% - 46px) 1px no-repeat;
+  }
+  .record :global(hr)::before {
+    content: '✦\2002\2002✦\2002\2002✦';
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    line-height: 1;
+  }
+
+  /* 표 */
+  .record :global(table) {
+    border-collapse: collapse;
+    display: block;
+    overflow-x: auto;
+    font-size: 15px;
+    margin: 1.5em 0;
+  }
+  .record :global(th),
+  .record :global(td) {
+    border: 1px solid var(--line);
+    padding: 7px 13px;
+  }
+  .record :global(th) {
+    background: var(--card);
+    font-family: var(--serif);
+  }
+
+  /* 각주 — remark-gfm 출력(section.footnotes) 스타일 */
+  .record :global(sup) {
+    font-size: 0.72em;
+    line-height: 0;
+  }
+  .record :global(sup a[data-footnote-ref]) {
+    font-family: var(--mono);
+    padding: 0 2px;
+    border-bottom: 1px dotted color-mix(in srgb, var(--gold) 55%, transparent);
+    scroll-margin-top: calc(var(--header-h) + 22px);
+  }
+  .record :global(section.footnotes) {
+    margin-top: 56px;
+    padding-top: 18px;
+    font-size: 14px;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+  }
+  .record :global(section.footnotes)::before {
+    content: '각주';
+    display: block;
+    font-family: var(--display);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--gold-text);
+    margin-bottom: 10px;
+  }
+  .record :global(section.footnotes #footnote-label) {
+    display: none;
+  }
+  .record :global(section.footnotes ol) {
+    margin: 0;
+    padding-left: 1.3em;
+  }
+  .record :global(section.footnotes li) {
+    margin: 0.4em 0;
+    scroll-margin-top: calc(var(--header-h) + 22px);
+  }
+  .record :global(section.footnotes a[data-footnote-backref]) {
+    margin-left: 6px;
+    border-bottom: 0;
+  }
+
+  /* KaTeX 수식 — 렌더링은 전역, 여백만 본문 리듬에 맞춘다 */
+  .record :global(.katex-display) {
+    margin: 1.5em 0;
+  }
+
+  /* ── 연대기 박스 (copy-deck §4) ── */
+  .chronicle {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    margin: 0 0 40px;
+    padding: 16px 20px 13px;
+    background: var(--wash);
+    border: 1px solid var(--card-border);
+    border-left: 3px solid var(--gold);
+    font-size: 14px;
+  }
+  .ch-eyebrow {
+    font-family: var(--display);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--gold-text);
+  }
+  .record .ch-name {
+    font-family: var(--serif);
+    font-size: 16.5px;
+    font-weight: 700;
+    margin: 3px 0 10px;
+  }
+  .record .ch-name a {
+    color: var(--gold-text);
+    border-bottom: 1px solid transparent;
+  }
+  .record .ch-name a:hover {
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+    text-decoration: none;
+  }
+  .ch-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-top: 9px;
+    border-top: 1px dashed var(--card-border);
+    font-size: 13.5px;
+  }
+  .ch-nav .ch-next {
+    margin-left: auto;
+    text-align: right;
+  }
+  .record .ch-nav a {
+    color: var(--muted);
+    border-bottom: 1px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .record .ch-nav a:hover {
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+    text-decoration: none;
+  }
+  .ch-sealed {
+    font-family: var(--serif);
+    font-size: 12.5px;
+    color: var(--muted);
+    opacity: 0.65;
+  }
+  .ch-sealed::before {
+    content: '✦ ';
+    color: var(--gold-dim);
+    font-size: 9px;
+  }
+
+  /* ══ 글 끝 의식 ══ */
+  .after-article {
+    max-width: 68ch;
+    margin: 0 auto;
+  }
+
+  /* 방랑자의 서명 — ✦ — The Wanderer, 교차로에서 */
+  .signature {
+    text-align: center;
+    margin: 60px 0 6px;
+    color: var(--gold);
+    filter: var(--glow);
+  }
+  .signature .sig-mark {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+  .signature .sig-name {
+    font-family: var(--display);
+    font-size: 13.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold-text);
+  }
+  .signature .sig-place {
+    font-family: var(--serif);
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* 표식 배지 */
+  .post-tags-wrap {
+    margin-top: 26px;
+    text-align: center;
+  }
+  .tags-lead {
+    margin: 0 0 10px;
+    font-family: var(--serif);
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .post-tags {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .post-tags .tag {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.03em;
+    color: var(--viridian-text);
+    background: transparent;
+    border: 1px solid color-mix(in srgb, var(--viridian) 40%, transparent);
+    padding: 2px 11px;
+    transition: border-color 0.2s, background-color 0.2s;
+  }
+  .post-tags .tag:hover {
+    color: var(--viridian-text);
+    border-color: var(--viridian);
+    background: color-mix(in srgb, var(--viridian) 9%, transparent);
+    text-decoration: none;
+  }
+
+  /* 이전/다음 기록 — 양쪽 카드 */
+  .post-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 40px;
+  }
+  @media (max-width: 640px) {
+    .post-nav {
+      grid-template-columns: 1fr;
+    }
+    .nav-hole {
+      display: none;
+    }
+  }
+  .nav-card {
+    position: relative;
+    isolation: isolate;
+    display: block;
+    overflow: hidden;
+    padding: 16px 18px 15px;
+    background: var(--wash);
+    border: 1px solid var(--card-border);
+    color: var(--ink);
+  }
+  a.nav-card {
+    transition: background 0.3s ease, border-color 0.3s ease, transform 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+  a.nav-card:hover {
+    text-decoration: none;
+    background: var(--wash-hover);
+    border-color: var(--hover-border);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.14),
+      0 0 22px color-mix(in srgb, var(--gold) 13%, transparent);
+  }
+  .nav-card .nv-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--display);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .nav-card.next {
+    text-align: right;
+  }
+  .nav-card.next .nv-label {
+    justify-content: flex-end;
+  }
+  .nav-card .nv-title {
+    display: block;
+    font-family: var(--serif);
+    font-size: 15.5px;
+    font-weight: 700;
+    line-height: 1.5;
+    margin-top: 7px;
+    color: var(--ink);
+  }
+  .nav-card .nv-place {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: color-mix(in srgb, var(--place) 80%, var(--ink));
+  }
+  /* 아직 쓰이지 않은 다음 기록 — 안개 규칙 (WORLDBOOK §5.1) */
+  .nav-card.fog {
+    border-style: dashed;
+    border-color: var(--line);
+    filter: saturate(0.25);
+    opacity: 0.62;
+  }
+  .nav-card.fog .nv-place {
+    color: var(--muted);
+  }
+  .nav-card.fog::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 30%, var(--mist) 50%, transparent 70%);
+    background-size: 250% 100%;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .nav-card.fog::before {
+      animation: mist-sweep 9s linear infinite;
+    }
+    @keyframes mist-sweep {
+      from {
+        background-position: 130% 0;
+      }
+      to {
+        background-position: -130% 0;
+      }
+    }
+  }
+
+  /* 카드류 양피지 grain (셸 카드와 동일 레시피) */
+  .chronicle::after,
+  .nav-card::after,
+  .campfire-box::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.4 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)'/%3E%3C/svg%3E");
+    background-size: 140px 140px;
+    opacity: 0.1;
+    mix-blend-mode: var(--grain-blend);
+  }
+
+  /* 모닥불 곁 대화 — giscus 자리 (copy-deck §4) */
+  .campfire-talks {
+    margin-top: 64px;
+    text-align: center;
+  }
+  .campfire-box {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    margin: 0 auto;
+    padding: 34px 26px 30px;
+    border: 1px dashed color-mix(in srgb, var(--gold) 45%, var(--card-border));
+    background: var(--wash);
+  }
+  .campfire-box .cf-ink {
+    display: flex;
+    justify-content: center;
+    margin: 0 auto 12px;
+    color: var(--place);
+    filter: var(--glow);
+  }
+  .campfire-box p {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: 14.5px;
+    color: var(--muted);
+    line-height: 1.9;
+  }
+  .campfire-box .cf-sub {
+    margin-top: 6px;
+    font-size: 13px;
+    opacity: 0.8;
+  }
+</style>

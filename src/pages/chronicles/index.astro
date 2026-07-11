@@ -1,0 +1,212 @@
+---
+// 연대기 색인 — 모든 시리즈가 꽂힌 서가. v4 컴팩트 배너 + 서가 카드.
+// 문구: docs/copy-deck.md §8 · 규칙: WORLDBOOK §1.2(메타는 평범하게).
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Emblem from '../../components/Emblem.astro';
+import PageBanner from '../../components/PageBanner.astro';
+import { placeBySlug, tintStyle } from '../../data/places';
+
+const records = await getCollection('records', ({ data }) => !!data.series && !data.draft);
+
+const bySeries = new Map<string, typeof records>();
+for (const rec of records) {
+  const list = bySeries.get(rec.data.series!) ?? [];
+  list.push(rec);
+  bySeries.set(rec.data.series!, list);
+}
+
+const seriesList = [...bySeries.entries()]
+  .map(([slug, chapters]) => {
+    const first = [...chapters].sort(
+      (a, b) => (a.data.seriesOrder ?? 0) - (b.data.seriesOrder ?? 0)
+    )[0];
+    return {
+      slug,
+      title: chapters.find((c) => c.data.seriesTitle)?.data.seriesTitle ?? slug,
+      place: placeBySlug(first.data.place),
+      count: chapters.length,
+      completed: chapters.some((c) => c.data.seriesStatus === 'completed'),
+      latest: new Date(Math.max(...chapters.map((c) => c.data.date.valueOf()))),
+    };
+  })
+  .sort((a, b) => b.latest.valueOf() - a.latest.valueOf());
+
+const isoDate = (d: Date) => d.toISOString().slice(0, 10);
+---
+
+<Base title="연대기" description="연재물 목록 — 시리즈별 목차.">
+  <!-- 공용 배너(작은 히어로) -->
+  <PageBanner slot="hero" eyebrow="Chronicles" title="연대기">
+    <p slot="meta" class="bn-sub">{seriesList.length}편의 연대기</p>
+  </PageBanner>
+
+  <!-- 서가 -->
+  <section class="home-section" aria-label="연재물 목록">
+    {
+      seriesList.length > 0 ? (
+        <div class="chron-shelf" data-stagger>
+          {seriesList.map((s) => (
+            <div data-animate>
+              <a class="chron-card tinted" href={`/chronicles/${s.slug}/`} style={tintStyle(s.place)}>
+                <span class="cc-ribbon" aria-hidden="true">
+                  <Emblem id={s.place.slug} size={17} />
+                </span>
+                <span class="cc-eyebrow">Chronicle</span>
+                <h2 class="cc-title">{s.title}</h2>
+                <div class="cc-place">{s.place.ko}</div>
+                <div class="cc-meta">
+                  <span>{s.count}화</span>
+                  <i class="dia" aria-hidden="true">✦</i>
+                  <span>{s.completed ? '완결' : '연재 중'}</span>
+                  <i class="dia" aria-hidden="true">✦</i>
+                  <span>
+                    최신화 <time datetime={isoDate(s.latest)}>{isoDate(s.latest)}</time>
+                  </span>
+                </div>
+              </a>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p class="shelf-empty">
+          이 서가는 비어 있다. 방랑자가 게으른 것이 아니라, 아직 그 길을 걷지 않았을 뿐이다.
+        </p>
+      )
+    }
+  </section>
+</Base>
+
+<script>
+  import { initScrollAnimations } from '../../scripts/scroll-animations';
+  initScrollAnimations();
+</script>
+
+<style>
+  /* ══ 배너 메타 (PageBanner meta 슬롯 — 색·그림자는 --pbn-sub 상속) ══ */
+  .bn-sub {
+    margin: 0;
+  }
+
+  /* ══ 서가 — 시리즈 카드 (책등 + 책갈피 리본) ══ */
+  .chron-shelf {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+    max-width: 980px;
+    margin: 0 auto;
+  }
+  .chron-shelf > div {
+    display: grid; /* data-animate 래퍼가 카드 높이를 채우도록 */
+  }
+  .chron-card {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    background: var(--wash);
+    border: 1px solid var(--card-border);
+    border-left: 3px solid color-mix(in srgb, var(--place) 65%, transparent);
+    padding: 22px 24px 18px;
+    color: var(--ink);
+    overflow: hidden;
+    transition: border-color 0.3s ease, background 0.3s ease,
+      transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s ease;
+  }
+  /* 카드 양피지 grain */
+  .chron-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.4 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)'/%3E%3C/svg%3E");
+    background-size: 140px 140px;
+    opacity: 0.1;
+    mix-blend-mode: var(--grain-blend);
+  }
+  .chron-card:hover {
+    text-decoration: none;
+    background: var(--wash-hover);
+    border-color: var(--hover-border);
+    border-left-color: var(--place);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16), 0 0 30px color-mix(in srgb, var(--gold) 18%, transparent);
+  }
+  /* 장소 문장색 책갈피 리본 */
+  .cc-ribbon {
+    position: absolute;
+    top: 0;
+    right: 18px;
+    width: 34px;
+    padding: 12px 0 16px;
+    display: flex;
+    justify-content: center;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--place) 88%, #140a08),
+      color-mix(in srgb, var(--place) 74%, #140a08)
+    );
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 10px), 0 100%);
+    box-shadow: 0 6px 14px -5px rgba(0, 0, 0, 0.35);
+    color: #f6ead8;
+  }
+  .cc-eyebrow {
+    font-family: var(--display);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--gold-text);
+  }
+  .cc-title {
+    font-family: var(--serif);
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 1.45;
+    margin: 4px 0 0;
+    padding-right: 56px; /* 리본 자리 */
+  }
+  .cc-place {
+    font-family: var(--serif);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--place);
+    margin-top: 3px;
+  }
+  .cc-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-top: 12px;
+  }
+  .cc-meta time {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--gold-text);
+  }
+  .cc-meta .dia {
+    color: var(--gold);
+    font-size: 8px;
+    font-style: normal;
+  }
+
+  /* 빈 서가 */
+  .shelf-empty {
+    text-align: center;
+    font-family: var(--serif);
+    font-size: 15px;
+    color: var(--muted);
+    margin: 40px 0;
+  }
+
+  /* 모션 감소 존중 */
+  @media (prefers-reduced-motion: reduce) {
+    .chron-card {
+      transition: none;
+    }
+  }
+</style>

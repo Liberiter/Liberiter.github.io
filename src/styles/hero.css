@@ -1,346 +1,184 @@
-/* ===== Hero — Hidden Grove (dark) / Road Begins (light) ===== */
+/* ═══ 히어로 v4 — 시네마틱 (WORLDBOOK §3.3, docs/mockups/home.html 이식) ═══
+   100dvh 풀블리드. 헤더 뒤까지 끌어올려(음수 마진) 투명 헤더의 배경이 된다.
+   라이트 = 여명 하늘 그라디언트, 다크 = 칠흑의 숲. 금박 그라디언트 클립 타이포.
+   (v3의 일러스트 장면 히어로는 docs/legacy-design-system.md로 은퇴.) */
 
-.hero-portal {
+.hero {
   position: relative;
+  overflow: hidden;
+  margin-top: calc(-1 * var(--header-h));
   height: 100vh;
   height: 100dvh;
-  overflow: hidden;
+  min-height: 600px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  background: var(--hero-bg);
+  transition: background 0.5s ease;
+}
+/* 베일 — 라이트: 상단 여명의 빛무리 / 다크: 하단 등불의 온기 */
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--hero-veil);
 }
 
-/* body bg와 완전히 이어지는 하단 fade (CSS 레이어 — SVG fade 위에 얹어서 seam 제거) */
-.hero-portal::after {
-  content: "";
+/* 하단 fade — body 배경과 이어붙임 (전역 파티클 캔버스보다 위) */
+.hero-fade {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 35%;
-  pointer-events: none;
+  height: 30%;
   z-index: 4;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0) 0%,
-    var(--bg-primary) 100%
-  );
-}
-
-.hero-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 6;
   pointer-events: none;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, var(--bg) 100%);
 }
 
-/* --- Sky gradient (ambient backdrop behind scene SVG) --- */
-.hero-sky {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  transition: background 1s ease;
-}
-
-[data-theme="dark"] .hero-sky,
-:root:not([data-theme="light"]) .hero-sky {
-  background: linear-gradient(
-    to bottom,
-    #02040a 0%,
-    #070d18 35%,
-    #0d1714 70%,
-    #101915 100%
-  );
-}
-
-[data-theme="light"] .hero-sky {
-  background: linear-gradient(
-    to bottom,
-    #b8bfce 0%,
-    #d4bcbe 30%,
-    #e4c8a8 60%,
-    #ecd8ba 80%,
-    #faf5e9 100%
-  );
-}
-
-/* --- Scene SVG (single full-bleed SVG per theme for consistent composition) --- */
-.hero-scene {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-  pointer-events: none;
-  display: block;
-}
-
-/* 기본(다크)은 dark scene만 보이고 light scene은 숨김 */
-.hero-scene.scene-light {
-  display: none;
-}
-
-[data-theme="light"] .hero-scene.scene-dark {
-  display: none;
-}
-
-[data-theme="light"] .hero-scene.scene-light {
-  display: block;
-}
-
-/* --- Dark scene animations --- */
-
-/* SVG 내부 transform origin을 viewBox 좌표로 잡기 위한 공통 세팅 */
-.flame-outer, .flame-mid, .flame-inner {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-}
-
-/* 모닥불 불꽃 flicker (각 path의 bottom-center에서 pivot) */
-.flame-outer { animation: flame-flicker-outer 0.8s ease-in-out infinite alternate; }
-.flame-mid   { animation: flame-flicker-mid   0.55s ease-in-out infinite alternate-reverse; }
-.flame-inner { animation: flame-flicker-inner 0.4s ease-in-out infinite alternate; }
-
-@keyframes flame-flicker-outer {
-  0%   { transform: scaleY(1)    scaleX(1);    opacity: 0.85; }
-  100% { transform: scaleY(1.12) scaleX(0.92); opacity: 1;    }
-}
-@keyframes flame-flicker-mid {
-  0%   { transform: scaleY(0.95) scaleX(1.04); }
-  100% { transform: scaleY(1.08) scaleX(0.94); }
-}
-@keyframes flame-flicker-inner {
-  0%   { transform: scaleY(1)    scaleX(1);    }
-  100% { transform: scaleY(1.15) scaleX(0.9);  }
-}
-
-/* 모닥불 halo 맥동 */
-.fire-glow {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: fire-glow-breathe 3s ease-in-out infinite;
-}
-@keyframes fire-glow-breathe {
-  0%, 100% { opacity: 0.65; transform: scale(1);    }
-  50%      { opacity: 0.9;  transform: scale(1.08); }
-}
-
-/* 떠다니는 룬 pulse */
-.floating-rune { animation: rune-float 4s ease-in-out infinite; }
-@keyframes rune-float {
-  0%, 100% { opacity: 0.75; }
-  50%      { opacity: 0.35; }
-}
-
-/* 등불 맥동 (다크 이정표 위) */
-.lantern-glow { animation: lantern-breathe 5s ease-in-out infinite; transform-origin: center; }
-@keyframes lantern-breathe {
-  0%, 100% { opacity: 0.9;  }
-  50%      { opacity: 0.55; }
-}
-
-/* --- Light scene animations --- */
-
-/* 태양 광선 매우 천천히 회전 (viewBox 800,320 = 태양 중심) */
-.sun-rays {
-  transform-box: view-box;
-  transform-origin: 800px 235px;
-  animation: sun-rays-spin 120s linear infinite;
-}
-@keyframes sun-rays-spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
-/* 태양 body 은은한 pulse */
-.sun-core {
-  transform-box: view-box;
-  transform-origin: 800px 235px;
-  animation: sun-breathe 6s ease-in-out infinite;
-}
-
-/* 달 은은한 brightness 변화 (다크 모드) */
-.moon-core {
-  transform-box: view-box;
-  transform-origin: 800px 235px;
-  animation: moon-breathe 8s ease-in-out infinite;
-}
-@keyframes moon-breathe {
-  0%, 100% { opacity: 0.95; filter: brightness(1);    }
-  50%      { opacity: 0.85; filter: brightness(1.05); }
-}
-@keyframes sun-breathe {
-  0%, 100% { transform: scale(1);    }
-  50%      { transform: scale(1.04); }
-}
-
-/* 새 날갯짓 */
-.bird {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: bird-flap 0.7s ease-in-out infinite alternate;
-}
-.bird-1 { animation-delay: 0s;  }
-.bird-2 { animation-delay: 0.2s; }
-.bird-3 { animation-delay: 0.35s; }
-@keyframes bird-flap {
-  0%   { transform: scaleY(1);   }
-  100% { transform: scaleY(0.55); }
-}
-
-/* 들꽃 미세 흔들림 */
-.flower-sway {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  animation: flower-sway 3.5s ease-in-out infinite alternate;
-}
-@keyframes flower-sway {
-  0%   { transform: rotate(-2deg); }
-  100% { transform: rotate( 2deg); }
-}
-
-/* --- Hero Content --- */
-.hero-content {
+/* ── 콘텐츠: 금박 타이포 스태거 등장 ── */
+.hero-in {
   position: relative;
   z-index: 5;
   text-align: center;
-  padding: 0 1.5rem;
-  max-width: 720px;
+  padding: 0 24px;
 }
-
-.hero-welcome {
-  font-family: var(--font-heading);
-  font-size: 0.95rem;
-  color: var(--text-secondary);
-  letter-spacing: 0.22em;
+.hero-eyebrow {
+  font-family: var(--display);
+  font-size: 12px;
+  letter-spacing: 0.5em;
   text-transform: uppercase;
-  margin-bottom: 0.75rem;
+  color: var(--hero-sub-ink);
+  margin: 0 0 30px;
   opacity: 0;
-  animation: hero-text-in 1s ease 0.3s forwards;
+  animation: hero-rise 1.4s ease 0.2s forwards;
 }
-
-/* 다크 모드에서 달 halo 배경에 묻히지 않도록 골드 + 강한 shadow */
-[data-theme="dark"] .hero-welcome,
-:root:not([data-theme="light"]) .hero-welcome {
-  color: var(--accent-gold-dim);
-  text-shadow:
-    0 0 18px rgba(0, 0, 0, 0.8),
-    0 0 8px rgba(0, 0, 0, 0.6);
-}
-
-[data-theme="light"] .hero-welcome {
-  color: #5a4020;
-  text-shadow: 0 1px 2px rgba(255, 245, 220, 0.6);
-}
-
 .hero-title {
-  font-family: var(--font-heading);
-  font-size: 2.8rem;
-  margin-bottom: 1rem;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(38px, 7.6vw, 92px);
+  line-height: 1.05;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--foil-c);
+  margin: 0;
   opacity: 0;
-  animation: hero-text-in 1s ease 0.6s forwards;
-  text-wrap: balance;
-  /* 큰 display 제목은 살짝 타이트하게 (luxury/editorial 감각) */
-  letter-spacing: -0.012em;
-  font-feature-settings: "kern", "liga", "dlig";
+  animation: hero-rise 1.8s cubic-bezier(0.2, 0.7, 0.2, 1) 0.55s forwards;
 }
-
-[data-theme="dark"] .hero-title,
-:root:not([data-theme="light"]) .hero-title {
-  color: var(--accent-gold);
-  text-shadow:
-    0 0 20px rgba(0, 0, 0, 0.55),
-    0 0 40px rgba(212, 170, 48, 0.22),
-    0 0 80px rgba(212, 170, 48, 0.12);
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .hero-title {
+    background: linear-gradient(
+      105deg,
+      var(--foil-a) 0%,
+      var(--foil-c) 30%,
+      var(--foil-b) 50%,
+      var(--foil-c) 70%,
+      var(--foil-a) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
 }
-
-[data-theme="light"] .hero-title {
-  color: #4a3010;
-  text-shadow:
-    0 1px 2px rgba(255, 245, 220, 0.6),
-    0 0 30px rgba(245, 212, 136, 0.35);
+.hero-kr {
+  font-family: var(--serif);
+  font-size: clamp(15px, 2.2vw, 21px);
+  letter-spacing: 0.42em;
+  text-indent: 0.42em;
+  color: var(--ink);
+  margin: 26px 0 0;
+  opacity: 0;
+  animation: hero-rise 1.6s ease 1.05s forwards;
 }
-
+.hero-orn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  color: var(--gold);
+  font-size: 11px;
+  margin: 38px auto 0;
+  max-width: 380px;
+  filter: var(--glow);
+  opacity: 0;
+  animation: hero-rise 1.4s ease 1.35s forwards;
+}
+.hero-orn::before,
+.hero-orn::after {
+  content: '';
+  height: 1px;
+  width: min(110px, 16vw);
+  background: color-mix(in srgb, var(--gold) 45%, transparent);
+}
+.hero-line {
+  font-family: var(--serif);
+  font-size: clamp(17px, 2.5vw, 25px);
+  color: var(--ink);
+  margin: 38px 0 0;
+  letter-spacing: 0.06em;
+  opacity: 0;
+  animation: hero-rise 1.6s ease 1.55s forwards;
+}
 .hero-sub {
-  color: var(--text-primary);
-  font-size: 1rem;
-  line-height: 1.9;
-  max-width: 500px;
-  margin: 0 auto;
+  max-width: 520px;
+  margin: 20px auto 0;
+  font-size: 15px;
+  line-height: 2;
+  color: var(--hero-sub-ink);
   opacity: 0;
-  animation: hero-text-in 1s ease 0.9s forwards;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  animation: hero-rise 1.6s ease 1.8s forwards;
   text-wrap: pretty;
 }
 
-[data-theme="light"] .hero-sub {
-  color: #3a2e20;
-  text-shadow: 0 1px 2px rgba(255, 250, 230, 0.7);
-}
-
-@keyframes hero-text-in {
-  from { opacity: 0; transform: translateY(15px); }
-  to   { opacity: 1; transform: translateY(0);    }
-}
-
-/* --- Scroll CTA --- */
-.scroll-cta {
+/* DESCEND CTA */
+.hero-scroll {
   position: absolute;
-  bottom: 2rem;
+  bottom: 30px;
+  left: 0;
+  right: 0;
+  text-align: center; /* transform 센터링은 rise 애니메이션과 충돌하므로 금지 */
   z-index: 5;
-  text-align: center;
+  color: var(--hero-sub-ink);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  font-family: var(--display);
+  text-transform: uppercase;
   opacity: 0;
-  animation: hero-text-in 1s ease 1.5s forwards;
+  animation: hero-rise 1.6s ease 2.3s forwards;
 }
-
-.scroll-cta span {
+.hero-scroll::after {
+  content: '';
   display: block;
-  font-family: var(--font-heading);
-  font-size: 0.8rem;
-  color: var(--text-heading);
-  letter-spacing: 0.1em;
-  margin-bottom: 0.5rem;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  width: 1px;
+  height: 38px;
+  background: color-mix(in srgb, var(--gold) 45%, transparent);
+  margin: 11px auto 0;
 }
 
-[data-theme="light"] .scroll-cta span {
-  color: #3a2e20;
-  text-shadow: 0 1px 2px rgba(255, 245, 220, 0.6);
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.scroll-arrow {
-  width: 20px;
-  height: 20px;
-  margin: 0 auto;
-  border-right: 2px solid var(--accent-gold);
-  border-bottom: 2px solid var(--accent-gold);
-  transform: rotate(45deg);
-  animation: arrow-bounce 2s ease-in-out infinite;
-}
-
-@keyframes arrow-bounce {
-  0%, 100% { transform: rotate(45deg) translateY(0);   opacity: 0.6; }
-  50%      { transform: rotate(45deg) translateY(6px); opacity: 1;   }
-}
-
-/* --- Responsive --- */
-@media (min-width: 768px) {
-  .hero-title    { font-size: 3.5rem; }
-  .hero-welcome  { font-size: 1rem;   }
-}
-
-@media (max-width: 480px) {
-  .hero-title { font-size: 2rem; }
-}
-
-/* 애니메이션 줄이기 선호 */
+/* 모션 감소 존중 — 스태거 없이 즉시 표시 */
 @media (prefers-reduced-motion: reduce) {
-  .flame-outer, .flame-mid, .flame-inner,
-  .fire-glow, .floating-rune, .lantern-glow,
-  .sun-rays, .sun-core, .bird, .flower-sway {
-    animation: none !important;
+  .hero-eyebrow,
+  .hero-title,
+  .hero-kr,
+  .hero-orn,
+  .hero-line,
+  .hero-sub,
+  .hero-scroll {
+    animation: none;
+    opacity: 1;
   }
 }

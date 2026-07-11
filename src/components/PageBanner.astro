@@ -1,0 +1,237 @@
+---
+// 서브페이지 공용 배너 (v4) — 홈 히어로의 "작은 히어로" (WORLDBOOK §3.3).
+// 홈 히어로 하늘 그라데이션(라이트 여명 / 다크 숲, global.css --hero-bg)과 같은 색을
+// 배너 높이에 맞춘 스톱으로 쓰고, 히어로와 동일한 하단 페이드(→ var(--bg))로
+// 본문 배경과 이음새 없이 잇는다 (styles/hero.css .hero-fade 기법).
+// 반드시 slot="hero"로 main 밖(풀블리드)에 놓는다. data-hd-range = 헤더 스크롤 적응 범위.
+//
+// 슬롯:
+//   top     — 제목 위 고유 요소 (일지 나침반, 기록의 장소 리본 등)
+//   meta    — 제목 아래 메타 행 (날짜·태그·통계 등. 색은 var(--pbn-sub)를 상속)
+//   overlay — 배너 전면 베일 (쉼터의 앰버 온기 등. 페이지가 absolute·z2로 스타일)
+//   ribbon  — 절대 배치 요소 (연대기 책갈피 등. 페이지가 absolute·z3으로 스타일)
+// 레이어: 배너 bg(0) < 베일(::before) < 전역 파티클 캔버스(z1) < overlay(z2) < ribbon(z3) < 페이드(z4) < 콘텐츠(z5)
+interface Props {
+  eyebrow: string;
+  title: string;
+  flavor?: string;
+  /** compact(기본) ≈ 260px / tall ≈ 340px */
+  height?: 'compact' | 'tall';
+  /** display(기본) = 짧은 문패용 넓은 자간 / article = 긴 글 제목용 */
+  kind?: 'display' | 'article';
+  class?: string;
+  style?: string;
+}
+const {
+  eyebrow,
+  title,
+  flavor,
+  height = 'compact',
+  kind = 'display',
+  class: className,
+  style,
+} = Astro.props;
+---
+
+<section class:list={['pbn', `h-${height}`, `k-${kind}`, className]} data-hd-range style={style}>
+  <slot name="ribbon" />
+  <slot name="overlay" />
+  <div class="pbn-in">
+    {
+      Astro.slots.has('top') && (
+        <div class="pbn-top">
+          <slot name="top" />
+        </div>
+      )
+    }
+    <p class="pbn-eyebrow">{eyebrow}</p>
+    <h1 class="pbn-title">{title}</h1>
+    <div class="orn-line pbn-orn" data-orn="headpiece" aria-hidden="true"></div>
+    {flavor && <p class="pbn-flavor">{flavor}</p>}
+    {
+      Astro.slots.has('meta') && (
+        <div class="pbn-meta">
+          <slot name="meta" />
+        </div>
+      )
+    }
+  </div>
+  <div class="pbn-fade" aria-hidden="true"></div>
+</section>
+
+<style>
+  /* ── 배너 토큰 — 기본값 = 라이트 "여명 하늘"(히어로 --hero-bg와 같은 색, 배너 높이용 스톱) ── */
+  .pbn {
+    --pbn-bg: linear-gradient(to bottom, #b8bfce 0%, #d4bcbe 34%, #e4c8a8 64%, #ecd8ba 82%, #faf5e9 100%);
+    --pbn-veil: radial-gradient(120% 80% at 50% 4%, rgba(255, 243, 214, 0.5), transparent 58%);
+    --pbn-eyebrow: #5a4020;
+    --pbn-eyebrow-sh: 0 1px 2px rgba(255, 245, 220, 0.6);
+    --pbn-title: #4a3010;
+    --pbn-title-sh: 0 1px 2px rgba(255, 245, 220, 0.6), 0 0 30px rgba(245, 212, 136, 0.35);
+    --pbn-sub: #3a2e20;
+    --pbn-sub-sh: 0 1px 2px rgba(255, 250, 230, 0.7);
+  }
+  /* 다크 "칠흑의 숲" — global.css와 같은 3중 테마 선택자 패턴 (media dark + data-theme 양방향) */
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) .pbn {
+      --pbn-bg: linear-gradient(180deg, #0b120e 0%, #101c16 50%, #13221b 80%, #15211a 100%);
+      --pbn-veil: radial-gradient(90% 70% at 50% 100%, rgba(212, 170, 48, 0.1), transparent 62%);
+      --pbn-eyebrow: #d4aa30;
+      --pbn-eyebrow-sh: 0 0 18px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.6);
+      --pbn-title: #d4aa30;
+      --pbn-title-sh: 0 0 20px rgba(0, 0, 0, 0.55), 0 0 40px rgba(212, 170, 48, 0.22), 0 0 80px rgba(212, 170, 48, 0.12);
+      --pbn-sub: #e5e0d1;
+      --pbn-sub-sh: 0 1px 3px rgba(0, 0, 0, 0.5);
+    }
+  }
+  :global(:root[data-theme='dark']) .pbn {
+    --pbn-bg: linear-gradient(180deg, #0b120e 0%, #101c16 50%, #13221b 80%, #15211a 100%);
+    --pbn-veil: radial-gradient(90% 70% at 50% 100%, rgba(212, 170, 48, 0.1), transparent 62%);
+    --pbn-eyebrow: #d4aa30;
+    --pbn-eyebrow-sh: 0 0 18px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.6);
+    --pbn-title: #d4aa30;
+    --pbn-title-sh: 0 0 20px rgba(0, 0, 0, 0.55), 0 0 40px rgba(212, 170, 48, 0.22), 0 0 80px rgba(212, 170, 48, 0.12);
+    --pbn-sub: #e5e0d1;
+    --pbn-sub-sh: 0 1px 3px rgba(0, 0, 0, 0.5);
+  }
+
+  /* ── 풀블리드: 투명 헤더 뒤까지 차오르는 그라데이션 (음수 마진 = body padding-top 상쇄) ── */
+  .pbn {
+    position: relative;
+    overflow: hidden;
+    margin-top: calc(-1 * var(--header-h));
+    min-height: clamp(260px, 36vh, 320px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--pbn-bg);
+    transition: background 0.5s ease;
+  }
+  .pbn.h-tall {
+    min-height: clamp(340px, 44vh, 380px);
+  }
+  /* 베일 — 라이트: 상단 여명의 빛무리 / 다크: 하단 등불의 온기 (히어로 ::after와 동일) */
+  .pbn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: var(--pbn-veil);
+  }
+  /* 하단 fade — 본문 배경(var(--bg))과 이어붙임. 전역 파티클 캔버스(z1)보다 위 */
+  .pbn-fade {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 30%;
+    z-index: 4;
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, var(--bg) 100%);
+  }
+
+  /* ── 콘텐츠 ── */
+  .pbn-in {
+    position: relative;
+    z-index: 5;
+    text-align: center;
+    max-width: 860px;
+    padding: calc(var(--header-h) * 0.6 + 20px) 24px 24px;
+  }
+  .pbn-top {
+    display: flex;
+    justify-content: center;
+    margin: 0 0 14px;
+    opacity: 0;
+    animation: pbn-rise 0.9s ease 0.05s forwards;
+  }
+  .pbn-eyebrow {
+    font-family: var(--display);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5em;
+    text-indent: 0.5em;
+    text-transform: uppercase;
+    color: var(--pbn-eyebrow);
+    text-shadow: var(--pbn-eyebrow-sh);
+    margin: 0 0 10px;
+    opacity: 0;
+    animation: pbn-rise 1s ease 0.15s forwards;
+  }
+  .pbn-title {
+    font-family: var(--serif);
+    font-weight: 700;
+    color: var(--pbn-title);
+    text-shadow: var(--pbn-title-sh);
+    margin: 0;
+    opacity: 0;
+    animation: pbn-rise 1.2s cubic-bezier(0.2, 0.7, 0.2, 1) 0.3s forwards;
+  }
+  /* 문패형(서고·연대기·일지…) — 짧은 제목, 넓은 자간 */
+  .k-display .pbn-title {
+    font-size: clamp(30px, 4.6vw, 44px);
+    line-height: 1.25;
+    letter-spacing: 0.14em;
+    text-indent: 0.14em;
+  }
+  /* 글 제목형(기록 상세·연대기 목차…) — 긴 제목, 좁은 자간 + 균형 줄바꿈 */
+  .k-article .pbn-title {
+    font-size: clamp(25px, 4.2vw, 40px);
+    line-height: 1.35;
+    letter-spacing: 0.01em;
+    text-wrap: balance;
+  }
+  .pbn-orn {
+    margin: 10px auto 8px;
+    opacity: 0;
+    animation: pbn-rise 1s ease 0.5s forwards;
+  }
+  .pbn-orn :global(svg) {
+    width: min(210px, 56vw);
+    height: auto;
+  }
+  .pbn-flavor {
+    font-family: var(--serif);
+    font-size: clamp(13.5px, 1.8vw, 15.5px);
+    color: var(--pbn-sub);
+    text-shadow: var(--pbn-sub-sh);
+    letter-spacing: 0.04em;
+    margin: 0;
+    opacity: 0;
+    animation: pbn-rise 1s ease 0.65s forwards;
+  }
+  /* 메타 행 — 슬롯 내용은 색·그림자를 상속하고, 세부는 각 페이지가 스타일한다 */
+  .pbn-meta {
+    margin-top: 12px;
+    font-size: 13.5px;
+    letter-spacing: 0.04em;
+    color: var(--pbn-sub);
+    text-shadow: var(--pbn-sub-sh);
+    opacity: 0;
+    animation: pbn-rise 1s ease 0.75s forwards;
+  }
+
+  @keyframes pbn-rise {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* 모션 감소 존중 — 스태거 없이 즉시 표시 */
+  @media (prefers-reduced-motion: reduce) {
+    .pbn-top,
+    .pbn-eyebrow,
+    .pbn-title,
+    .pbn-orn,
+    .pbn-flavor,
+    .pbn-meta {
+      animation: none;
+      opacity: 1;
+    }
+  }
+</style>

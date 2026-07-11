@@ -1,6 +1,8 @@
 ---
+// 장소 카드 (v4) — 수채 워시 + 황금 코너 장식 + 입간판 플레이버 + 칭호.
+// 문구는 copy-deck §2·§3, 안개 규칙은 WORLDBOOK §5.1.
 import Emblem from './Emblem.astro';
-import { tintStyle, type Place } from '../data/places';
+import { rankFor, tintStyle, type Place } from '../data/places';
 
 interface Props {
   place: Place;
@@ -8,30 +10,37 @@ interface Props {
 }
 const { place, count } = Astro.props;
 const fogged = count === 0;
+const rank = rankFor(place, count);
+// 안개 땅은 문장색 대신 잿빛 — 채도가 남으면 "열린 문"처럼 보인다
+const fogTint = '--place-light:#6E6353;--place-dark:#9BB0A4';
 ---
 
 {
   fogged ? (
-    <div class="place-card fog tinted" style={tintStyle(place)}>
-      <span class="pc-icon"><Emblem id={place.slug} size={36} /></span>
+    <div class="place-card fog tinted" style={fogTint} title="첫 기록이 쓰이는 날, 안개가 걷힌다">
+      <span class="pc-icon" aria-hidden="true"><Emblem id={place.slug} size={38} /></span>
       <div>
         <div class="pc-name">{place.ko}</div>
         <div class="pc-sub">{place.en}</div>
-        <div class="pc-meta">아직 안개에 싸인 땅</div>
+        <div class="pc-flavor">안개에 싸인 땅</div>
+        <div class="pc-meta">아직 열리지 않았다</div>
       </div>
     </div>
   ) : (
     <a class="place-card tinted" href={`/places/${place.slug}/`} style={tintStyle(place)}>
-      <span class="card-corner card-corner-tl" aria-hidden="true"></span>
-      <span class="card-corner card-corner-tr" aria-hidden="true"></span>
-      <span class="card-corner card-corner-bl" aria-hidden="true"></span>
-      <span class="card-corner card-corner-br" aria-hidden="true"></span>
-      <span class="card-glow" aria-hidden="true"></span>
-      <span class="pc-icon"><Emblem id={place.slug} size={36} /></span>
+      <span class="card-corner card-corner-tl" aria-hidden="true" />
+      <span class="card-corner card-corner-tr" aria-hidden="true" />
+      <span class="card-corner card-corner-bl" aria-hidden="true" />
+      <span class="card-corner card-corner-br" aria-hidden="true" />
+      <span class="card-glow" aria-hidden="true" />
+      <span class="pc-icon" aria-hidden="true"><Emblem id={place.slug} size={38} /></span>
       <div>
         <div class="pc-name">{place.ko}</div>
         <div class="pc-sub">{place.en}</div>
-        <div class="pc-meta">{place.topic} · {count}편의 기록</div>
+        <div class="pc-flavor">“{place.flavor}”</div>
+        <div class="pc-meta">
+          <b>기록 {count}편</b><i class="dia" aria-hidden="true">✦</i>{rank}
+        </div>
       </div>
     </a>
   )

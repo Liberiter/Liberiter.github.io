@@ -1,7 +1,10 @@
 ---
+// 표식(태그)별 기록 v4 — 서고와 같은 서지 템플릿, 배너 문구만 다르다.
+// 문구는 docs/copy-deck.md §5 (표식 페이지 배너). 필터 칩 없이 서지 리스트만.
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import RecordCard from '../../components/RecordCard.astro';
+import PageBanner from '../../components/PageBanner.astro';
+import RecordBibliography from '../../components/RecordBibliography.astro';
 
 export async function getStaticPaths() {
   const records = await getCollection('records', ({ data }) => !data.draft);
@@ -19,14 +22,35 @@ const { tag } = Astro.params;
 const { records } = Astro.props;
 ---
 
-<Base title={`표식: ${tag}`} description={`${tag} 태그가 달린 기록 ${records.length}편.`}>
-  <section class="place-banner">
-    <div class="eyebrow">여정의 표식</div>
-    <h1>#{tag}</h1>
-    <p class="flavor">이 표식이 달린 기록 {records.length}편</p>
-  </section>
-  <div class="orn">✦</div>
-  <div class="record-list">
-    {records.map((rec) => <RecordCard rec={rec} />)}
-  </div>
+<Base title={`태그: ${tag}`} description={`'${tag}' 태그가 달린 글 ${records.length}편.`}>
+  <PageBanner
+    slot="hero"
+    eyebrow="Marked Records"
+    title={tag}
+    flavor={`「${tag}」 표식이 매인 기록들`}
+  />
+
+  <p class="stats-line" data-animate>기록 <b>{records.length}</b>편</p>
+
+  <RecordBibliography records={records} />
 </Base>
+
+<style>
+  .stats-line {
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    font-variant-numeric: tabular-nums;
+    margin: 28px 0 26px;
+  }
+  .stats-line b {
+    font-weight: 600;
+    color: var(--gold-text);
+  }
+</style>
+
+<script>
+  import { initScrollAnimations } from '../../scripts/scroll-animations';
+  initScrollAnimations();
+</script>

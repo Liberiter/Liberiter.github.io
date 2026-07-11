@@ -1,42 +1,183 @@
 ---
+// 일지 낱장 한 장 — URL(/journal/{yyyy-mm-dd}/)은 RSS·공유용으로 유지하되 단순하게.
+// 컴팩트 배너 + 본문 + 일지 전체 보기 링크. 과한 장식은 두지 않는다.
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import Emblem from '../../components/Emblem.astro';
-import { JOURNAL, tintStyle } from '../../data/places';
+import PageBanner from '../../components/PageBanner.astro';
 
 export async function getStaticPaths() {
   const entries = await getCollection('journal');
   return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
 }
+
+const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 const { entry } = Astro.props;
 const { Content } = await render(entry);
-const title = entry.data.title ?? `${entry.id}의 일지`;
+const heading = entry.data.title ?? '이 날의 기록';
+const metaTitle = entry.data.title ?? `${entry.id}의 일지`;
+const weekday = WEEKDAYS[new Date(`${entry.id}T00:00:00`).getDay()];
 ---
 
-<Base title={`${title} — 일지`} description={`${entry.id}의 짧은 학습 기록.`}>
-  <article class="tinted" style={tintStyle(JOURNAL)}>
-    <header class="record-head">
-      <a class="rc-place" href="/journal/">
-        <Emblem id="wanderers-journal" size={20} />
-        방랑자의 일지
-      </a>
-      <h1>{title}</h1>
-      <div class="rc-meta"><time>{entry.id}</time></div>
-    </header>
-    <div class="orn">✦</div>
-    <div class="prose">
+<Base title={`${metaTitle} — 방랑자의 일지`} description={`${entry.id}에 남긴 짧은 학습 기록 (TIL).`}>
+  <!-- 공용 배너(작은 히어로): 낱장의 머리 — 나침반·날짜는 슬롯으로 -->
+  <PageBanner slot="hero" kind="article" eyebrow="Wanderer's Journal" title={heading}>
+    <div slot="top" class="pb-compass" aria-hidden="true">
+      <Emblem id="wanderers-journal" size={34} />
+    </div>
+    <p slot="meta" class="pb-date">
+      <time datetime={entry.id}>{entry.id} ({weekday})</time>
+    </p>
+  </PageBanner>
+
+  <!-- 수첩 낱장 한 장 -->
+  <article class="leaf" data-animate>
+    <div class="leaf-body">
       <Content />
     </div>
     {
       entry.data.tags.length > 0 && (
-        <footer class="prose" style="margin-top: 36px">
-          <div class="tags">
-            {entry.data.tags.map((tag) => (
-              <span class="tag">{tag}</span>
-            ))}
-          </div>
+        <footer class="leaf-tags">
+          {entry.data.tags.map((tag) => (
+            <span class="tag">{tag}</span>
+          ))}
         </footer>
       )
     }
   </article>
+
+  <p class="leaf-back" data-animate>
+    <a href="/journal/"><span class="dia" aria-hidden="true">✦</span> 일지 전체 보기</a>
+  </p>
 </Base>
+
+<script>
+  import { initScrollAnimations } from '../../scripts/scroll-animations';
+  initScrollAnimations();
+</script>
+
+<style>
+  /* ═══ 배너 위 고유 요소 — 나침반 심볼 + 날짜 (PageBanner 슬롯) ═══ */
+  .pb-compass {
+    display: flex;
+    justify-content: center;
+    color: var(--gold);
+    filter: var(--glow);
+  }
+  .pb-date {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.02em;
+  }
+
+  /* ═══ 수첩 낱장 — 목록의 펼친 낱장과 같은 판형 (워시 없음) ═══ */
+  .leaf {
+    max-width: 640px;
+    margin: 40px auto 0;
+    background: var(--card);
+    border: 1px solid color-mix(in srgb, var(--gold) 30%, var(--line));
+    box-shadow: var(--shadow);
+    padding: 20px 22px;
+  }
+  .leaf-body {
+    display: grid;
+    gap: 10px;
+    font-size: 15px;
+    line-height: 1.9;
+    color: var(--ink);
+  }
+  .leaf-body :global(p) {
+    margin: 0;
+  }
+  .leaf-body :global(ul),
+  .leaf-body :global(ol) {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 5px;
+  }
+  .leaf-body :global(li) {
+    position: relative;
+    padding-left: 18px;
+  }
+  .leaf-body :global(li::before) {
+    content: '✦';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--gold-dim);
+    font-size: 10px;
+  }
+  .leaf-body :global(code) {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    color: var(--gold-text);
+    background: var(--gold-soft);
+    border: 1px solid color-mix(in srgb, var(--gold) 18%, transparent);
+    padding: 0 5px;
+  }
+  .leaf-body :global(pre) {
+    margin: 0;
+    border: 1px solid var(--line);
+    padding: 12px 15px;
+    overflow-x: auto;
+    line-height: 1.65;
+    font-size: 13.5px;
+  }
+  .leaf-body :global(pre code) {
+    background: none;
+    border: 0;
+    padding: 0;
+    color: inherit;
+  }
+  .leaf-body :global(a) {
+    color: var(--gold-text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .leaf-body :global(strong) {
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .leaf-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--line);
+  }
+  .leaf-tags .tag {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+    color: var(--viridian-text);
+    background: transparent;
+    border: 1px solid color-mix(in srgb, var(--viridian) 40%, transparent);
+    padding: 0 7px;
+  }
+
+  /* 일지 전체 보기 */
+  .leaf-back {
+    text-align: center;
+    margin: 30px 0 0;
+  }
+  .leaf-back a {
+    font-family: var(--serif);
+    font-size: 13.5px;
+    color: var(--muted);
+    border-bottom: 1px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .leaf-back a:hover {
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+    text-decoration: none;
+  }
+  .leaf-back .dia {
+    color: var(--gold);
+    font-size: 9px;
+  }
+</style>

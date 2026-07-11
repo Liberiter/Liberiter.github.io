@@ -1,5 +1,6 @@
 ---
-// 모든 페이지의 바탕. 세계관 용어는 화면에만, 메타데이터는 평범하게 (WORLDBOOK §1.2).
+// 모든 페이지의 바탕 (v4 셸). 세계관 용어는 화면에만, 메타데이터는 평범하게 (WORLDBOOK §1.2).
+// UI 문구는 docs/copy-deck.md §1이 단일 원천.
 import '@fontsource/cinzel/400.css';
 import '@fontsource/cinzel/700.css';
 import '@fontsource/gowun-batang/400.css';
@@ -10,8 +11,9 @@ import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
 import 'katex/dist/katex.min.css';
 import '../styles/global.css';
 import spriteRaw from '../../assets/emblems.svg?raw';
+import AmbientParticles from '../components/AmbientParticles.astro';
 import Emblem from '../components/Emblem.astro';
-import OrnamentDivider from '../components/OrnamentDivider.astro';
+import FolioFrame from '../components/FolioFrame.astro';
 
 interface Props {
   title?: string;
@@ -21,6 +23,19 @@ const SITE = "The Wanderer's Crossroads";
 const { title, description = '방랑자의 기록이 쌓이는 교차로 — 기술, 수학, 책, 그리고 이야기.' } =
   Astro.props;
 const pageTitle = title ? `${title} — ${SITE}` : SITE;
+
+// 내비 (copy-deck §1)
+const NAV = [
+  { href: '/', label: '교차로' },
+  { href: '/places/', label: '열두 장소' },
+  { href: '/records/', label: '서고' },
+  { href: '/chronicles/', label: '연대기' },
+  { href: '/journal/', label: '방랑자의 일지' },
+  { href: '/rest/', label: '여행자의 쉼터' },
+];
+const path = Astro.url.pathname;
+const isCurrent = (href: string) =>
+  href === '/' ? path === '/' : path === href || path.startsWith(href);
 ---
 
 <!doctype html>
@@ -38,7 +53,7 @@ const pageTitle = title ? `${title} — ${SITE}` : SITE;
     <meta property="og:type" content="website" />
     <script is:inline>
       // 테마를 페인트 전에 확정 (깜빡임 방지) — 항상 data-theme를 찍어
-      // 히어로 장면/파티클이 확실한 테마 값을 읽을 수 있게 한다
+      // 헤더 적응/파티클이 확실한 테마 값을 읽을 수 있게 한다
       (function () {
         // ?theme=dark|light 로 강제 가능 (미리보기·공유용)
         const forced = new URLSearchParams(location.search).get('theme');
@@ -58,60 +73,123 @@ const pageTitle = title ? `${title} — ${SITE}` : SITE;
   <body>
     <Fragment set:html={spriteRaw} />
 
-    <header class="site-header">
-      <div class="wrap">
+    <a class="skip-link" href="#main">본문으로 건너가기</a>
+
+    <FolioFrame />
+    <AmbientParticles />
+
+    <header class="site-header" id="site-header">
+      <div class="hd-in">
         <a class="brand" href="/">
-          <Emblem id="crossroads" size={26} />
-          <span>The Wanderer's Crossroads</span>
+          <Emblem id="crossroads" size={21} />
+          <span class="en">The Wanderer's Crossroads</span>
         </a>
-        <nav class="site-nav" aria-label="사이트 내비게이션">
-          <a href="/places/">장소</a>
-          <a href="/records/">서고</a>
-          <a href="/journal/">일지</a>
-          <a href="/rest/">쉼터</a>
-          <button id="theme-toggle" aria-label="라이트/다크 테마 전환">
-            <!-- 여명 (다크 → 라이트로) -->
-            <svg class="icon-dawn" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-              <path d="M4 17 h16 M6.5 13.5 a5.5 5.5 0 0 1 11 0 M12 4 v2.5 M4.5 7 l1.8 1.8 M19.5 7 l-1.8 1.8 M7 20.5 h10" />
-            </svg>
-            <!-- 모닥불 (라이트 → 다크로) -->
-            <svg class="icon-fire" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 3.5 c2.8 3.2 4.7 5.2 4.7 8.2 a4.7 4.7 0 0 1 -9.4 0 c0 -3 1.9 -5 4.7 -8.2 Z M5 21 l14 -3.8 M5 17.2 L19 21" />
-            </svg>
-          </button>
+        <nav class="primary" aria-label="사이트 내비게이션">
+          {
+            NAV.map((item) => (
+              <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            ))
+          }
         </nav>
+        <button class="ask-guide" type="button" id="search-trigger" aria-label="검색">
+          <span class="dia" aria-hidden="true">✦</span>길잡이에게 묻기
+        </button>
+        <div class="theme-toggle" role="group" aria-label="테마 전환">
+          <button type="button" id="btn-theme-light" aria-pressed="false" title="동이 튼다" aria-label="라이트 테마로 전환">
+            <!-- 이정표 -->
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M12 21h4M5 7h11l3 2-3 2H5zM19 13H9l-3 2 3 2h10z"></path></svg>
+            여명
+          </button>
+          <button type="button" id="btn-theme-dark" aria-pressed="false" title="모닥불 곁으로" aria-label="다크 테마로 전환">
+            <!-- 등불 -->
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6M12 4v2M8 6h8l1 10a5 5 0 0 1-10 0zM12 10a2.5 2.5 0 0 1 2 3 2 2 0 0 1-4 0 2.5 2.5 0 0 1 2-3zM10 21h4"></path></svg>
+            모닥불
+          </button>
+        </div>
       </div>
     </header>
 
     <slot name="hero" />
 
-    <main class="wrap">
+    <main id="main" class="wrap">
       <slot />
     </main>
 
     <footer class="site-footer">
-      <OrnamentDivider />
-      <div class="wrap">
-        <p class="foot-mark">The Wanderer's Crossroads</p>
-        <p>이 교차로는 Astro로 지어졌으며, GitHub의 대지 위에 서 있습니다.</p>
-        <p>
-          © {new Date().getFullYear()} The Wanderer ·
-          <a href="/rss.xml">전서구 구독 (RSS)</a>
-        </p>
+      <div class="orn-line tail-orn" data-orn="tailpiece" aria-hidden="true"></div>
+      <div class="links">
+        <a href="/rss.xml">전서구 (RSS)</a>
+        <a href="https://github.com/Liberiter">GitHub</a>
+        <a href="/sitemap-index.xml">지도 (sitemap)</a>
       </div>
+      <p class="colophon">이 교차로는 GitHub의 대지 위에 서 있다</p>
+      <p class="colophon">© {new Date().getFullYear()} The Wanderer — 모든 기록은 이 길 위에서 쓰였다</p>
     </footer>
 
     <script>
-      const btn = document.getElementById('theme-toggle');
-      btn?.addEventListener('click', () => {
-        const current =
-          document.documentElement.dataset.theme ??
-          (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        const next = current === 'dark' ? 'light' : 'dark';
-        document.documentElement.dataset.theme = next;
-        localStorage.setItem('theme', next);
-        // 히어로 파티클 등 테마 연동 요소에 알림 (legacy 호환 이벤트)
-        document.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme: next } }));
+      import { initOrnaments } from '../scripts/ornaments';
+
+      // ── 절차 생성 오너먼트 (폴리오 프레임 코너 + 헤드피스/테일피스) ──
+      initOrnaments();
+
+      // ── 테마: 여명 ↔ 모닥불 ──
+      const root = document.documentElement;
+      const btnLight = document.getElementById('btn-theme-light');
+      const btnDark = document.getElementById('btn-theme-dark');
+
+      // head 인라인 스크립트가 항상 data-theme를 확정해 둔다
+      const effectiveTheme = () => (root.dataset.theme === 'dark' ? 'dark' : 'light');
+
+      function syncToggle() {
+        const t = effectiveTheme();
+        btnLight?.setAttribute('aria-pressed', String(t === 'light'));
+        btnDark?.setAttribute('aria-pressed', String(t === 'dark'));
+      }
+      function setTheme(t: 'light' | 'dark') {
+        root.dataset.theme = t;
+        localStorage.setItem('theme', t);
+        syncToggle();
+        // 파티클 등 테마 연동 요소에 알림 (legacy 호환 이벤트)
+        document.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme: t } }));
+      }
+      btnLight?.addEventListener('click', () => setTheme('light'));
+      btnDark?.addEventListener('click', () => setTheme('dark'));
+      syncToggle();
+
+      // ── 헤더: 연속 스크롤 적응형 프로스트 글라스 ──
+      // --hd-p(0~1)를 스크롤 진행도로 갱신 — 범위는 [data-hd-range] 요소
+      // (홈=히어로, 서브페이지=배너)가 있으면 그 높이, 없으면 뷰포트 높이.
+      // smoothstep으로 초반은 투명을 오래 유지, 끝에서 완만히 수렴.
+      const headerEl = document.getElementById('site-header');
+      const rangeEl = document.querySelector<HTMLElement>('[data-hd-range]');
+      let hdPending = false;
+
+      function updateHeader() {
+        if (!headerEl) return;
+        const y = window.scrollY || 0;
+        const base = rangeEl ? rangeEl.offsetHeight : window.innerHeight;
+        const range = Math.max(240, base - 60);
+        let p = Math.min(1, Math.max(0, y / range));
+        p = p * p * (3 - 2 * p); // smoothstep
+        headerEl.style.setProperty('--hd-p', p.toFixed(4));
+      }
+      function queueHeader() {
+        if (hdPending) return;
+        hdPending = true;
+        requestAnimationFrame(() => {
+          hdPending = false;
+          updateHeader();
+        });
+      }
+      window.addEventListener('scroll', queueHeader, { passive: true });
+      window.addEventListener('resize', queueHeader);
+      updateHeader();
+
+      // ── 길잡이에게 묻기 — 검색 트리거 (Pagefind 모달은 3단계에서 연결) ──
+      document.getElementById('search-trigger')?.addEventListener('click', () => {
+        document.dispatchEvent(new CustomEvent('open-search'));
       });
     </script>
   </body>

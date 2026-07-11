@@ -1,9 +1,10 @@
 ---
+// 교차로 (홈) v4 — 시네마틱 히어로 + 열두 장소 + 최근 기록 + 일지 스트립.
+// 구성은 docs/mockups/home.html, 문구는 docs/copy-deck.md §2.
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import Emblem from '../components/Emblem.astro';
-import HeroPortal from '../components/HeroPortal.astro';
-import OrnamentDivider from '../components/OrnamentDivider.astro';
+import Hero from '../components/Hero.astro';
 import PlaceCard from '../components/PlaceCard.astro';
 import RecordCard from '../components/RecordCard.astro';
 import { PLACES, JOURNAL, tintStyle } from '../data/places';
@@ -21,29 +22,21 @@ const recentJournal = journal.slice(0, 3);
 ---
 
 <Base>
-  <HeroPortal slot="hero" />
+  <Hero slot="hero" />
 
-  <section class="realms-intro" data-animate="fade-up">
-    <h2 class="ri-title">The Realms Await</h2>
-    <p class="ri-sub">
-      열두 갈래 길이 이곳에서 만납니다.<br />
-      기록이 남은 곳부터, 안개가 걷힙니다.
-    </p>
-    <OrnamentDivider />
-  </section>
-
-  <section class="home-section" id="realms" aria-label="교차로의 장소들">
-    <div class="sec-head" data-animate="fade-up">
-      <div>
-        <h2 class="sec-title">The Twelve Realms</h2>
-        <p class="sec-sub">열두 장소 — 여정의 순서대로</p>
-      </div>
+  <section class="home-section" id="places" aria-label="교차로의 장소들">
+    <div class="section-head" data-animate>
+      <div class="orn-line" data-orn="headpiece" aria-hidden="true"></div>
+      <span class="eyebrow">The Twelve Places</span>
+      <h2>열두 장소</h2>
+      <p class="section-sub">각 길의 끝에는 문이 있다. 열린 문도, 아직 안개에 잠긴 문도.</p>
+      <div class="orn-line tail" data-orn="tailpiece" aria-hidden="true"></div>
       <a class="sec-link" href="/places/">여정 전체 보기 →</a>
     </div>
     <div class="map-grid" data-stagger>
       {
         PLACES.map((place) => (
-          <div data-animate="fade-up">
+          <div data-animate>
             <PlaceCard place={place} count={countBy.get(place.slug) ?? 0} />
           </div>
         ))
@@ -51,8 +44,8 @@ const recentJournal = journal.slice(0, 3);
     </div>
 
     <!-- 장소가 아닌 메타 공간 — 지도 아래에 가로로 놓인 방랑자의 수첩 -->
-    <a class="journal-band tinted" href="/journal/" style={tintStyle(JOURNAL)} data-animate="fade-up">
-      <span class="pc-icon"><Emblem id="wanderers-journal" size={34} /></span>
+    <a class="journal-band tinted" href="/journal/" style={tintStyle(JOURNAL)} data-animate>
+      <span class="pc-icon" aria-hidden="true"><Emblem id="wanderers-journal" size={34} /></span>
       <div>
         <div class="jb-name">{JOURNAL.ko}</div>
         <div class="jb-sub">{JOURNAL.en} · TIL</div>
@@ -62,20 +55,21 @@ const recentJournal = journal.slice(0, 3);
     </a>
   </section>
 
-  <OrnamentDivider />
+  <div class="orn" aria-hidden="true">✦&nbsp;&nbsp;✦&nbsp;&nbsp;✦</div>
 
-  <section class="home-section" aria-label="최근 기록">
-    <div class="sec-head" data-animate="fade-up">
-      <div>
-        <h2 class="sec-title">Recent Scrolls</h2>
-        <p class="sec-sub">최근 기록</p>
-      </div>
+  <section class="home-section" id="records" aria-label="최근 기록">
+    <div class="section-head" data-animate>
+      <div class="orn-line" data-orn="headpiece" aria-hidden="true"></div>
+      <span class="eyebrow">Recent Records</span>
+      <h2>최근 기록</h2>
+      <p class="section-sub">잉크가 아직 마르지 않은 순서대로.</p>
+      <div class="orn-line tail" data-orn="tailpiece" aria-hidden="true"></div>
       <a class="sec-link" href="/records/">서고에서 전체 보기 →</a>
     </div>
     <div class="record-list" data-stagger>
       {
         recent.map((rec) => (
-          <div data-animate="fade-up">
+          <div data-animate>
             <RecordCard rec={rec} />
           </div>
         ))
@@ -86,23 +80,26 @@ const recentJournal = journal.slice(0, 3);
   {
     recentJournal.length > 0 && (
       <>
-        <OrnamentDivider />
-        <section class="home-section tinted" aria-label="방랑자의 일지" style={tintStyle(JOURNAL)}>
-          <div class="sec-head" data-animate="fade-up">
-            <div>
-              <h2 class="sec-title">Wanderer's Journal</h2>
-              <p class="sec-sub">방랑자의 일지 — 오늘 걸은 만큼만</p>
-            </div>
-            <a class="sec-link" href="/journal/">일지 전체 보기 →</a>
+        <div class="orn" aria-hidden="true">✦&nbsp;&nbsp;✦&nbsp;&nbsp;✦</div>
+        <section class="home-section tinted" id="journal" aria-label="방랑자의 일지" style={tintStyle(JOURNAL)}>
+          <div class="section-head" data-animate>
+            <div class="orn-line" data-orn="headpiece" aria-hidden="true" />
+            <span class="eyebrow">Wanderer's Journal</span>
+            <h2>방랑자의 일지</h2>
+            <div class="orn-line tail" data-orn="tailpiece" aria-hidden="true" />
+            <a class="sec-link" href="/journal/">{journal.length}편의 낱장 →</a>
           </div>
-          <div class="journal-list" data-animate="fade-up">
-            {recentJournal.map((j) => (
-              <a class="journal-row" href={`/journal/${j.id}/`}>
-                <time>{j.id}</time>
-                <span class="jr-title">{j.data.title ?? '이 날의 기록'}</span>
-                <span class="jr-tags">{j.data.tags.join(' · ')}</span>
-              </a>
-            ))}
+          <div data-animate>
+            <p class="journal-motto">{JOURNAL.flavor}</p>
+            <div class="journal-list narrow">
+              {recentJournal.map((j) => (
+                <a class="journal-row" href={`/journal/${j.id}/`}>
+                  <time datetime={j.id}>{j.id}</time>
+                  <span class="jr-dia" aria-hidden="true">✦</span>
+                  <span class="jr-title">{j.data.title ?? '이 날의 기록'}</span>
+                </a>
+              ))}
+            </div>
           </div>
         </section>
       </>

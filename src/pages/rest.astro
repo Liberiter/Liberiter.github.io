@@ -1,34 +1,602 @@
 ---
+// 여행자의 쉼터 (About) v4 — "여관(Inn)" 컨셉.
+// 구성은 docs/mockups/rest.html, 문구는 docs/copy-deck.md §7.
+// 이 페이지만 화롯불 온기 반 톤 ↑ (scoped 토큰 오버라이드 — global.css는 건드리지 않는다).
+import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import Emblem from '../components/Emblem.astro';
+import PageBanner from '../components/PageBanner.astro';
+import { PLACES, rankFor, tintStyle } from '../data/places';
+
+// 칭호의 방 — 장소별 발행 기록 수로 칭호를 빌드 시 계산 (WORLDBOOK §2.3, 수동 관리 금지)
+const records = await getCollection('records', ({ data }) => !data.draft);
+const countBy = new Map<string, number>();
+for (const rec of records) countBy.set(rec.data.place, (countBy.get(rec.data.place) ?? 0) + 1);
+
+const openCount = PLACES.filter((p) => (countBy.get(p.slug) ?? 0) > 0).length;
+const KO_COUNT = ['', '한', '두', '세', '네', '다섯', '여섯', '일곱', '여덟', '아홉', '열', '열한', '열두'];
+
+// 이 교차로에 대하여 — copy-deck §7 기술 카피 + 실제 기술명
+const TECH = [
+  { copy: 'GitHub의 대지 위에 서 있다', tech: 'GitHub Pages' },
+  { copy: 'Astro의 별자리로 지어졌다', tech: 'Astro' },
+  { copy: '모든 기록은 순수한 잉크로 쓰인다', tech: 'Markdown' },
+  { copy: '전서구가 새 기록을 물어 나른다', tech: 'RSS' },
+  { copy: '여명과 모닥불, 두 개의 시간이 흐른다', tech: 'Light / Dark' },
+];
 ---
 
-<Base title="여행자의 쉼터" description="블로그와 글쓴이 소개.">
-  <section class="place-banner">
-    <Emblem id="crossroads" size={48} class="emblem" />
-    <h1>여행자의 쉼터</h1>
-    <p class="flavor">The Wayfarer's Rest — 여독을 푸는 곳</p>
+<Base title="여행자의 쉼터" description="블로그와 글쓴이 소개, 연락처.">
+  <!-- 공용 배너(작은 히어로): 여관의 문 앞 — 화롯불 온기는 앰버 베일 오버레이로만 -->
+  <PageBanner
+    slot="hero"
+    height="tall"
+    eyebrow="The Wayfarer's Rest"
+    title="여행자의 쉼터"
+    flavor="“먼 길을 오셨군. 난롯가에 앉으시게.”"
+  >
+    <div slot="overlay" class="hearth-veil" aria-hidden="true"></div>
+  </PageBanner>
+
+  <!-- 방랑자에 대하여 -->
+  <section class="home-section" id="wanderer">
+    <div class="section-head" data-animate>
+      <div class="orn-line" data-orn="headpiece" aria-hidden="true"></div>
+      <span class="eyebrow">The Wanderer</span>
+      <h2>방랑자에 대하여</h2>
+      <div class="orn-line tail" data-orn="tailpiece" aria-hidden="true"></div>
+    </div>
+
+    <div class="about-grid">
+      <div class="essay" data-animate>
+        <p class="lead">
+          이 여관의 주인은 데이터의 길을 걷는 방랑자다. 낮에는 공학자 길드에서 파이썬과
+          SQL로 데이터의 물길을 벼리고, 해가 기울면 수학자의 탑 계단을 오르며, 밤이
+          깊으면 마법사의 도서관에서 타인의 생을 잠시 빌려 읽는다. 이따금 작가의
+          집필실에 틀어박혀, 아직 이름 없는 세계의 첫 문장을 만지작거리기도 한다.
+        </p>
+        <p>
+          한 우물을 깊이 파는 이들을 존경한다. 다만 이 발은 우물보다 길을 좋아했다. 열두
+          장소 중 안개에 싸인 곳은 아직 열리지 않은 땅 — 첫 기록이 남는 순간 안개가
+          걷히니, 억지로 걷어 내지 않고 천천히 지도를 그려 갈 생각이다. 안개는
+          부끄러움이 아니라 예고편이므로.
+        </p>
+        <p>
+          그러니 이곳의 기록은 완성된 지도가 아니라 걸으며 그린 초안에 가깝다. 틀린 길도
+          지우지 않고 남겨 둔다. 언젠가 누군가에게는, 틀린 길의 기록이 가장 좋은 이정표가
+          될 것이므로.
+        </p>
+        <p class="essay-sign"><span class="dia" aria-hidden="true">✦</span>교차로의 방랑자 씀</p>
+      </div>
+
+      <!-- 방랑자의 인장 — 나침반 문장 확대 + 룬 링 플레이트 -->
+      <div class="seal-plate" data-animate>
+        <span class="card-corner card-corner-tl" aria-hidden="true"></span>
+        <span class="card-corner card-corner-tr" aria-hidden="true"></span>
+        <span class="card-corner card-corner-bl" aria-hidden="true"></span>
+        <span class="card-corner card-corner-br" aria-hidden="true"></span>
+        <div class="seal-svg" aria-hidden="true">
+          <svg viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <!-- 바깥 이중 링 + 룬 점선 링 -->
+            <circle cx="100" cy="100" r="93" stroke-width="1"></circle>
+            <circle cx="100" cy="100" r="79" stroke-width="1.4"></circle>
+            <circle cx="100" cy="100" r="86" stroke-width="1.6" stroke-dasharray="1.5 5.5" opacity=".8"></circle>
+            <!-- 네 방위 룬 (N·E·S·W) -->
+            <g stroke-width="1.6">
+              <g transform="translate(100 16)"><path d="M0 -8v16M0 -6l6 4M0 -6l-6 4"></path></g>
+              <g transform="translate(184 100)"><path d="M-4 -8v16M-4 -8l8 6-8 6"></path></g>
+              <g transform="translate(100 184)"><path d="M0 8v-16M0 2l-6 6M0 2l6 6"></path></g>
+              <g transform="translate(16 100)"><path d="M0 -8v16M0 -8l6 5-6 5M0 -3l6 5-6 5"></path></g>
+            </g>
+            <!-- 안쪽 링 + 방위 다이아 -->
+            <circle cx="100" cy="100" r="60" stroke-width="1"></circle>
+            <g fill="currentColor" stroke="none">
+              <path d="M100 26l4.5 4.5-4.5 4.5-4.5-4.5z"></path>
+              <path d="M174 100l-4.5 4.5-4.5-4.5 4.5-4.5z"></path>
+              <path d="M100 174l-4.5-4.5 4.5-4.5 4.5 4.5z"></path>
+              <path d="M26 100l4.5-4.5 4.5 4.5-4.5 4.5z"></path>
+            </g>
+            <!-- 나침반 컴퍼스 로즈 (브랜드 문장 확대) -->
+            <g transform="translate(35.2 35.2) scale(2.7)" stroke-width="1.2">
+              <path d="M24 5 L27.6 20.4 L43 24 L27.6 27.6 L24 43 L20.4 27.6 L5 24 L20.4 20.4 Z"></path>
+              <circle cx="33" cy="15" r="1.3" fill="currentColor" stroke="none"></circle>
+              <circle cx="33" cy="33" r="1.3" fill="currentColor" stroke="none"></circle>
+              <circle cx="15" cy="33" r="1.3" fill="currentColor" stroke="none"></circle>
+              <circle cx="15" cy="15" r="1.3" fill="currentColor" stroke="none"></circle>
+            </g>
+            <circle cx="100" cy="100" r="3" fill="currentColor" stroke="none"></circle>
+          </svg>
+        </div>
+        <div class="seal-cap">Sigillum Viatoris</div>
+        <p class="seal-note">방랑자의 인장.<br />이름은 길에 두고 왔으니, 인장으로 대신한다.</p>
+      </div>
+    </div>
   </section>
 
-  <div class="orn">✦</div>
+  <div class="orn" aria-hidden="true">✦&nbsp;&nbsp;✦&nbsp;&nbsp;✦</div>
 
-  <div class="prose dropcap">
-    <p>
-      어서 오시게, 여행자여. 이곳은 모든 길이 만나는 교차로 — 한 방랑자가 오랜 여행 끝에 멈추어,
-      길마다 자신이 배운 것을 세우기 시작한 곳이라네.
+  <!-- 여정의 기록 — 칭호의 방 (12장소 전부, places.ts 순서) -->
+  <section class="home-section" id="titles">
+    <div class="section-head" data-animate>
+      <div class="orn-line" data-orn="headpiece" aria-hidden="true"></div>
+      <span class="eyebrow">Hall of Titles</span>
+      <h2>여정의 기록 — 칭호의 방</h2>
+      <div class="orn-line tail" data-orn="tailpiece" aria-hidden="true"></div>
+    </div>
+
+    <div class="titles-grid" data-stagger>
+      {
+        PLACES.map((place) => {
+          const count = countBy.get(place.slug) ?? 0;
+          const rank = rankFor(place, count);
+          return rank ? (
+            <div class="title-card tinted" data-animate style={tintStyle(place)}>
+              <span class="card-corner card-corner-tl" aria-hidden="true" />
+              <span class="card-corner card-corner-tr" aria-hidden="true" />
+              <span class="card-corner card-corner-bl" aria-hidden="true" />
+              <span class="card-corner card-corner-br" aria-hidden="true" />
+              <span class="tc-icon" aria-hidden="true">
+                <Emblem id={place.slug} size={30} />
+              </span>
+              <div class="tc-name">{place.ko}</div>
+              <div class="tc-en">{place.en}</div>
+              <div class="tc-rank">
+                <i class="dia" aria-hidden="true">✦</i>
+                {rank}
+              </div>
+              <div class="tc-meta">기록 {count}편</div>
+            </div>
+          ) : (
+            <div class="title-card fog" data-animate>
+              <span class="tc-icon" aria-hidden="true">
+                <Emblem id={place.slug} size={30} />
+              </span>
+              <div class="tc-name">{place.ko}</div>
+              <div class="tc-en">{place.en}</div>
+              <div class="tc-rank">안개에 싸임</div>
+              <div class="tc-meta">아직 열리지 않았다</div>
+            </div>
+          );
+        })
+      }
+    </div>
+
+    <p class="titles-note" data-animate>
+      {
+        openCount > 0
+          ? `열두 장소 중 ${KO_COUNT[openCount]} 곳의 안개가 걷혔다`
+          : '열두 장소 모두 아직 안개에 싸여 있다'
+      }<span class="dia" aria-hidden="true">✦</span>칭호는 기록이 쌓일수록 깊어진다
     </p>
-    <p>
-      방랑자는 데이터의 길을 걷는 사람이다. 공학자 길드에서는 파이썬과 SQL, 데이터 엔지니어링을
-      벼리고, 수학자의 탑을 오르며, 밤이면 마법사의 도서관에서 책을 읽는다. 이따금 작가의 집필실에
-      틀어박혀 다른 세계의 이야기를 쓰기도 한다.
-    </p>
-    <p>
-      열두 장소 중 안개에 싸인 곳은 아직 열리지 않은 땅이다. 기록이 남는 순간 안개가 걷히니,
-      서두르지 않고 천천히 지도를 그려갈 생각이다.
-    </p>
-    <hr />
-    <p>
-      길에서 만나고 싶다면 — <a href="https://github.com/Liberiter">GitHub @Liberiter</a>
-    </p>
-  </div>
+  </section>
+
+  <div class="orn" aria-hidden="true">✦&nbsp;&nbsp;✦&nbsp;&nbsp;✦</div>
+
+  <!-- 이 교차로에 대하여 — 기술 스택 (copy-deck §7) -->
+  <section class="home-section" id="crossroads">
+    <div class="section-head" data-animate>
+      <div class="orn-line" data-orn="headpiece" aria-hidden="true"></div>
+      <span class="eyebrow">About the Crossroads</span>
+      <h2>이 교차로에 대하여</h2>
+      <div class="orn-line tail" data-orn="tailpiece" aria-hidden="true"></div>
+    </div>
+
+    <div class="cross-list" data-animate>
+      {
+        TECH.map(({ copy, tech }) => (
+          <div class="cross-row">
+            <span class="cr-dia" aria-hidden="true">✦</span>
+            <span class="cr-copy">{copy}</span>
+            <span class="cr-tech">{tech}</span>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <div class="orn" aria-hidden="true">✦&nbsp;&nbsp;✦&nbsp;&nbsp;✦</div>
+
+  <!-- 전서구를 보내려면 -->
+  <section class="home-section" id="contact">
+    <div class="section-head" data-animate>
+      <div class="orn-line" data-orn="headpiece" aria-hidden="true"></div>
+      <span class="eyebrow">Send a Pigeon</span>
+      <h2>전서구를 보내려면</h2>
+      <div class="orn-line tail" data-orn="tailpiece" aria-hidden="true"></div>
+    </div>
+
+    <div class="contact-wrap" data-animate>
+      <p class="contact-lead">
+        여관 주인에게 말을 전하고 싶다면, 세 갈래 길 중 하나로 전서구를 날리면 된다.<br />
+        작업장을 구경하거나, 새 기록의 소식을 받아 보거나, 봉인된 서신을 보내거나.
+      </p>
+      <div class="contact-btns">
+        <a class="pigeon-btn" href="https://github.com/Liberiter" aria-label="GitHub 프로필">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="14" cy="10" r="4"></circle><circle cx="14" cy="38" r="4"></circle><circle cx="34" cy="14" r="4"></circle><path d="M14 14v20"></path><path d="M34 18a12 12 0 0 1-12 12h-4"></path></svg>
+          GitHub
+        </a>
+        <a class="pigeon-btn" href="/rss.xml" aria-label="RSS 구독">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="12" cy="36" r="2.6" fill="currentColor" stroke="none"></circle><path d="M9 22a17 17 0 0 1 17 17"></path><path d="M9 10a29 29 0 0 1 29 29"></path></svg>
+          전서구 (RSS)
+        </a>
+        <a class="pigeon-btn" href="mailto:rublin322@gmail.com" aria-label="이메일 보내기">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M7 12h34v24H7z"></path><path d="M7 13l17 13 17-13"></path></svg>
+          봉인 서신 (Email)
+        </a>
+      </div>
+      <p class="contact-note">답신은 바람의 사정에 따라 늦을 수 있다.</p>
+    </div>
+  </section>
 </Base>
+
+<script>
+  import { initScrollAnimations } from '../scripts/scroll-animations';
+  initScrollAnimations();
+</script>
+
+<style>
+  /* ══ 화롯불 온기 반 톤 ↑ — 이 페이지에서만 토큰 오버라이드 ══
+     (docs/mockups/rest.html — 수채 워시·앰비언트에 앰버 기운.
+     body에 얹어 :root 토큰을 이 페이지에서만 덮는다. 테마 3단 오버라이드 정합.) */
+  :global(body) {
+    --wash: linear-gradient(160deg, color-mix(in srgb, #c0655b 5%, var(--card)) 0%, var(--card) 46%, color-mix(in srgb, var(--gold-dim) 5%, var(--card)) 100%);
+    --wash-hover: linear-gradient(160deg, color-mix(in srgb, #c0655b 7%, var(--card)) 0%, var(--card) 46%, color-mix(in srgb, var(--gold-dim) 7%, var(--card)) 100%);
+    --ambient-bg: radial-gradient(120% 85% at 50% -12%, color-mix(in srgb, #c07445 5%, var(--bg)) 0%, var(--bg) 62%);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light']) body) {
+      --wash: linear-gradient(155deg, color-mix(in srgb, var(--viridian) 8%, var(--card)) 0%, var(--card) 46%, color-mix(in srgb, var(--gold) 7%, var(--card)) 100%);
+      --wash-hover: linear-gradient(155deg, color-mix(in srgb, var(--viridian) 11%, var(--card-hover)) 0%, var(--card-hover) 46%, color-mix(in srgb, var(--gold) 9%, var(--card-hover)) 100%);
+      --ambient-bg: radial-gradient(120% 85% at 50% -12%, color-mix(in srgb, var(--gold) 5%, var(--bg)) 0%, var(--bg) 62%);
+    }
+  }
+  :global(:root[data-theme='dark'] body) {
+    --wash: linear-gradient(155deg, color-mix(in srgb, var(--viridian) 8%, var(--card)) 0%, var(--card) 46%, color-mix(in srgb, var(--gold) 7%, var(--card)) 100%);
+    --wash-hover: linear-gradient(155deg, color-mix(in srgb, var(--viridian) 11%, var(--card-hover)) 0%, var(--card-hover) 46%, color-mix(in srgb, var(--gold) 9%, var(--card-hover)) 100%);
+    --ambient-bg: radial-gradient(120% 85% at 50% -12%, color-mix(in srgb, var(--gold) 5%, var(--bg)) 0%, var(--bg) 62%);
+  }
+
+  /* ══ 배너 위 화롯불 온기 — 옅은 앰버 베일 오버레이 (PageBanner overlay 슬롯) ══
+     기본 그라데이션은 공용 배너(여명/숲) 그대로, 온기 반 톤만 이 베일이 얹는다. */
+  .hearth-veil {
+    position: absolute;
+    inset: 0;
+    z-index: 2; /* 전역 파티클 캔버스(z1) 위, 페이드(z4)·콘텐츠(z5) 아래 */
+    pointer-events: none;
+    background: radial-gradient(85% 75% at 50% 102%, rgba(224, 150, 70, 0.22), transparent 66%);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) .hearth-veil {
+      background: radial-gradient(75% 65% at 50% 104%, rgba(226, 152, 58, 0.14), transparent 64%);
+    }
+  }
+  :global(:root[data-theme='dark']) .hearth-veil {
+    background: radial-gradient(75% 65% at 50% 104%, rgba(226, 152, 58, 0.14), transparent 64%);
+  }
+
+  /* ══ 방랑자 소개 — 에세이 + 방랑자의 인장 ══ */
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 2.2rem;
+    align-items: start;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  @media (max-width: 860px) {
+    .about-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .essay p {
+    font-family: var(--serif);
+    font-size: 15.5px;
+    line-height: 2.05;
+    color: var(--ink);
+    margin: 0 0 1.15em;
+    text-wrap: pretty;
+  }
+  /* 드롭캡 — 에세이 첫 문단 (WORLDBOOK §3.3) */
+  .essay p.lead::first-letter {
+    float: left;
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 3.6em;
+    line-height: 0.88;
+    padding: 0.05em 0.14em 0 0;
+    color: var(--gold);
+  }
+  .essay .essay-sign {
+    font-family: var(--serif);
+    font-size: 13.5px;
+    color: var(--muted);
+    text-align: right;
+    margin: 1.4em 0 0;
+  }
+  .essay .essay-sign .dia {
+    color: var(--gold);
+    font-size: 9px;
+    margin-right: 6px;
+  }
+
+  /* 방랑자의 인장 플레이트 (카드 코너 장식은 global .card-corner 재사용) */
+  .seal-plate {
+    position: relative;
+    isolation: isolate;
+    background: var(--wash);
+    border: 1px solid var(--card-border);
+    padding: 30px 22px 24px;
+    text-align: center;
+    overflow: hidden;
+  }
+  /* 카드 양피지 grain */
+  .seal-plate::after,
+  .title-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.4 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)'/%3E%3C/svg%3E");
+    background-size: 140px 140px;
+    opacity: 0.1;
+    mix-blend-mode: var(--grain-blend);
+  }
+  .seal-plate .seal-svg {
+    width: min(200px, 70%);
+    margin: 0 auto;
+    color: var(--gold);
+    filter: var(--glow);
+  }
+  .seal-plate .seal-svg svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .seal-cap {
+    font-family: var(--display);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-indent: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold-text);
+    margin-top: 16px;
+  }
+  .seal-note {
+    font-family: var(--serif);
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin: 8px 0 0;
+  }
+
+  /* ══ 여정의 기록 — 칭호의 방 (트로피 그리드) ══ */
+  .titles-grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  }
+  .title-card {
+    position: relative;
+    isolation: isolate;
+    background: var(--wash);
+    border: 1px solid var(--card-border);
+    padding: 20px 14px 16px;
+    text-align: center;
+    color: var(--ink);
+    overflow: hidden;
+  }
+  .title-card .tc-icon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 9px;
+    color: var(--place);
+    filter: var(--glow);
+  }
+  .tc-name {
+    font-family: var(--serif);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+  .tc-en {
+    font-family: var(--display);
+    font-size: 9.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+  .tc-rank {
+    font-family: var(--serif);
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--gold-text);
+    margin-top: 9px;
+  }
+  .tc-rank .dia {
+    font-style: normal;
+    font-size: 9px;
+    color: var(--gold);
+    margin-right: 5px;
+  }
+  .tc-meta {
+    font-size: 11.5px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* 안개 규칙 — 미개방 장소 (WORLDBOOK §5.1) */
+  .title-card.fog {
+    border-style: dashed;
+    border-color: var(--line);
+    filter: saturate(0.2);
+    opacity: 0.58;
+  }
+  .title-card.fog .tc-icon {
+    color: var(--muted);
+  }
+  .title-card.fog .tc-rank {
+    color: var(--muted);
+    font-weight: 400;
+  }
+  .title-card.fog::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 30%, var(--mist) 50%, transparent 70%);
+    background-size: 250% 100%;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .title-card.fog::before {
+      animation: rest-mist 9s linear infinite;
+    }
+    @keyframes rest-mist {
+      from {
+        background-position: 130% 0;
+      }
+      to {
+        background-position: -130% 0;
+      }
+    }
+  }
+  .titles-note {
+    text-align: center;
+    font-family: var(--serif);
+    font-size: 13px;
+    color: var(--muted);
+    margin: 22px 0 0;
+  }
+  .titles-note .dia {
+    color: var(--gold);
+    font-size: 9px;
+    margin: 0 6px;
+  }
+
+  /* ══ 이 교차로에 대하여 — 기술 스택을 세계관 카피로 ══ */
+  .cross-list {
+    max-width: 680px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .cross-row {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding: 13px 10px;
+    border-bottom: 1px dashed var(--card-border);
+    transition: background-color 0.25s;
+  }
+  .cross-row:first-child {
+    border-top: 1px dashed var(--card-border);
+  }
+  .cross-row:hover {
+    background: color-mix(in srgb, var(--gold) 8%, transparent);
+  }
+  .cross-row .cr-dia {
+    color: var(--gold);
+    font-size: 9px;
+    flex: none;
+  }
+  .cr-copy {
+    flex: 1;
+    font-family: var(--serif);
+    font-size: 14.5px;
+    line-height: 1.8;
+  }
+  .cr-tech {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.03em;
+    color: var(--viridian-text);
+    white-space: nowrap;
+    border: 1px solid color-mix(in srgb, var(--viridian) 40%, transparent);
+    padding: 1px 8px;
+    align-self: center;
+    flex: none;
+  }
+  @media (max-width: 560px) {
+    .cross-row {
+      flex-wrap: wrap;
+    }
+    .cr-tech {
+      margin-left: 23px;
+    }
+  }
+
+  /* ══ 전서구를 보내려면 — 고스트 버튼 ══ */
+  .contact-wrap {
+    text-align: center;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .contact-lead {
+    font-family: var(--serif);
+    font-size: 15px;
+    line-height: 2;
+    color: var(--muted);
+    margin: 0 0 26px;
+    text-wrap: pretty;
+  }
+  .contact-btns {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .pigeon-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--card-border);
+    padding: 12px 22px;
+    font-family: var(--serif);
+    font-size: 14px;
+    color: var(--ink);
+    transition: border-color 0.25s, color 0.25s, box-shadow 0.3s, transform 0.3s;
+  }
+  .pigeon-btn svg {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    display: block;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    color: var(--gold);
+    filter: var(--glow);
+  }
+  .pigeon-btn:hover {
+    text-decoration: none;
+    border-color: var(--gold);
+    color: var(--gold);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px -8px rgba(0, 0, 0, 0.2), 0 0 20px color-mix(in srgb, var(--gold) 16%, transparent);
+  }
+  .contact-note {
+    margin: 20px 0 0;
+    font-family: var(--serif);
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .contact-note::before {
+    content: '— ';
+    color: var(--gold);
+  }
+  .contact-note::after {
+    content: ' —';
+    color: var(--gold);
+  }
+
+  /* ══ 모션 감소 존중 ══ */
+  @media (prefers-reduced-motion: reduce) {
+    .pigeon-btn,
+    .cross-row {
+      transition: none;
+    }
+  }
+</style>

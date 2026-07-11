@@ -1,20 +1,269 @@
 ---
+// 서고 (전체 기록) v4 — 컴팩트 배너 + 간기 통계 행 + 장소 필터 칩 + 연도 구분 서지 + 표식 구름.
+// 구성은 docs/mockups/archive.html, 문구는 docs/copy-deck.md §5.
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import RecordCard from '../../components/RecordCard.astro';
+import PageBanner from '../../components/PageBanner.astro';
+import RecordBibliography from '../../components/RecordBibliography.astro';
+import { PLACES, tintStyle } from '../../data/places';
 
 const records = (await getCollection('records', ({ data }) => !data.draft)).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
 );
+
+// 장소별 편수 — 개방 장소는 편수 내림차순, 안개 장소(0편)는 뒤에 비활성 칩으로
+const countBy = new Map<string, number>();
+for (const rec of records) countBy.set(rec.data.place, (countBy.get(rec.data.place) ?? 0) + 1);
+const openPlaces = PLACES.filter((p) => countBy.has(p.slug)).sort(
+  (a, b) => (countBy.get(b.slug) ?? 0) - (countBy.get(a.slug) ?? 0)
+);
+const fogPlaces = PLACES.filter((p) => !countBy.has(p.slug));
+
+const lastDate = records[0]?.data.date;
+const iso = (d: Date) => d.toISOString().slice(0, 10);
+
+// 표식(태그) 빈도 — 2단계 크기: 2편 이상이면서 최빈값의 절반 이상이면 big
+const tagCount = new Map<string, number>();
+for (const rec of records) for (const t of rec.data.tags) tagCount.set(t, (tagCount.get(t) ?? 0) + 1);
+const tags = [...tagCount.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+const maxTag = tags[0]?.[1] ?? 0;
+const isBig = (n: number) => n >= 2 && n >= maxTag / 2;
 ---
 
-<Base title="서고 — 전체 기록" description="교차로에 남긴 모든 기록, 시간 역순.">
-  <section class="place-banner">
-    <h1>서고</h1>
-    <p class="flavor">교차로에 남긴 모든 기록 — {records.length}편, 시간 역순.</p>
-  </section>
-  <div class="orn">✦</div>
-  <div class="record-list">
-    {records.map((rec) => <RecordCard rec={rec} />)}
-  </div>
+<Base title="전체 기록" description="블로그의 모든 글을 시간 역순으로 모은 목록.">
+  <PageBanner
+    slot="hero"
+    eyebrow="All Records"
+    title="서고"
+    flavor="모든 길의 기록이 시간의 순서로 꽂혀 있다."
+  />
+
+  <!-- 간기 스타일 통계 행 (copy-deck §5) -->
+  <p class="stats-line" data-animate>
+    기록 <b>{records.length}</b>편{
+      lastDate && (
+        <>
+          <i class="dia" aria-hidden="true">✦</i>장소 <b>{countBy.size}</b>곳 개방
+          <i class="dia" aria-hidden="true">✦</i>마지막 기록{' '}
+          <time datetime={iso(lastDate)}>{iso(lastDate)}</time>
+        </>
+      )
+    }
+  </p>
+
+  <!-- 장소 필터 칩 — 정적 렌더 위에서 JS가 hidden만 토글 (미동작 시 전체 노출) -->
+  {
+    records.length > 0 && (
+      <div class="chip-row" role="group" aria-label="장소별 기록 필터" data-animate>
+        <button class="chip" type="button" data-place="all" aria-pressed="true">
+          <span class="dia" aria-hidden="true">✦</span>전체 <span class="cnt">{records.length}</span>
+        </button>
+        {openPlaces.map((p) => (
+          <button class="chip tinted" type="button" data-place={p.slug} aria-pressed="false" style={tintStyle(p)}>
+            <span class="dot" aria-hidden="true" />
+            {p.ko} <span class="cnt">{countBy.get(p.slug)}</span>
+          </button>
+        ))}
+        {fogPlaces.map((p) => (
+          <button
+            class="chip fog tinted"
+            type="button"
+            disabled
+            title="첫 기록이 쓰이는 날, 안개가 걷힌다"
+            style="--place-light:#6e6353;--place-dark:#9bb0a4"
+          >
+            <span class="dot" aria-hidden="true" />
+            {p.ko} <span class="cnt">안개</span>
+          </button>
+        ))}
+      </div>
+    )
+  }
+
+  <RecordBibliography records={records} />
+
+  <!-- 표식 구름 — 별도 /tags/ 색인을 대신한다 -->
+  {
+    tags.length > 0 && (
+      <>
+        <div class="orn" aria-hidden="true">✦&nbsp;&nbsp;✦&nbsp;&nbsp;✦</div>
+        <section class="tags-section" aria-label="태그 목록">
+          <div class="section-head" data-animate>
+            <div class="orn-line" data-orn="headpiece" aria-hidden="true" />
+            <span class="eyebrow">Follow the Marks</span>
+            <h2>표식 따라가기</h2>
+          </div>
+          <div class="tag-cloud" data-animate>
+            {tags.map(([tag, n]) => (
+              <a class:list={['tag-chip', { big: isBig(n) }]} href={`/tags/${tag}/`}>
+                {tag} <span class="n">{n}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      </>
+    )
+  }
 </Base>
+
+<style>
+  /* ── 간기 통계 행 ── */
+  .stats-line {
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    font-variant-numeric: tabular-nums;
+    margin: 28px 0 26px;
+  }
+  .stats-line b {
+    font-weight: 600;
+    color: var(--gold-text);
+  }
+  .stats-line .dia {
+    color: var(--gold);
+    font-size: 9px;
+    font-style: normal;
+    margin: 0 10px;
+  }
+
+  /* ── 장소 필터 칩 (가로 스크롤) ── */
+  .chip-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 4px 2px 12px;
+    margin: 0 0 8px;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--gold) 35%, transparent) transparent;
+  }
+  .chip {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--card-border);
+    background: var(--card);
+    padding: 6px 14px;
+    font: inherit;
+    font-size: 13px;
+    color: var(--muted);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color 0.25s, background-color 0.25s, color 0.25s;
+  }
+  .chip:hover:not(:disabled) {
+    border-color: var(--gold);
+    color: var(--ink);
+  }
+  .chip[aria-pressed='true'] {
+    border-color: var(--gold);
+    background: var(--gold-soft);
+    color: var(--ink);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 45%, transparent);
+  }
+  .chip .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex: none;
+    background: radial-gradient(
+      circle at 34% 30%,
+      color-mix(in srgb, var(--place) 55%, #fff) 0%,
+      var(--place) 55%,
+      color-mix(in srgb, var(--place) 65%, #000) 100%
+    );
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--place) 14%, transparent);
+  }
+  .chip .dia {
+    color: var(--gold);
+    font-size: 9px;
+  }
+  .chip .cnt {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--gold-text);
+    font-variant-numeric: tabular-nums;
+  }
+  .chip.fog {
+    border-style: dashed;
+    opacity: 0.5;
+    filter: saturate(0.2);
+    cursor: not-allowed;
+  }
+  .chip.fog .cnt {
+    font-family: var(--serif);
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  /* ── 표식 구름 (비리디안 배지, 2단계 크기) ── */
+  .tag-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 12px;
+    justify-content: center;
+    max-width: 660px;
+    margin: 0 auto;
+  }
+  .tag-chip {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.03em;
+    color: var(--viridian-text);
+    border: 1px solid color-mix(in srgb, var(--viridian) 40%, transparent);
+    padding: 3px 12px;
+    transition: border-color 0.25s, background-color 0.25s;
+  }
+  .tag-chip.big {
+    font-size: 0.95rem;
+    padding: 5px 15px;
+    border-color: color-mix(in srgb, var(--viridian) 60%, transparent);
+  }
+  .tag-chip:hover {
+    text-decoration: none;
+    border-color: var(--viridian);
+    background: color-mix(in srgb, var(--viridian) 10%, transparent);
+  }
+  .tag-chip .n {
+    color: var(--muted);
+    font-size: 0.82em;
+    margin-left: 6px;
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+
+<script>
+  import { initScrollAnimations } from '../../scripts/scroll-animations';
+  initScrollAnimations();
+
+  // ── 장소 필터 — data-place 매칭으로 hidden만 토글 ──
+  const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('.chip[data-place]'));
+  const items = Array.from(document.querySelectorAll<HTMLElement>('.bib-item'));
+  const groups = Array.from(document.querySelectorAll<HTMLElement>('.year-group'));
+  const orns = Array.from(document.querySelectorAll<HTMLElement>('[data-year-orn]')); // orns[j] = groups[j+1] 앞 구분선
+  const emptyNote = document.querySelector<HTMLElement>('[data-filter-empty]');
+
+  function applyFilter(key: string) {
+    chips.forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.place === key)));
+    items.forEach((it) => {
+      it.hidden = key !== 'all' && it.dataset.place !== key;
+    });
+    groups.forEach((g) => {
+      const vis = g.querySelectorAll('.bib-item:not([hidden])').length;
+      const cnt = g.querySelector('.yr-count');
+      if (cnt) cnt.textContent = `${vis}편`;
+      g.hidden = vis === 0;
+    });
+    // 연도 사이 구분선은 앞뒤로 보이는 그룹이 있을 때만
+    orns.forEach((orn, j) => {
+      const hasBefore = groups.slice(0, j + 1).some((g) => !g.hidden);
+      const next = groups[j + 1];
+      orn.hidden = !(hasBefore && next && !next.hidden);
+    });
+    if (emptyNote) emptyNote.hidden = items.some((it) => !it.hidden);
+  }
+  chips.forEach((c) => {
+    c.addEventListener('click', () => applyFilter(c.dataset.place ?? 'all'));
+  });
+</script>

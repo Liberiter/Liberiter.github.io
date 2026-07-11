@@ -1,52 +1,505 @@
 ---
+// 연대기(시리즈) 목차 — v4 "책의 차례".
+// 스펙: docs/mockups/chronicle.html · 문구: docs/copy-deck.md §8 · 규칙: WORLDBOOK §1.2(메타는 평범하게).
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import Emblem from '../../components/Emblem.astro';
+import PageBanner from '../../components/PageBanner.astro';
 import { placeBySlug, tintStyle } from '../../data/places';
-import { fmtDate } from '../../lib/format';
+import { readingTime } from '../../lib/format';
 
 export async function getStaticPaths() {
-  const records = await getCollection('records', ({ data }) => !!data.series && !data.draft);
-  const bySeries = new Map<string, typeof records>();
-  for (const rec of records) {
+  // 초안(draft)도 함께 모은다 — "다음 화 예고 · 봉인된 기록"에 쓰인다 (안개 규칙)
+  const withSeries = await getCollection('records', ({ data }) => !!data.series);
+  const bySeries = new Map<string, typeof withSeries>();
+  for (const rec of withSeries) {
     const list = bySeries.get(rec.data.series!) ?? [];
     list.push(rec);
     bySeries.set(rec.data.series!, list);
   }
-  return [...bySeries.entries()].map(([series, chapters]) => ({
-    params: { series },
-    props: {
-      chapters: chapters.sort((a, b) => (a.data.seriesOrder ?? 0) - (b.data.seriesOrder ?? 0)),
-    },
-  }));
+  const byOrder = (a: (typeof withSeries)[number], b: (typeof withSeries)[number]) =>
+    (a.data.seriesOrder ?? 0) - (b.data.seriesOrder ?? 0);
+  return [...bySeries.entries()]
+    .map(([series, entries]) => ({
+      params: { series },
+      props: {
+        chapters: entries.filter((e) => !e.data.draft).sort(byOrder),
+        drafts: entries.filter((e) => e.data.draft).sort(byOrder),
+      },
+    }))
+    .filter(({ props }) => props.chapters.length > 0);
 }
-const { chapters } = Astro.props;
-const title = chapters.find((c) => c.data.seriesTitle)?.data.seriesTitle ?? chapters[0].data.series;
+
+const { chapters, drafts } = Astro.props;
+const title =
+  chapters.find((c) => c.data.seriesTitle)?.data.seriesTitle ?? chapters[0].data.series!;
 const place = placeBySlug(chapters[0].data.place);
+
+// 연재 상태 — 어느 한 화에라도 seriesStatus: completed가 있으면 완결 (copy-deck §8)
+const completed = [...chapters, ...drafts].some((c) => c.data.seriesStatus === 'completed');
+// 서문 — seriesDescription이 있으면 그것을, 없으면 첫 화의 description
+const intro =
+  [...chapters, ...drafts].find((c) => c.data.seriesDescription)?.data.seriesDescription ??
+  chapters[0].data.description;
+// 다음 화 예고 — 연재 중이고 봉인된 기록(초안)이 있을 때만
+const lastOrder = chapters[chapters.length - 1].data.seriesOrder ?? chapters.length;
+const sealedNo =
+  !completed && drafts.length > 0 ? (drafts[0].data.seriesOrder ?? lastOrder + 1) : null;
+
+const isoDate = (d: Date) => d.toISOString().slice(0, 10);
+
+// 로마 숫자 — 회차 번호 장식
+function toRoman(n: number): string {
+  const table: Array<[number, string]> = [
+    [1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'],
+    [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I'],
+  ];
+  let out = '';
+  for (const [v, s] of table) {
+    while (n >= v) {
+      out += s;
+      n -= v;
+    }
+  }
+  return out || 'I';
+}
 ---
 
-<Base title={`${title} — 연재 목차`} description={`연재물 ${title}의 전체 목차 (${chapters.length}화).`}>
-  <div class="tinted" style={tintStyle(place)}>
-    <section class="place-banner">
-      <Emblem id={place.slug} size={48} />
-      <div class="eyebrow" style="margin-top:14px">연대기 · Chronicle</div>
-      <h1>{title}</h1>
-      <p class="flavor">전 {chapters.length}화 — {place.ko}에서 연재 중</p>
-    </section>
-    <div class="orn">✦</div>
-    <div class="record-list">
+<Base title={`${title} — 연재 목차`} description={`연재물 ${title}의 전체 목차 (전 ${chapters.length}화).`}>
+  <!-- 공용 배너(작은 히어로) + 장소 리본(책갈피)은 ribbon 슬롯으로 -->
+  <PageBanner
+    slot="hero"
+    class="tinted"
+    style={tintStyle(place)}
+    height="tall"
+    kind="article"
+    eyebrow="Chronicle"
+    title={title}
+  >
+    <a slot="ribbon" class="bn-ribbon" href={`/places/${place.slug}/`}>
+      <Emblem id={place.slug} size={19} />
+      <span class="rb-txt">{place.ko}</span>
+    </a>
+    <p slot="meta" class="bn-sub">
+      <span class="bn-place">{place.ko}</span><i class="dia" aria-hidden="true">✦</i>
+      <span>{completed ? '완결' : '연재 중'}</span><i class="dia" aria-hidden="true">✦</i>
+      <span>{chapters.length}화</span>
+    </p>
+  </PageBanner>
+
+  <!-- 연대기의 서문 -->
+  <section class="home-section tinted" id="intro" aria-label="시리즈 소개" style={tintStyle(place)}>
+    <div class="section-head" data-animate>
+      <div class="orn-line" data-orn="headpiece" aria-hidden="true"></div>
+      <span class="eyebrow">Synopsis</span>
+      <h2>연대기의 서문</h2>
+      <div class="orn-line tail" data-orn="tailpiece" aria-hidden="true"></div>
+    </div>
+
+    <div class="wash-card chronicle-intro dropcap" data-animate>
+      <span class="card-corner card-corner-tl" aria-hidden="true"></span>
+      <span class="card-corner card-corner-tr" aria-hidden="true"></span>
+      <span class="card-corner card-corner-bl" aria-hidden="true"></span>
+      <span class="card-corner card-corner-br" aria-hidden="true"></span>
+      <p>{intro}</p>
+    </div>
+  </section>
+
+  <div class="orn" aria-hidden="true">✦&nbsp;&nbsp;✦&nbsp;&nbsp;✦</div>
+
+  <!-- 회차 목차 — 책의 차례 -->
+  <section class="home-section tinted" id="toc" aria-label="회차 목차" style={tintStyle(place)}>
+    <div class="section-head" data-animate>
+      <div class="orn-line" data-orn="headpiece" aria-hidden="true"></div>
+      <span class="eyebrow">Table of Chapters</span>
+      <h2>회차 목차</h2>
+      <div class="orn-line tail" data-orn="tailpiece" aria-hidden="true"></div>
+    </div>
+
+    <!-- 정적 사이트에는 "읽던 곳"이 없다 — 1화 링크로 대체 -->
+    <div class="continue-wrap" data-animate>
+      <a class="btn-continue" href={`/records/${chapters[0].id}/`}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v18l-5-4-5 4z"></path></svg>
+        처음부터 읽기
+      </a>
+    </div>
+
+    <div class="toc-list" data-animate>
       {
-        chapters.map((chapter) => (
-          <a class="record-card tinted" href={`/records/${chapter.id}/`} style={tintStyle(place)}>
-            <div class="rc-place">제 {chapter.data.seriesOrder}화</div>
-            <h3>{chapter.data.title}</h3>
-            <p>{chapter.data.description}</p>
-            <div class="rc-meta">
-              <time>{fmtDate(chapter.data.date)}</time>
-            </div>
+        chapters.map((ch, i) => (
+          <a class="toc-row" href={`/records/${ch.id}/`}>
+            <span class="ep-no">
+              <span class="rn" aria-hidden="true">{toRoman(ch.data.seriesOrder ?? i + 1)}</span>
+              <span class="rk">제{ch.data.seriesOrder ?? i + 1}화</span>
+            </span>
+            <span class="ep-title">{ch.data.title}</span>
+            <span class="leader" aria-hidden="true"></span>
+            <span class="ep-meta">
+              <time datetime={isoDate(ch.data.date)}>{isoDate(ch.data.date)}</time>
+              <i class="dia" aria-hidden="true">✦</i>
+              <span class="journey">약 {readingTime(ch.body)}분의 여정</span>
+            </span>
           </a>
         ))
       }
+
+      {
+        sealedNo !== null && (
+          <div class="toc-row sealed" aria-label={`제${sealedNo}화 — 아직 공개되지 않음`}>
+            <span class="ep-no" aria-hidden="true">
+              <span class="rn">{toRoman(sealedNo)}</span>
+              <span class="rk">제{sealedNo}화</span>
+            </span>
+            <span class="ep-title" aria-hidden="true">봉인된 기록</span>
+            <span class="leader" aria-hidden="true"></span>
+            <span class="ep-meta" aria-hidden="true">
+              <span class="journey">집필 중 · 봉인된 기록</span>
+            </span>
+          </div>
+        )
+      }
     </div>
-  </div>
+
+    <!-- 연대기 진행 오너먼트 -->
+    <div class="progress-orn" data-animate>
+      <span class="pips" aria-hidden="true">
+        {chapters.map(() => <i class="pip"></i>)}
+        {sealedNo !== null && <i class="pip empty"></i>}
+        {!completed && <span class="trail"></span>}
+      </span>
+      <span>
+        {
+          completed
+            ? `완결 — 이야기가 잠들었다 · 전 ${chapters.length}화`
+            : `연재 중 — 이야기가 계속된다 · ${chapters.length}화 / 완결 미정`
+        }
+      </span>
+    </div>
+  </section>
 </Base>
+
+<script>
+  import { initScrollAnimations } from '../../scripts/scroll-animations';
+  initScrollAnimations();
+</script>
+
+<style>
+  /* ══ 배너 메타 (PageBanner meta 슬롯 — 색·그림자는 --pbn-sub 상속) ══ */
+  .bn-sub {
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 0;
+  }
+  .bn-sub .dia {
+    color: var(--gold);
+    font-size: 8px;
+    font-style: normal;
+  }
+  .bn-sub .bn-place {
+    color: var(--place);
+    font-weight: 700;
+  }
+
+  /* 장소 리본 — 책갈피처럼 상단에서 드리워짐 (PageBanner ribbon 슬롯, 페이드 z4 아래) */
+  .bn-ribbon {
+    position: absolute;
+    top: 0;
+    right: clamp(20px, 8vw, 96px);
+    z-index: 3;
+    width: 46px;
+    padding: calc(var(--header-h) + 10px) 0 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--place) 88%, #140a08),
+      color-mix(in srgb, var(--place) 74%, #140a08)
+    );
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 15px), 0 100%);
+    box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.4);
+    color: #f6ead8;
+    animation: rb-drop 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.2s backwards;
+  }
+  .bn-ribbon:hover {
+    text-decoration: none;
+  }
+  .bn-ribbon .rb-txt {
+    writing-mode: vertical-rl;
+    font-family: var(--serif);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.32em;
+  }
+  @keyframes rb-drop {
+    from {
+      opacity: 0;
+      transform: translateY(-18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @media (max-width: 560px) {
+    .bn-ribbon {
+      width: 38px;
+      right: 14px;
+    }
+    .bn-ribbon .rb-txt {
+      font-size: 11px;
+      letter-spacing: 0.24em;
+    }
+  }
+
+  /* ══ 연대기 서문 — 수채 워시 카드 + 드롭캡 ══ */
+  .wash-card {
+    position: relative;
+    isolation: isolate;
+    max-width: 680px;
+    margin: 0 auto;
+    background: var(--wash);
+    border: 1px solid var(--card-border);
+    padding: clamp(26px, 5vw, 44px) clamp(24px, 5.5vw, 52px);
+    overflow: hidden;
+  }
+  .wash-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.4 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)'/%3E%3C/svg%3E");
+    background-size: 140px 140px;
+    opacity: 0.1;
+    mix-blend-mode: var(--grain-blend);
+  }
+  .chronicle-intro p {
+    font-family: var(--serif);
+    font-size: 15.5px;
+    line-height: 2.05;
+    color: var(--ink);
+    text-wrap: pretty;
+    margin: 0;
+  }
+  .chronicle-intro p + p {
+    margin-top: 1.3em;
+  }
+
+  /* ══ 회차 목차 — 점선 리더의 차례 ══ */
+  .continue-wrap {
+    text-align: center;
+    margin: 0 0 30px;
+  }
+  .btn-continue {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-family: var(--serif);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--place);
+    border: 1px solid color-mix(in srgb, var(--place) 55%, transparent);
+    background: color-mix(in srgb, var(--place) 7%, transparent);
+    padding: 10px 22px;
+    transition: border-color 0.25s, background-color 0.25s, transform 0.25s, box-shadow 0.25s;
+  }
+  .btn-continue svg {
+    width: 15px;
+    height: 15px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .btn-continue:hover {
+    text-decoration: none;
+    border-color: var(--place);
+    background: color-mix(in srgb, var(--place) 13%, transparent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px -10px color-mix(in srgb, var(--place) 45%, transparent);
+  }
+
+  .toc-list {
+    max-width: 720px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .toc-row {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding: 15px 10px;
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+    color: var(--ink);
+    transition: background-color 0.25s;
+  }
+  .toc-row:first-child {
+    border-top: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+  }
+  a.toc-row:hover {
+    text-decoration: none;
+    background: color-mix(in srgb, var(--place) 7%, transparent);
+  }
+  .ep-no {
+    flex: none;
+    width: 58px;
+    text-align: center;
+    align-self: center;
+  }
+  .ep-no .rn {
+    display: block;
+    font-family: var(--display);
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+    color: var(--place);
+    filter: var(--glow);
+  }
+  .ep-no .rk {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+  }
+  .ep-title {
+    font-family: var(--serif);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.5;
+    transition: color 0.25s;
+  }
+  a.toc-row:hover .ep-title {
+    color: color-mix(in srgb, var(--place) 78%, var(--ink));
+  }
+  .leader {
+    flex: 1;
+    min-width: 26px;
+    align-self: center;
+    border-bottom: 2px dotted color-mix(in srgb, var(--muted) 42%, transparent);
+    transform: translateY(3px);
+  }
+  .ep-meta {
+    flex: none;
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+    font-size: 12.5px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .ep-meta time {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--gold-text);
+  }
+  .ep-meta .dia {
+    color: var(--gold);
+    font-size: 8px;
+    font-style: normal;
+  }
+  .ep-meta .journey {
+    font-family: var(--serif);
+  }
+  @media (max-width: 560px) {
+    .leader {
+      display: none;
+    }
+    .toc-row {
+      flex-wrap: wrap;
+    }
+    .ep-meta {
+      width: 100%;
+      padding-left: 72px;
+    }
+  }
+
+  /* 다음 화 예고 — 봉인된 기록 (안개 규칙) */
+  .toc-row.sealed {
+    opacity: 0.55;
+    filter: saturate(0.25);
+  }
+  .toc-row.sealed .ep-title {
+    filter: blur(2.5px);
+  }
+  .toc-row.sealed::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(105deg, transparent 30%, var(--mist) 50%, transparent 70%);
+    background-size: 250% 100%;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .toc-row.sealed::before {
+      animation: mist-drift 9s linear infinite;
+    }
+    @keyframes mist-drift {
+      from {
+        background-position: 130% 0;
+      }
+      to {
+        background-position: -130% 0;
+      }
+    }
+  }
+
+  /* 진행 오너먼트 — 다이아 핍 */
+  .progress-orn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin: 34px auto 0;
+    font-family: var(--serif);
+    font-size: 12.5px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+  .progress-orn .pips {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .pip {
+    width: 7px;
+    height: 7px;
+    flex: none;
+    background: var(--gold);
+    transform: rotate(45deg);
+    filter: var(--glow);
+  }
+  .pip.empty {
+    background: none;
+    border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent);
+  }
+  .progress-orn .trail {
+    width: 52px;
+    height: 1px;
+    flex: none;
+    background: linear-gradient(to right, color-mix(in srgb, var(--gold) 50%, transparent), transparent);
+  }
+
+  /* 모션 감소 존중 */
+  @media (prefers-reduced-motion: reduce) {
+    .bn-ribbon {
+      animation: none;
+      opacity: 1;
+    }
+    .btn-continue,
+    .toc-row {
+      transition: none;
+    }
+  }
+</style>
