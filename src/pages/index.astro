@@ -24,7 +24,7 @@ const recentJournal = journal.slice(0, 3);
 <Base>
   <Hero slot="hero" />
 
-  <section class="home-section" id="places" aria-label="교차로의 장소들">
+  <section class="home-section" id="places" aria-label="카테고리 목록">
     <div class="section-head" data-animate>
       <div class="orn-line" data-orn="headpiece" aria-hidden="true"></div>
       <span class="eyebrow">The Twelve Places</span>
@@ -48,10 +48,10 @@ const recentJournal = journal.slice(0, 3);
       <span class="pc-icon" aria-hidden="true"><Emblem id="wanderers-journal" size={34} /></span>
       <div>
         <div class="jb-name">{JOURNAL.ko}</div>
-        <div class="jb-sub">{JOURNAL.en} · TIL</div>
+        <div class="jb-sub">{JOURNAL.en}</div>
       </div>
       <span class="jb-flavor">“{JOURNAL.flavor}”</span>
-      <span class="jb-meta">{journal.length}편의 낱장 →</span>
+      <span class="jb-meta">{journal.length}장의 낱장 →</span>
     </a>
   </section>
 
@@ -87,7 +87,7 @@ const recentJournal = journal.slice(0, 3);
             <span class="eyebrow">Wanderer's Journal</span>
             <h2>방랑자의 일지</h2>
             <div class="orn-line tail" data-orn="tailpiece" aria-hidden="true" />
-            <a class="sec-link" href="/journal/">{journal.length}편의 낱장 →</a>
+            <a class="sec-link" href="/journal/">{journal.length}장의 낱장 →</a>
           </div>
           <div data-animate>
             <p class="journal-motto">{JOURNAL.flavor}</p>

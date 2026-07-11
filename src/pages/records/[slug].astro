@@ -1,6 +1,8 @@
 ---
 // 기록 상세 (v4) — 컴팩트 배너 + 68ch 본문 조판 + sticky 목차 + 글 끝 의식.
 // 스펙: docs/mockups/record.html, 문구: docs/copy-deck.md §4, 규칙: WORLDBOOK §3.3.
+// KaTeX CSS — 수식은 기록 상세에서만 쓰인다 (전역 로드 금지 — 347KB 블로킹 방지)
+import 'katex/dist/katex.min.css';
 import { getCollection, render } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
@@ -55,7 +57,11 @@ const prevPlace = prevRec ? placeBySlug(prevRec.data.place) : null;
 const nextPlace = nextRec ? placeBySlug(nextRec.data.place) : null;
 ---
 
-<Base title={rec.data.title} description={rec.data.description}>
+<Base
+  title={rec.data.title}
+  description={rec.data.description}
+  article={{ published: rec.data.date, updated: rec.data.updated }}
+>
   <!-- 공용 배너(작은 히어로) — 장소 리본·메타 행은 슬롯으로 (헤더는 data-hd-range로 스크롤 적응) -->
   <PageBanner
     slot="hero"
@@ -1021,12 +1027,20 @@ const nextPlace = nextRec ? placeBySlug(nextRec.data.place) : null;
     font-size: 13px;
     color: color-mix(in srgb, var(--place) 80%, var(--ink));
   }
-  /* 아직 쓰이지 않은 다음 기록 — 안개 규칙 (WORLDBOOK §5.1) */
+  /* 아직 쓰이지 않은 다음 기록 — 안개 규칙 (WORLDBOOK §5.1)
+     밋밋한 회색 판이 되지 않게: 점선 테두리를 또렷이 + 옅은 mist 그라데이션 워시.
+     라이트·다크 모두 --mist/--muted 토큰 기반이라 문법이 동일하게 적용된다. */
   .nav-card.fog {
     border-style: dashed;
-    border-color: var(--line);
-    filter: saturate(0.25);
-    opacity: 0.62;
+    border-color: color-mix(in srgb, var(--muted) 42%, var(--line));
+    background: linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--mist) 65%, var(--card)) 0%,
+      var(--card) 55%,
+      color-mix(in srgb, var(--mist) 40%, var(--card)) 100%
+    );
+    filter: saturate(0.45);
+    opacity: 0.72;
   }
   .nav-card.fog .nv-place {
     color: var(--muted);

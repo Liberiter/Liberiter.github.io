@@ -17,9 +17,19 @@ const { Content } = await render(entry);
 const heading = entry.data.title ?? '이 날의 기록';
 const metaTitle = entry.data.title ?? `${entry.id}의 일지`;
 const weekday = WEEKDAYS[new Date(`${entry.id}T00:00:00`).getDay()];
+
+// 이전/다음 낱장 — 같은 컬렉션 시간순 (id = yyyy-mm-dd라 문자열 정렬 = 시간순)
+const leaves = (await getCollection('journal')).sort((a, b) => a.id.localeCompare(b.id));
+const leafIdx = leaves.findIndex((l) => l.id === entry.id);
+const prevLeaf = leafIdx > 0 ? leaves[leafIdx - 1] : null;
+const nextLeaf = leafIdx >= 0 && leafIdx < leaves.length - 1 ? leaves[leafIdx + 1] : null;
 ---
 
-<Base title={`${metaTitle} — 방랑자의 일지`} description={`${entry.id}에 남긴 짧은 학습 기록 (TIL).`}>
+<Base
+  title={`${metaTitle} — 방랑자의 일지`}
+  description={`${entry.id}에 남긴 짧은 학습 기록 (TIL).`}
+  article={{ published: new Date(`${entry.id}T00:00:00`) }}
+>
   <!-- 공용 배너(작은 히어로): 낱장의 머리 — 나침반·날짜는 슬롯으로 -->
   <PageBanner slot="hero" kind="article" eyebrow="Wanderer's Journal" title={heading}>
     <div slot="top" class="pb-compass" aria-hidden="true">
@@ -52,6 +62,23 @@ const weekday = WEEKDAYS[new Date(`${entry.id}T00:00:00`).getDay()];
       )
     }
   </article>
+
+  {
+    (prevLeaf || nextLeaf) && (
+      <nav class="leaf-nav" aria-label="이전/다음 낱장" data-animate>
+        <span class="ln-prev">
+          {prevLeaf && (
+            <a href={`/journal/${prevLeaf.id}/`}>← 이전 낱장 · {prevLeaf.data.title ?? prevLeaf.id}</a>
+          )}
+        </span>
+        <span class="ln-next">
+          {nextLeaf && (
+            <a href={`/journal/${nextLeaf.id}/`}>다음 낱장 · {nextLeaf.data.title ?? nextLeaf.id} →</a>
+          )}
+        </span>
+      </nav>
+    )
+  }
 
   <p class="leaf-back" data-animate>
     <a href="/journal/"><span class="dia" aria-hidden="true">✦</span> 일지 전체 보기</a>
@@ -164,6 +191,32 @@ const weekday = WEEKDAYS[new Date(`${entry.id}T00:00:00`).getDay()];
     background: transparent;
     border: 1px solid color-mix(in srgb, var(--viridian) 40%, transparent);
     padding: 0 7px;
+  }
+
+  /* 이전/다음 낱장 — 간단한 텍스트 링크 */
+  .leaf-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    max-width: 640px;
+    margin: 22px auto 0;
+    font-family: var(--serif);
+    font-size: 13.5px;
+  }
+  .leaf-nav .ln-next {
+    margin-left: auto;
+    text-align: right;
+  }
+  .leaf-nav a {
+    color: var(--muted);
+    border-bottom: 1px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .leaf-nav a:hover {
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+    text-decoration: none;
   }
 
   /* 일지 전체 보기 */

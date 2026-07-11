@@ -98,14 +98,14 @@ const monthMeta = (key: string) => {
     {
       monthCount > 0 && (
         <p class="streak">
-          <span class="dia" aria-hidden="true">✦</span>이번 달 <b>{monthCount}일째</b> 기록 중
+          <span class="dia" aria-hidden="true">✦</span>이번 달, <b>{monthCount}일</b>을 기록했다
           <span class="dia" aria-hidden="true">✦</span>
         </p>
       )
     }
     {
       items.length > 0 && (
-        <p class="streak-sub">{items.length}장의 낱장이 쌓였다 · 낱장을 누르면 그 자리에서 펼쳐진다</p>
+        <p class="streak-sub">{items.length}장의 낱장이 쌓였다 · 낱장을 짚으면 그 자리에서 펼쳐진다</p>
       )
     }
   </div>
@@ -151,7 +151,11 @@ const monthMeta = (key: string) => {
                     <div class="til-body">
                       <div class="til-body-in">
                         <Content />
-                        <a class="til-perma" href={`/journal/${entry.id}/`}>이 낱장만 보기 →</a>
+                        <a
+                          class="til-perma"
+                          href={`/journal/${entry.id}/`}
+                          aria-label={`이 낱장만 보기 — ${entry.data.title ?? '이 날의 기록'} (${entry.id})`}
+                        >이 낱장만 보기 →</a>
                       </div>
                     </div>
                   </details>

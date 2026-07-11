@@ -33,9 +33,35 @@ const { records } = Astro.props;
   <p class="stats-line" data-animate>기록 <b>{records.length}</b>편</p>
 
   <RecordBibliography records={records} />
+
+  <!-- 순환 링크 — 표식에서 서고(표식 구름)로 되돌아가는 길 -->
+  <p class="all-marks" data-animate>
+    <a href="/records/"><span class="dia" aria-hidden="true">✦</span> 서고의 모든 표식 보기</a>
+  </p>
 </Base>
 
 <style>
+  .all-marks {
+    text-align: center;
+    margin: 34px 0 0;
+  }
+  .all-marks a {
+    font-family: var(--serif);
+    font-size: 13.5px;
+    color: var(--muted);
+    border-bottom: 1px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .all-marks a:hover {
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+    text-decoration: none;
+  }
+  .all-marks .dia {
+    color: var(--gold);
+    font-size: 9px;
+  }
+
   .stats-line {
     text-align: center;
     font-size: 12.5px;

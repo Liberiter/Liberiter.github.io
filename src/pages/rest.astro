@@ -73,7 +73,12 @@ const sealDiamonds = [0, 90, 180, 270]
     </div>
 
     <div class="about-grid">
-      <div class="essay" data-animate>
+      <div class="essay" data-animate data-pagefind-body>
+        <!-- Pagefind 색인 메타 — 화면에는 보이지 않는다 (records/[slug]의 pf-meta 패턴) -->
+        <div class="pf-meta" aria-hidden="true">
+          <p data-pagefind-meta="title">여행자의 쉼터</p>
+          <p data-pagefind-meta="place" data-pagefind-filter="장소">여행자의 쉼터</p>
+        </div>
         <p class="lead">
           나는 방랑자다. 이 여관의 주인이 아니라, 난롯가 가장 깊은 자리를 차지한 오래된
           손님일 뿐이다. 길에서 배운 것을 이 교차로에 기록하고, 기록이 끝나면 다시 길을
@@ -143,7 +148,7 @@ const sealDiamonds = [0, 90, 180, 270]
           const count = countBy.get(place.slug) ?? 0;
           const rank = rankFor(place, count);
           return rank ? (
-            <div class="title-card tinted" data-animate style={tintStyle(place)}>
+            <a class="title-card tinted" href={`/places/${place.slug}/`} data-animate style={tintStyle(place)}>
               <span class="card-corner card-corner-tl" aria-hidden="true" />
               <span class="card-corner card-corner-tr" aria-hidden="true" />
               <span class="card-corner card-corner-bl" aria-hidden="true" />
@@ -158,7 +163,7 @@ const sealDiamonds = [0, 90, 180, 270]
                 {rank}
               </div>
               <div class="tc-meta">기록 {count}편</div>
-            </div>
+            </a>
           ) : (
             <div class="title-card fog" data-animate>
               <span class="tc-icon" aria-hidden="true">
@@ -166,7 +171,7 @@ const sealDiamonds = [0, 90, 180, 270]
               </span>
               <div class="tc-name">{place.ko}</div>
               <div class="tc-en">{place.en}</div>
-              <div class="tc-rank">안개에 싸임</div>
+              <div class="tc-rank">안개에 싸인 땅</div>
               <div class="tc-meta">아직 열리지 않았다</div>
             </div>
           );
@@ -421,12 +426,26 @@ const sealDiamonds = [0, 90, 180, 270]
   .title-card {
     position: relative;
     isolation: isolate;
+    display: block;
     background: var(--wash);
     border: 1px solid var(--card-border);
     padding: 20px 14px 16px;
     text-align: center;
     color: var(--ink);
     overflow: hidden;
+  }
+  /* 개방 장소 카드 = 장소 페이지로 가는 문 (카드 호버 문법 공용) */
+  a.title-card {
+    transition: background 0.3s ease, border-color 0.3s ease, transform 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+  a.title-card:hover {
+    text-decoration: none;
+    background: var(--wash-hover);
+    border-color: var(--hover-border);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.14),
+      0 0 22px color-mix(in srgb, var(--gold) 13%, transparent);
   }
   .title-card .tc-icon {
     display: flex;
@@ -647,7 +666,8 @@ const sealDiamonds = [0, 90, 180, 270]
   /* ══ 모션 감소 존중 ══ */
   @media (prefers-reduced-motion: reduce) {
     .pigeon-btn,
-    .cross-row {
+    .cross-row,
+    a.title-card {
       transition: none;
     }
   }

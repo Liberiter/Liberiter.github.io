@@ -713,7 +713,7 @@ nav.primary a:hover {
 [data-animate] {
   opacity: 0;
   transform: translateY(18px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  transition: opacity 0.45s ease, transform 0.45s ease;
 }
 [data-animate='fade-in'] {
   transform: none;

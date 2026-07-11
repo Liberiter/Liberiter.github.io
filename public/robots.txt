@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://liberiter.github.io/sitemap-index.xml

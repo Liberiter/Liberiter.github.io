@@ -74,7 +74,7 @@ const roads = [
 const fogTint = '--place-light:#6E6353;--place-dark:#9BB0A4';
 ---
 
-<Base title={`${place.ko} — ${place.topic}`} description={`${place.topic}에 대한 기록 목록. ${place.flavor}`}>
+<Base title={`${place.ko} — ${place.topic}`} description={`${place.topic}에 대한 글 목록 — ${place.ko} 카테고리.`}>
   <!-- 장소 배너 — 문장색 기운 하늘 + 문장 + 룬 원 (풀블리드, 헤더 적응 범위) -->
   <section class="place-hero tinted" style={tintStyle(place)} data-hd-range slot="hero">
     <div class="ph-in">
@@ -162,7 +162,7 @@ const fogTint = '--place-light:#6E6353;--place-dark:#9BB0A4';
         {
           count > 0 && (
             <p class="section-sub">
-              이곳에 남긴 기록 {count}편 — 최근 것부터
+              이곳에 남긴 기록 {count}편 — 잉크가 마르지 않은 순서대로
             </p>
           )
         }
@@ -244,7 +244,7 @@ const fogTint = '--place-light:#6E6353;--place-dark:#9BB0A4';
 
     <div class="orn" aria-hidden="true">✦&nbsp;&nbsp;✦&nbsp;&nbsp;✦</div>
 
-    <section class="home-section" aria-label="이웃 장소로 가는 길">
+    <section class="home-section" aria-label="이전·다음 카테고리">
       <div class="section-head" data-animate>
         <span class="eyebrow">Other Roads</span>
         <h2>다른 길로</h2>

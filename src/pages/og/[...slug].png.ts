@@ -2,6 +2,7 @@
 // 관례 URL: /og/<페이지 경로>.png — Base.astro의 매핑 규칙과 반드시 일치해야 한다.
 //   기록:   /records/{slug}/  → /og/records/{slug}.png
 //   일지:   /journal/{date}/  → /og/journal/{date}.png
+//   장소:   /places/{slug}/   → /og/places/{slug}.png
 //   정적:   홈·서고·열두 장소·연대기·일지 목록·쉼터 → /og/{index|records|places|chronicles|journal|rest}.png
 //   폴백:   그 외 모든 페이지 → /og/default.png (브랜드만)
 // 디자인: 양피지 + 이중 괘선 + 모서리 ✦ — 절제된 필사본 판형, 다크 버전 없음 (OG는 한 벌).
@@ -11,7 +12,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
-import { placeBySlug, JOURNAL } from '../../data/places';
+import { PLACES, placeBySlug, JOURNAL } from '../../data/places';
 import { fmtDate } from '../../lib/format';
 import spriteRaw from '../../../assets/emblems.svg?raw';
 
@@ -30,6 +31,7 @@ const SITE_EN = "THE WANDERER'S CROSSROADS";
 
 interface OgProps {
   title: string;
+  subtitle?: string; // 제목 아래 한 줄 (장소 카드의 플레이버 텍스트)
   emblem: string; // emblems.svg의 symbol id 접미사 (예: 'campfire', 'crossroads')
   color: string; // 문장색 (라이트 값)
   metaName?: string; // 하단 메타 행 — 장소명/코너명
@@ -73,6 +75,17 @@ export async function getStaticPaths() {
         } satisfies OgProps,
       };
     }),
+    // 열두 장소 상세 — 장소명(한) + 장소 문장 + 플레이버 + 영문명 메타 행
+    ...PLACES.map((place) => ({
+      params: { slug: `places/${place.slug}` },
+      props: {
+        title: place.ko,
+        subtitle: place.flavor,
+        emblem: place.slug,
+        color: place.light,
+        metaName: place.en,
+      } satisfies OgProps,
+    })),
     // 모든 일지 — 제목(없으면 날짜) + 나침반 문장 + "방랑자의 일지"
     ...journal.map((entry) => ({
       params: { slug: `journal/${entry.id}` },
@@ -224,6 +237,22 @@ function buildTree(p: OgProps): Node {
             },
             p.title
           ),
+          ...(p.subtitle
+            ? [
+                div(
+                  {
+                    display: 'block',
+                    lineClamp: 2,
+                    maxWidth: 880,
+                    fontSize: 24,
+                    lineHeight: 1.6,
+                    textAlign: 'center',
+                    color: MUTED,
+                  },
+                  p.subtitle
+                ),
+              ]
+            : []),
         ]
       );
 
