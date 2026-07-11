@@ -1292,41 +1292,58 @@ a.tag:hover {
   }
 }
 
-/* ── 낮↔밤 전환 — View Transitions (Base.astro setTheme) ──
-   dusk(→모닥불): 새 화면이 위→아래로 덮인다 — 밤이 내린다.
-   dawn(→여명): 아래→위로 걷힌다 — 해가 떠오른다.
-   old는 그대로 두고(정지) new만 clip-path로 밀려온다. new가 항상 위.
+/* ── 낮↔밤 전환 — 잉크 파문 (View Transitions, Base.astro setTheme) ──
+   누른 토글 자리(--vt-x/--vt-y)에서 새 테마가 잉크처럼 원형으로 번진다:
+   여명을 켜면 그 자리에서 아침이, 모닥불을 켜면 그 자리에서 밤이 퍼진다.
+   본 파면은 가장자리가 부드럽게 풀리고(잉크 워시), 한 발 앞서
+   옅은 물결 고리(에코 링)가 먼저 지나간다 — 수면의 파문.
+   @property로 등록한 반지름(--vt-r)을 keyframes로 직접 애니메이션해
+   mask 그라디언트가 매 프레임 다시 그려진다.
    미지원 브라우저·prefers-reduced-motion은 JS에서 즉시 전환으로 폴백. */
+@property --vt-r {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
+}
 ::view-transition-old(root) {
   animation: none;
 }
 ::view-transition-new(root) {
   z-index: 1;
 }
-:root[data-theme-dir='dusk']::view-transition-new(root) {
-  animation: night-falls 1.1s ease-in-out both;
+:root[data-theme-dir]::view-transition-new(root) {
+  animation: ink-ripple 1s cubic-bezier(0.25, 0.1, 0.35, 1) both;
+  -webkit-mask-image: radial-gradient(
+    circle at var(--vt-x, 50%) var(--vt-y, 50%),
+    #000 calc(var(--vt-r) - 70px),
+    rgba(0, 0, 0, 0.9) calc(var(--vt-r) - 22px),
+    transparent var(--vt-r),
+    transparent calc(var(--vt-r) + 22px),
+    rgba(0, 0, 0, 0.3) calc(var(--vt-r) + 42px),
+    rgba(0, 0, 0, 0.3) calc(var(--vt-r) + 62px),
+    transparent calc(var(--vt-r) + 84px)
+  );
+  mask-image: radial-gradient(
+    circle at var(--vt-x, 50%) var(--vt-y, 50%),
+    #000 calc(var(--vt-r) - 70px),
+    rgba(0, 0, 0, 0.9) calc(var(--vt-r) - 22px),
+    transparent var(--vt-r),
+    transparent calc(var(--vt-r) + 22px),
+    rgba(0, 0, 0, 0.3) calc(var(--vt-r) + 42px),
+    rgba(0, 0, 0, 0.3) calc(var(--vt-r) + 62px),
+    transparent calc(var(--vt-r) + 84px)
+  );
 }
-:root[data-theme-dir='dawn']::view-transition-new(root) {
-  animation: sun-rises 1.1s ease-in-out both;
-}
-@keyframes night-falls {
+@keyframes ink-ripple {
   from {
-    clip-path: inset(0 0 100% 0);
+    --vt-r: 0px;
   }
   to {
-    clip-path: inset(0);
+    --vt-r: 150vmax;
   }
 }
-@keyframes sun-rises {
-  from {
-    clip-path: inset(100% 0 0 0);
-  }
-  to {
-    clip-path: inset(0);
-  }
-}
-/* 전환 중에는 body 색 페이드(0.4s)를 끈다 — 밀려오는 새 화면(live 스냅샷)이
-   이미 완성된 밤/낮이어야 경계가 또렷하다 */
+/* 전환 중에는 body 색 페이드(0.4s)를 끈다 — 번져 오는 새 화면(live 스냅샷)이
+   이미 완성된 밤/낮이어야 파면의 경계가 또렷하다 */
 :root[data-theme-dir] body {
   transition: none;
 }

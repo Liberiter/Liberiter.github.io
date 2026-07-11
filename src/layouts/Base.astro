@@ -219,7 +219,7 @@ const jsonLd = article
         const t = effectiveTheme();
         for (const b of themeBtns) b.setAttribute('aria-pressed', String(b.dataset.setTheme === t));
       }
-      function setTheme(t: 'light' | 'dark') {
+      function setTheme(t: 'light' | 'dark', origin?: { x: number; y: number }) {
         if (effectiveTheme() === t) return;
         const apply = () => {
           root.dataset.theme = t;
@@ -228,13 +228,16 @@ const jsonLd = article
           // 파티클 등 테마 연동 요소에 알림 (legacy 호환 이벤트)
           document.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme: t } }));
         };
-        // ── 서사적 전환: 밤이 내린다(dusk) / 해가 떠오른다(dawn) ──
+        // ── 서사적 전환: 잉크 파문 — 누른 토글 자리에서 새 테마가 번진다 ──
         // View Transitions 미지원(Firefox 구버전 등)·모션 감소 선호 시 즉시 전환으로 폴백
         const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (!document.startViewTransition || reduceMotion) {
           apply();
           return;
         }
+        // 파문의 진원 — 토글 좌표가 없으면 화면 중앙에서
+        root.style.setProperty('--vt-x', `${origin?.x ?? window.innerWidth / 2}px`);
+        root.style.setProperty('--vt-y', `${origin?.y ?? window.innerHeight / 2}px`);
         root.dataset.themeDir = t === 'dark' ? 'dusk' : 'dawn';
         const vt = document.startViewTransition(apply);
         vt.finished.finally(() => {
@@ -242,7 +245,13 @@ const jsonLd = article
         });
       }
       for (const b of themeBtns) {
-        b.addEventListener('click', () => setTheme(b.dataset.setTheme === 'dark' ? 'dark' : 'light'));
+        b.addEventListener('click', () => {
+          const r = b.getBoundingClientRect();
+          setTheme(b.dataset.setTheme === 'dark' ? 'dark' : 'light', {
+            x: r.left + r.width / 2,
+            y: r.top + r.height / 2,
+          });
+        });
       }
       syncToggle();
 
