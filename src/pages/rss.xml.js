@@ -9,6 +9,8 @@ export async function GET(context) {
     title: "The Wanderer's Crossroads",
     description: '방랑자의 기록이 쌓이는 교차로 — 기술, 수학, 책, 그리고 이야기.',
     site: context.site,
+    // 브라우저로 /rss.xml을 열면 사람 눈에 맞는 안내 페이지로 렌더 (public/rss-style.xsl)
+    stylesheet: '/rss-style.xsl',
     items: records.map((rec) => ({
       title: rec.data.title,
       description: rec.data.description,

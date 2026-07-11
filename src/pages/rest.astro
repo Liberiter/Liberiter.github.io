@@ -16,13 +16,12 @@ for (const rec of records) countBy.set(rec.data.place, (countBy.get(rec.data.pla
 const openCount = PLACES.filter((p) => (countBy.get(p.slug) ?? 0) > 0).length;
 const KO_COUNT = ['', '한', '두', '세', '네', '다섯', '여섯', '일곱', '여덟', '아홉', '열', '열한', '열두'];
 
-// 이 교차로에 대하여 — copy-deck §7 기술 카피 + 실제 기술명
-const TECH = [
-  { copy: 'GitHub의 대지 위에 서 있다', tech: 'GitHub Pages' },
-  { copy: 'Astro의 별자리로 지어졌다', tech: 'Astro' },
-  { copy: '모든 기록은 순수한 잉크로 쓰인다', tech: 'Markdown' },
-  { copy: '전서구가 새 기록을 물어 나른다', tech: 'RSS' },
-  { copy: '여명과 모닥불, 두 개의 시간이 흐른다', tech: 'Light / Dark' },
+// 이 교차로에 대하여 — 취지 (copy-deck §7)
+const CREDO = [
+  { lead: '길 위에서 배운 것은 길 위에 남긴다', rest: '기록은 미래의 나에게 보내는 전서구다.' },
+  { lead: '주제마다 건물을 세웠다', rest: '역사에서 수학까지, 신앙에서 소설까지. 관심사가 여러 갈래라 교차로가 되었다.' },
+  { lead: '안개는 예고편이다', rest: '아직 기록이 없는 장소는 안개에 잠겨 있다. 첫 기록이 쓰이는 날, 안개가 걷힌다.' },
+  { lead: '완성되지 않아도 좋다', rest: '세 줄의 일지도 당당하게 발행한다. 이 교차로의 적은 완벽주의다.' },
 ];
 
 // ── 방랑자의 인장 — 룬 링 (빌드 타임 생성, 런타임 비용 0) ──
@@ -188,7 +187,7 @@ const sealDiamonds = [0, 90, 180, 270]
 
   <div class="orn" aria-hidden="true">✦&nbsp;&nbsp;✦&nbsp;&nbsp;✦</div>
 
-  <!-- 이 교차로에 대하여 — 기술 스택 (copy-deck §7) -->
+  <!-- 이 교차로에 대하여 — 취지 (copy-deck §7) -->
   <section class="home-section" id="crossroads">
     <div class="section-head" data-animate>
       <div class="orn-line" data-orn="headpiece" aria-hidden="true"></div>
@@ -199,11 +198,10 @@ const sealDiamonds = [0, 90, 180, 270]
 
     <div class="cross-list" data-animate>
       {
-        TECH.map(({ copy, tech }) => (
+        CREDO.map(({ lead, rest }) => (
           <div class="cross-row">
             <span class="cr-dia" aria-hidden="true">✦</span>
-            <span class="cr-copy">{copy}</span>
-            <span class="cr-tech">{tech}</span>
+            <span class="cr-copy"><strong>{lead}</strong> — {rest}</span>
           </div>
         ))
       }
@@ -235,11 +233,14 @@ const sealDiamonds = [0, 90, 180, 270]
           <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="12" cy="36" r="2.6" fill="currentColor" stroke="none"></circle><path d="M9 22a17 17 0 0 1 17 17"></path><path d="M9 10a29 29 0 0 1 29 29"></path></svg>
           전서구 (RSS)
         </a>
-        <a class="pigeon-btn" href="mailto:rublin322@gmail.com" aria-label="이메일 보내기">
+        <a class="pigeon-btn" href="mailto:rublin322@gmail.com" id="mail-btn" aria-label="이메일 주소 복사">
           <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M7 12h34v24H7z"></path><path d="M7 13l17 13 17-13"></path></svg>
           봉인 서신 (Email)
         </a>
       </div>
+      <p class="copy-toast" id="copy-toast" role="status" aria-live="polite" hidden>
+        주소를 필사해 두었다 <span class="dia" aria-hidden="true">✦</span>
+      </p>
       <p class="contact-note">답신은 바람의 사정에 따라 늦을 수 있다.</p>
     </div>
   </section>
@@ -248,6 +249,32 @@ const sealDiamonds = [0, 90, 180, 270]
 <script>
   import { initScrollAnimations } from '../scripts/scroll-animations';
   initScrollAnimations();
+
+  // ── 봉인 서신 — 메일 앱이 없는 환경 배려: 클릭 시 주소를 클립보드에 필사 ──
+  // href는 mailto 유지(우클릭·메일 앱 사용자 배려), 기본 동작만 가로채 복사한다.
+  // clipboard 실패 시(비보안 컨텍스트 등)에는 mailto 기본 동작으로 폴백.
+  const mailBtn = document.getElementById('mail-btn');
+  const copyToast = document.getElementById('copy-toast');
+  let toastTimer: ReturnType<typeof setTimeout> | undefined;
+
+  mailBtn?.addEventListener('click', (e) => {
+    if (!navigator.clipboard?.writeText) return; // 폴백: mailto 그대로
+    e.preventDefault();
+    navigator.clipboard.writeText('rublin322@gmail.com').then(
+      () => {
+        if (!copyToast) return;
+        copyToast.hidden = false;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          copyToast.hidden = true;
+        }, 2500);
+      },
+      () => {
+        // 복사 실패 — 메일 앱으로 폴백
+        window.location.href = 'mailto:rublin322@gmail.com';
+      }
+    );
+  });
 </script>
 
 <style>
@@ -490,7 +517,7 @@ const sealDiamonds = [0, 90, 180, 270]
     margin: 0 6px;
   }
 
-  /* ══ 이 교차로에 대하여 — 기술 스택을 세계관 카피로 ══ */
+  /* ══ 이 교차로에 대하여 — 교차로의 취지 ══ */
   .cross-list {
     max-width: 680px;
     margin: 0 auto;
@@ -522,24 +549,9 @@ const sealDiamonds = [0, 90, 180, 270]
     font-size: 14.5px;
     line-height: 1.8;
   }
-  .cr-tech {
-    font-family: var(--mono);
-    font-size: 12px;
-    letter-spacing: 0.03em;
-    color: var(--viridian-text);
-    white-space: nowrap;
-    border: 1px solid color-mix(in srgb, var(--viridian) 40%, transparent);
-    padding: 1px 8px;
-    align-self: center;
-    flex: none;
-  }
-  @media (max-width: 560px) {
-    .cross-row {
-      flex-wrap: wrap;
-    }
-    .cr-tech {
-      margin-left: 23px;
-    }
+  .cr-copy strong {
+    font-weight: 700;
+    color: var(--gold-text);
   }
 
   /* ══ 전서구를 보내려면 — 고스트 버튼 ══ */
@@ -593,6 +605,33 @@ const sealDiamonds = [0, 90, 180, 270]
     transform: translateY(-2px);
     box-shadow: 0 6px 20px -8px rgba(0, 0, 0, 0.2), 0 0 20px color-mix(in srgb, var(--gold) 16%, transparent);
   }
+  /* 봉인 서신 복사 토스트 — "주소를 필사해 두었다 ✦" */
+  .copy-toast {
+    margin: 14px 0 0;
+    font-family: var(--serif);
+    font-size: 13px;
+    color: var(--gold-text);
+  }
+  .copy-toast .dia {
+    color: var(--gold);
+    font-size: 9px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .copy-toast:not([hidden]) {
+      animation: toast-in 0.35s ease-out;
+    }
+    @keyframes toast-in {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+  }
+
   .contact-note {
     margin: 20px 0 0;
     font-family: var(--serif);

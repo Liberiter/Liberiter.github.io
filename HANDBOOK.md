@@ -14,6 +14,7 @@
 | 배포 | **GitHub Actions** | `main`에 push하면 자동 빌드·배포 (`.github/workflows/deploy.yml`) |
 | 콘텐츠 관리 | Astro Content Collections | frontmatter 스키마 검증 (`src/content.config.ts`) |
 | 수식 | remark-math + KaTeX | `$...$`, `$$...$$` 문법 |
+| 정리/증명 박스 | remark-directive + 커스텀 플러그인 (`src/lib/remark-boxes.ts`) | `:::theorem` 등 — §4.4 참고 |
 | 코드 하이라이팅 | Shiki | 라이트 `vitesse-light` / 다크 `everforest-dark` 자동 전환 — 배경은 v4 "필사 노트" 톤(`--code-bg`)으로 오버라이드 |
 | 폰트 (셀프호스팅) | Cinzel(영문 디스플레이) · 고운바탕(한글 제목) · Pretendard(본문) · 나눔고딕코딩(코드, 한:영 2:1 정폭) | npm 패키지로 번들 — 외부 CDN 의존 없음 |
 | RSS / 사이트맵 | @astrojs/rss, @astrojs/sitemap | `/rss.xml`, `/sitemap-index.xml` |
@@ -123,7 +124,33 @@ tags: [python]          # 선택
 - 세 줄이어도 당당하게. 일지의 적은 완벽주의다.
 ```
 
-### 4.4 발행
+### 4.4 수학 박스 (정리·증명)
+
+수학 글에서 정리/증명을 박스로 감싸려면 `:::` 디렉티브를 쓴다
+(`remark-directive` + `src/lib/remark-boxes.ts`, 스타일은 `src/pages/records/[slug].astro`):
+
+```markdown
+:::theorem{title="칸토어의 정리"}
+구간 $(0,1)$의 실수 집합은 셀 수 없다.
+:::
+
+:::proof
+대각선 논법. …수식·문단·리스트 모두 가능…
+:::
+```
+
+| 디렉티브 | 기본 라벨 | 스타일 |
+|---|---|---|
+| `:::theorem` | 정리 · Theorem | 금 헤어라인 테두리 + 카드 워시 |
+| `:::lemma` | 보조정리 · Lemma | theorem과 같은 골격 |
+| `:::definition` | 정의 · Definition | 같은 골격, 비리디안 액센트 |
+| `:::proof` | 증명 | 왼쪽 가는 괘선, 끝에 ∎ 자동 |
+
+- `{title="..."}`를 주면 라벨이 "정리 · 칸토어의 정리"처럼 바뀐다. 없으면 기본 라벨.
+- 증명 끝의 ∎는 CSS가 자동으로 붙이므로 `$\blacksquare$`를 직접 쓰지 않는다.
+- 박스 안에서 `$$...$$` KaTeX 블록·리스트·문단 전부 그대로 동작한다.
+
+### 4.5 발행
 
 ```bash
 git add . && git commit -m "Add record: python decorators"   # 커밋 메시지는 영어
