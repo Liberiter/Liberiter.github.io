@@ -284,6 +284,20 @@ const jsonLd = article
       window.addEventListener('resize', queueHeader);
       updateHeader();
 
+      // ── 폴리오 프레임: 가시 뷰포트 높이(--vvh) 추적 ──
+      // 모바일 주소창 개폐로 화면 높이가 변하면 프레임이 새 바닥으로
+      // 부드럽게 따라간다 (global.css .folio-frame의 height 트랜지션과 쌍).
+      // 핀치 줌 중에는 갱신하지 않는다 — 줌 배율만큼 vv.height가 줄어들므로
+      const vv = window.visualViewport;
+      function updateVvh() {
+        if (vv && Math.abs(vv.scale - 1) > 0.02) return;
+        const h = vv ? vv.height : window.innerHeight;
+        root.style.setProperty('--vvh', `${Math.round(h)}px`);
+      }
+      vv?.addEventListener('resize', updateVvh);
+      window.addEventListener('resize', updateVvh);
+      updateVvh();
+
       // ── 길잡이에게 묻기 — 검색 트리거 (SearchModal이 open-search를 수신) ──
       document.getElementById('search-trigger')?.addEventListener('click', () => {
         document.dispatchEvent(new CustomEvent('open-search'));

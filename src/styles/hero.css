@@ -1,5 +1,5 @@
 /* ═══ 히어로 v4 — 시네마틱 (WORLDBOOK §3.3, docs/mockups/home.html 이식) ═══
-   100dvh 풀블리드. 헤더 뒤까지 끌어올려(음수 마진) 투명 헤더의 배경이 된다.
+   100svh 풀블리드. 헤더 뒤까지 끌어올려(음수 마진) 투명 헤더의 배경이 된다.
    라이트 = 여명 하늘 그라디언트, 다크 = 칠흑의 숲. 금박 그라디언트 클립 타이포.
    (v3의 일러스트 장면 히어로는 docs/legacy-design-system.md로 은퇴.) */
 
@@ -8,7 +8,10 @@
   overflow: hidden;
   margin-top: calc(-1 * var(--header-h));
   height: 100vh;
-  height: 100dvh;
+  /* dvh가 아닌 svh — dvh는 모바일 주소창이 접히는 순간 히어로가 자라며
+     문서 전체를 밀어내 "일회성 튕김"을 만든다. svh는 주소창이 보이는
+     상태의 안정 높이라 첫 화면을 정확히 채우고, 이후 변하지 않는다 */
+  height: 100svh;
   min-height: 600px;
   display: flex;
   flex-direction: column;

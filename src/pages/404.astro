@@ -68,7 +68,7 @@ import Base from '../layouts/Base.astro';
     position: relative;
     overflow: hidden;
     margin: calc(-1 * var(--header-h)) calc(-1 * clamp(20px, 4vw, 48px)) 0;
-    min-height: max(420px, calc(100dvh - 230px)); /* 푸터가 첫 화면 하단에 걸리도록 */
+    min-height: max(420px, calc(100svh - 230px)); /* 푸터가 첫 화면 하단에 걸리도록 (svh — 주소창 개폐 리플로 방지) */
     display: flex;
     align-items: center;
     justify-content: center;

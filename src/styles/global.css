@@ -338,12 +338,18 @@ time {
   top: calc(var(--header-h) + 10px);
   left: 10px;
   right: 10px;
-  /* 바닥 고정(inset) 대신 svh 기준 높이 고정 — 모바일 주소창이 접히며
-     레이아웃 뷰포트가 커질 때 하단 코너가 "띵" 튀는 것을 막는다.
-     svh는 주소창이 보이는 상태의 안정 높이 (데스크톱에선 vh와 동일) */
-  height: calc(100svh - var(--header-h) - 20px);
+  /* 실제 보이는 뷰포트 바닥에 맞춘다 — Base.astro가 visualViewport 높이를
+     --vvh로 갱신. 주소창이 접히면 하단 코너가 "띵" 튀는 대신 트랜지션으로
+     새 바닥까지 부드럽게 미끄러진다. JS 이전/미동작 시엔 svh 폴백 */
+  height: calc(var(--vvh, 100svh) - var(--header-h) - 20px);
+  transition: height 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
   z-index: 80; /* 헤더(z100) 미만, 콘텐츠(z2) 초과 */
   pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .folio-frame {
+    transition: none;
+  }
 }
 .folio-frame .corner {
   position: absolute;
