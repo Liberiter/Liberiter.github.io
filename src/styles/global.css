@@ -105,7 +105,7 @@
     --foil-a: #8a6c1e;
     --foil-b: #f2d878;
     --foil-c: #d4aa30;
-    --hero-bg: linear-gradient(180deg, #0f2c40 0%, #103036 34%, #14291c 62%, #1f2c1b 84%, #15211a 100%);
+    --hero-bg: linear-gradient(180deg, #0b2438 0%, #0e2a30 34%, #14291c 62%, #1f2c1b 84%, #15211a 100%);
     --hero-veil: radial-gradient(90% 62% at 50% 88%, rgba(212, 170, 48, 0.1), transparent 62%);
     --hero-sub-ink: #9bb0a4;
     --place: var(--place-dark, var(--gold));
@@ -145,7 +145,7 @@
   --foil-a: #8a6c1e;
   --foil-b: #f2d878;
   --foil-c: #d4aa30;
-  --hero-bg: linear-gradient(180deg, #0f2c40 0%, #103036 34%, #14291c 62%, #1f2c1b 84%, #15211a 100%);
+  --hero-bg: linear-gradient(180deg, #0b2438 0%, #0e2a30 34%, #14291c 62%, #1f2c1b 84%, #15211a 100%);
   --hero-veil: radial-gradient(90% 62% at 50% 88%, rgba(212, 170, 48, 0.1), transparent 62%);
   --hero-sub-ink: #9bb0a4;
   --place: var(--place-dark, var(--gold));

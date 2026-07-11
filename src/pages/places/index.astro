@@ -123,7 +123,7 @@ const fogTint = '--place-light:#6E6353;--place-dark:#9BB0A4';
   /* 다크 "칠흑의 숲" — global.css와 같은 3중 테마 선택자 패턴 */
   @media (prefers-color-scheme: dark) {
     :global(:root:not([data-theme='light'])) .pl-banner {
-      --banner-bg: linear-gradient(180deg, #0f2c40 0%, #103036 36%, #14291c 64%, #1f2c1b 85%, #15211a 100%);
+      --banner-bg: linear-gradient(180deg, #0b2438 0%, #0e2a30 36%, #14291c 64%, #1f2c1b 85%, #15211a 100%);
       --banner-veil: radial-gradient(90% 70% at 50% 100%, rgba(212, 170, 48, 0.1), transparent 62%);
       --bn-eyebrow: #d4aa30;
       --bn-eyebrow-sh: 0 0 18px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.6);
@@ -134,7 +134,7 @@ const fogTint = '--place-light:#6E6353;--place-dark:#9BB0A4';
     }
   }
   :global(:root[data-theme='dark']) .pl-banner {
-    --banner-bg: linear-gradient(180deg, #0f2c40 0%, #103036 36%, #14291c 64%, #1f2c1b 85%, #15211a 100%);
+    --banner-bg: linear-gradient(180deg, #0b2438 0%, #0e2a30 36%, #14291c 64%, #1f2c1b 85%, #15211a 100%);
     --banner-veil: radial-gradient(90% 70% at 50% 100%, rgba(212, 170, 48, 0.1), transparent 62%);
     --bn-eyebrow: #d4aa30;
     --bn-eyebrow-sh: 0 0 18px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.6);
