@@ -217,24 +217,35 @@ export function initAmbientParticles(canvas: HTMLCanvasElement) {
     init();
   });
 
-  // 정적 모드(모션 감소·모바일): 스크롤 시 현재 위치의 정적 프레임 재그리기 (rAF 스로틀)
-  // — 문서 좌표 앵커이므로 스크롤에 따라 보이는 파티클이 달라져야 한다
-  let staticScrollPending = false;
+  // 정적 모드(모션 감소·모바일): 스크롤을 "따라가는" 임시 rAF 루프.
+  // 스크롤 이벤트만 믿으면 관성 스크롤(fling) 중 이벤트가 띄엄띄엄 와서
+  // 멈춘 뒤에야 파티클이 제자리를 찾는다("파팟"). 스크롤이 시작되면
+  // 매 프레임 scrollY를 직접 읽어 그리고, 움직임이 잦아들면 루프를 끈다.
+  let followRaf = 0;
+  let followLastY = -1;
+  let followIdle = 0;
+  function followLoop() {
+    const y = window.scrollY || 0;
+    if (y !== followLastY) {
+      followLastY = y;
+      followIdle = 0;
+      // 루프가 없는 모드이므로 문서 높이 변화도 여기서 감지 → 재분포
+      const dh = docHeight() * dpr;
+      if (Math.abs(dh - docHpx) > 2 * dpr) init();
+      else drawFrame(true);
+    } else if (++followIdle > 15) {
+      // ~0.25초 정지 → 추적 종료 (다음 스크롤에서 다시 시작)
+      followRaf = 0;
+      return;
+    }
+    followRaf = requestAnimationFrame(followLoop);
+  }
   window.addEventListener(
     'scroll',
     () => {
-      if (!isStatic() || staticScrollPending) return;
-      staticScrollPending = true;
-      requestAnimationFrame(() => {
-        staticScrollPending = false;
-        // 루프가 없으니 문서 높이 변화도 여기서 감지 → 재분포
-        const dh = docHeight() * dpr;
-        if (Math.abs(dh - docHpx) > 2 * dpr) {
-          init();
-          return;
-        }
-        drawFrame(true);
-      });
+      if (!isStatic() || followRaf) return;
+      followLastY = -1; // 첫 프레임은 무조건 그린다
+      followRaf = requestAnimationFrame(followLoop);
     },
     { passive: true }
   );
