@@ -991,7 +991,11 @@ a.journal-band:hover {
   background: linear-gradient(105deg, transparent 30%, var(--mist) 50%, transparent 70%);
   background-size: 250% 100%;
 }
-@media (prefers-reduced-motion: no-preference) {
+/* 안개 흐름은 데스크톱(fine pointer + 넓은 화면) 전용.
+   background-position은 컴포지터 가속이 없어 매 프레임 리페인트되고,
+   부모의 saturate 필터까지 다시 타므로 — 안개 카드 8장이 도는 모바일에선
+   열두 장소 구간 스크롤 버벅임의 주범이 된다. 모바일은 정적 안개막만 */
+@media (prefers-reduced-motion: no-preference) and (pointer: fine) and (min-width: 769px) {
   .place-card.fog::before {
     animation: mist 9s linear infinite;
   }

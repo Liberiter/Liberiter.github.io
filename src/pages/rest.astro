@@ -508,7 +508,8 @@ const sealDiamonds = [0, 90, 180, 270]
     background: linear-gradient(105deg, transparent 30%, var(--mist) 50%, transparent 70%);
     background-size: 250% 100%;
   }
-  @media (prefers-reduced-motion: no-preference) {
+  /* 안개 흐름은 데스크톱 전용 — background-position은 매 프레임 리페인트 (global.css mist와 동일 규칙) */
+  @media (prefers-reduced-motion: no-preference) and (pointer: fine) and (min-width: 769px) {
     .title-card.fog::before {
       animation: rest-mist 9s linear infinite;
     }
