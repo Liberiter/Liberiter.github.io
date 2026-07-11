@@ -238,7 +238,7 @@ const sealDiamonds = [0, 90, 180, 270]
           봉인 서신 (Email)
         </a>
       </div>
-      <p class="copy-toast" id="copy-toast" role="status" aria-live="polite" hidden>
+      <p class="copy-toast" id="copy-toast" role="status" aria-live="polite">
         주소를 필사해 두었다 <span class="dia" aria-hidden="true">✦</span>
       </p>
       <p class="contact-note">답신은 바람의 사정에 따라 늦을 수 있다.</p>
@@ -263,10 +263,10 @@ const sealDiamonds = [0, 90, 180, 270]
     navigator.clipboard.writeText('rublin322@gmail.com').then(
       () => {
         if (!copyToast) return;
-        copyToast.hidden = false;
+        copyToast.classList.add('show');
         clearTimeout(toastTimer);
         toastTimer = setTimeout(() => {
-          copyToast.hidden = true;
+          copyToast.classList.remove('show');
         }, 2500);
       },
       () => {
@@ -605,31 +605,30 @@ const sealDiamonds = [0, 90, 180, 270]
     transform: translateY(-2px);
     box-shadow: 0 6px 20px -8px rgba(0, 0, 0, 0.2), 0 0 20px color-mix(in srgb, var(--gold) 16%, transparent);
   }
-  /* 봉인 서신 복사 토스트 — "주소를 필사해 두었다 ✦" */
+  /* 봉인 서신 복사 토스트 — "주소를 필사해 두었다 ✦"
+     항상 자리를 차지한 채(레이아웃 불변) 잉크가 스미듯 나타났다 사라진다 */
   .copy-toast {
     margin: 14px 0 0;
     font-family: var(--serif);
     font-size: 13px;
     color: var(--gold-text);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.45s ease, transform 0.45s ease;
+  }
+  .copy-toast.show {
+    opacity: 1;
+    transform: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .copy-toast {
+      transition: none;
+      transform: none;
+    }
   }
   .copy-toast .dia {
     color: var(--gold);
     font-size: 9px;
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .copy-toast:not([hidden]) {
-      animation: toast-in 0.35s ease-out;
-    }
-    @keyframes toast-in {
-      from {
-        opacity: 0;
-        transform: translateY(4px);
-      }
-      to {
-        opacity: 1;
-        transform: none;
-      }
-    }
   }
 
   .contact-note {

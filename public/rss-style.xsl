@@ -13,6 +13,15 @@
         <meta charset="utf-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
         <title><xsl:value-of select="/rss/channel/title"/> — RSS</title>
+        <script>
+          // 사이트와 같은 도메인이므로 여명↔모닥불 토글이 저장한 테마를 그대로 따른다
+          (function () {
+            try {
+              var t = localStorage.getItem('theme');
+              if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+            } catch (err) { /* 접근 불가 시 OS 설정을 따른다 */ }
+          })();
+        </script>
         <style>
           /* ── 새벽의 양피지 (라이트, 기본) ── */
           :root {
@@ -35,6 +44,25 @@
               --gold-dim: #B8932A;
               --line: #33473B;
             }
+          }
+          /* ── 사이트에서 고른 테마(여명↔모닥불)가 OS 설정을 이긴다 ── */
+          :root[data-theme='dark'] {
+            --bg: #15211A;
+            --card: #1D2C23;
+            --ink: #E5E0D1;
+            --muted: #9BB0A4;
+            --gold: #D4AA30;
+            --gold-dim: #B8932A;
+            --line: #33473B;
+          }
+          :root[data-theme='light'] {
+            --bg: #FAF5E9;
+            --card: #F3EBD8;
+            --ink: #3A3226;
+            --muted: #6E6353;
+            --gold: #8B6914;
+            --gold-dim: #A67C1A;
+            --line: #DFD3B8;
           }
           * { box-sizing: border-box; margin: 0; padding: 0; }
           body {

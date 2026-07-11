@@ -43,10 +43,11 @@ const seriesCompleted = chapters.some((c) => c.data.seriesStatus === 'completed'
 // 화수 — seriesOrder가 없으면 정렬 순서로 대신한다
 const epNo = rec.data.seriesOrder ?? (chIdx >= 0 ? chIdx + 1 : 1);
 
-// 이전/다음 기록 — 전체 기록 시간순 (copy-deck §4: 먼저/나중에 쓰인 기록)
-const all = (await getCollection('records', ({ data }) => !data.draft)).sort(
-  (a, b) => a.data.date.valueOf() - b.data.date.valueOf()
-);
+// 이전/다음 기록 — "같은 장소" 안에서 시간순 (다른 장소의 글이 끼어들면
+// 독자의 여정 맥락이 끊긴다 — 수학을 읽던 사람에겐 수학의 이웃 기록을)
+const all = (await getCollection('records', ({ data }) => !data.draft))
+  .filter((r) => r.data.place === rec.data.place)
+  .sort((a, b) => a.data.date.valueOf() - b.data.date.valueOf());
 const idx = all.findIndex((r) => r.id === rec.id);
 const prevRec = idx > 0 ? all[idx - 1] : null;
 const nextRec = idx >= 0 && idx < all.length - 1 ? all[idx + 1] : null;
@@ -991,7 +992,7 @@ const nextPlace = nextRec ? placeBySlug(nextRec.data.place) : null;
     align-items: center;
     gap: 7px;
     font-family: var(--display);
-    font-size: 10px;
+    font-size: 11.5px;
     font-weight: 600;
     letter-spacing: 0.22em;
     text-transform: uppercase;
@@ -1006,7 +1007,7 @@ const nextPlace = nextRec ? placeBySlug(nextRec.data.place) : null;
   .nav-card .nv-title {
     display: block;
     font-family: var(--serif);
-    font-size: 15.5px;
+    font-size: 17px;
     font-weight: 700;
     line-height: 1.5;
     margin-top: 7px;
@@ -1017,7 +1018,7 @@ const nextPlace = nextRec ? placeBySlug(nextRec.data.place) : null;
     align-items: center;
     gap: 7px;
     margin-top: 8px;
-    font-size: 12px;
+    font-size: 13px;
     color: color-mix(in srgb, var(--place) 80%, var(--ink));
   }
   /* 아직 쓰이지 않은 다음 기록 — 안개 규칙 (WORLDBOOK §5.1) */
