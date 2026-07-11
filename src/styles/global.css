@@ -31,7 +31,7 @@
   --mist: color-mix(in srgb, var(--ink) 9%, transparent);
   /* 전역 앰비언트 그라데이션: 상단 여명 장미빛 3% → 양피지 */
   --ambient-bg: radial-gradient(120% 85% at 50% -12%, color-mix(in srgb, #c0655b 3%, var(--bg)) 0%, var(--bg) 62%);
-  /* 헤더 투명(at-top) 상태: 여명 하늘 상단(#b8bfce) 위 AA 확보용 진한 잉크 + 크림 halo */
+  /* 헤더 투명(at-top) 상태: 여명 하늘 상단(#aba4cb) 위 AA 확보용 진한 잉크 + 크림 halo */
   --hd-top-brand: #5a4020;
   --hd-top-link: #4a3010;
   --hd-halo: 0 1px 2px rgba(255, 245, 220, 0.65), 0 0 10px rgba(255, 245, 220, 0.45);
@@ -48,7 +48,7 @@
   --foil-a: #4a370a;
   --foil-b: #8b6914;
   --foil-c: #6f540f;
-  --hero-bg: linear-gradient(to bottom, #b8bfce 0%, #d4bcbe 30%, #e4c8a8 60%, #ecd8ba 80%, #faf5e9 100%);
+  --hero-bg: linear-gradient(to bottom, #aba4cb 0%, #cfb3c0 30%, #e4c8a8 60%, #ecd8ba 80%, #faf5e9 100%);
   --hero-veil: radial-gradient(120% 70% at 50% 10%, rgba(255, 243, 214, 0.45), transparent 55%);
   --hero-sub-ink: #554b3c;
 
@@ -184,7 +184,7 @@
   --foil-a: #4a370a;
   --foil-b: #8b6914;
   --foil-c: #6f540f;
-  --hero-bg: linear-gradient(to bottom, #b8bfce 0%, #d4bcbe 30%, #e4c8a8 60%, #ecd8ba 80%, #faf5e9 100%);
+  --hero-bg: linear-gradient(to bottom, #aba4cb 0%, #cfb3c0 30%, #e4c8a8 60%, #ecd8ba 80%, #faf5e9 100%);
   --hero-veil: radial-gradient(120% 70% at 50% 10%, rgba(255, 243, 214, 0.45), transparent 55%);
   --hero-sub-ink: #554b3c;
   --place: var(--place-light, var(--gold));
