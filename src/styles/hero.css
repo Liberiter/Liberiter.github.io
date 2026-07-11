@@ -20,6 +20,15 @@
   background: var(--hero-bg);
   transition: background 0.5s ease;
 }
+/* 낮은 화면(태블릿 가로·낮은 노트북): 히어로가 헤더 뒤까지 확장된 채
+   전체 높이 기준으로 중앙 정렬되면 첫 줄(eyebrow)이 헤더 글씨와 겹친다.
+   헤더 높이만큼 패딩을 줘 콘텐츠 정렬 기준을 헤더 아래로 내린다.
+   큰 화면은 여유가 충분하므로 기존 구도 유지 */
+@media (max-height: 850px) {
+  .hero {
+    padding-top: var(--header-h);
+  }
+}
 /* 베일 — 라이트: 상단 여명의 빛무리 / 다크: 하단 등불의 온기 */
 .hero::after {
   content: '';
