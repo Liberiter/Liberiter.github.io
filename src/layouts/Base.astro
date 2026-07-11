@@ -14,6 +14,7 @@ import spriteRaw from '../../assets/emblems.svg?raw';
 import AmbientParticles from '../components/AmbientParticles.astro';
 import Emblem from '../components/Emblem.astro';
 import FolioFrame from '../components/FolioFrame.astro';
+import SearchModal from '../components/SearchModal.astro';
 
 interface Props {
   title?: string;
@@ -128,6 +129,8 @@ const isCurrent = (href: string) =>
       <p class="colophon">© {new Date().getFullYear()} The Wanderer — 모든 기록은 이 길 위에서 쓰였다</p>
     </footer>
 
+    <SearchModal />
+
     <script>
       import { initOrnaments } from '../scripts/ornaments';
 
@@ -187,7 +190,7 @@ const isCurrent = (href: string) =>
       window.addEventListener('resize', queueHeader);
       updateHeader();
 
-      // ── 길잡이에게 묻기 — 검색 트리거 (Pagefind 모달은 3단계에서 연결) ──
+      // ── 길잡이에게 묻기 — 검색 트리거 (SearchModal이 open-search를 수신) ──
       document.getElementById('search-trigger')?.addEventListener('click', () => {
         document.dispatchEvent(new CustomEvent('open-search'));
       });

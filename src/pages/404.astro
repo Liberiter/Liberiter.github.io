@@ -55,7 +55,7 @@ import Base from '../layouts/Base.astro';
 </Base>
 
 <script>
-  // 길잡이에게 묻기 — 헤더의 검색 트리거와 같은 이벤트 (Pagefind 모달은 3단계에서 연결)
+  // 길잡이에게 묻기 — 헤더의 검색 트리거와 같은 이벤트 (SearchModal이 수신)
   document.getElementById('lost-search')?.addEventListener('click', () => {
     document.dispatchEvent(new CustomEvent('open-search'));
   });

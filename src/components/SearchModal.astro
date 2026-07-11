@@ -1,0 +1,524 @@
+---
+// 길잡이에게 묻기 — Pagefind 검색 모달 (v4 채색 필사본).
+// 문구: docs/copy-deck.md §9 · 열기: 헤더 버튼 / `open-search` CustomEvent / `/` / Ctrl+K.
+// Pagefind JS는 첫 열림 때 동적 import — 인덱스는 `pagefind --site dist`가 빌드 후 생성한다.
+// dev 모드에는 인덱스가 없으므로, 로드 실패 시 개발용 안내만 패널 안에 띄운다.
+const DEV = import.meta.env.DEV;
+---
+
+<div class="search-overlay" id="search-modal" hidden>
+  <div class="sm-panel" role="dialog" aria-modal="true" aria-label="사이트 검색">
+    <i class="card-corner card-corner-tl" aria-hidden="true"></i>
+    <i class="card-corner card-corner-tr" aria-hidden="true"></i>
+    <i class="card-corner card-corner-bl" aria-hidden="true"></i>
+    <i class="card-corner card-corner-br" aria-hidden="true"></i>
+
+    <div class="orn-line sm-orn" data-orn="headpiece" aria-hidden="true"></div>
+
+    <div class="sm-input-row">
+      <span class="sm-dia" aria-hidden="true">✦</span>
+      <input
+        id="sm-input"
+        type="text"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        placeholder="무엇을 찾고 계신가, 여행자여"
+        role="combobox"
+        aria-expanded="false"
+        aria-controls="sm-results"
+        aria-autocomplete="list"
+        aria-label="검색어 입력"
+      />
+      <button type="button" class="sm-close" id="sm-close">그만 묻기 (Esc)</button>
+    </div>
+
+    <p class="sm-status" id="sm-status" aria-live="polite" hidden></p>
+    <ul class="sm-results" id="sm-results" role="listbox" aria-label="검색 결과" hidden></ul>
+
+    {
+      DEV && (
+        <p class="sm-dev" id="sm-dev" hidden>
+          길잡이는 완성된 지도에서만 길을 안다 —{' '}
+          <code>npm run build && npm run preview</code>로 확인하시게.
+          <span class="sm-dev-tag">개발 모드 안내</span>
+        </p>
+      )
+    }
+  </div>
+</div>
+
+<script>
+  // ── 길잡이에게 묻기 — Pagefind 검색 모달 ──
+  const overlay = document.getElementById('search-modal') as HTMLElement;
+  const panel = overlay.querySelector<HTMLElement>('.sm-panel')!;
+  const input = document.getElementById('sm-input') as HTMLInputElement;
+  const closeBtn = document.getElementById('sm-close') as HTMLButtonElement;
+  const status = document.getElementById('sm-status') as HTMLElement;
+  const list = document.getElementById('sm-results') as HTMLElement;
+  const devNote = document.getElementById('sm-dev');
+
+  // copy-deck §9 — 문구 단일 원천
+  const MSG_HEADING = (n: number) => `길잡이가 ${n}개의 길을 안다`;
+  const MSG_EMPTY = '길잡이도 모르는 길이군. 표식을 바꿔 다시 물어보시게.';
+
+  let pagefind: any = null;
+  let loading: Promise<void> | null = null;
+  let loadFailed = false;
+  let items: HTMLAnchorElement[] = [];
+  let active = -1;
+  let prevFocus: HTMLElement | null = null;
+  let closeTimer = 0;
+
+  const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ── Pagefind 지연 로드 — 첫 열림 때 한 번만 ──
+  function loadPagefind(): Promise<void> {
+    if (loading) return loading;
+    loading = (async () => {
+      try {
+        // 빌드 산출물(dist/pagefind/)에서만 존재 — 경로를 변수로 우회해
+        // 번들러(vite/rollup)가 정적 해석하지 않게 한다
+        const url = '/pagefind/pagefind.js';
+        pagefind = await import(/* @vite-ignore */ url);
+        await pagefind.init?.();
+      } catch {
+        loadFailed = true;
+        pagefind = null;
+        if (devNote) {
+          // dev 모드: 인덱스가 없는 것이 정상 — 개발용 안내만
+          devNote.hidden = false;
+        }
+      }
+    })();
+    return loading;
+  }
+
+  // ── 열기 / 닫기 ──
+  function openModal() {
+    window.clearTimeout(closeTimer);
+    if (overlay.hidden) {
+      prevFocus = document.activeElement as HTMLElement;
+      overlay.hidden = false;
+      // 다음 프레임에 .open — 트랜지션이 먹도록
+      requestAnimationFrame(() => overlay.classList.add('open'));
+      document.documentElement.classList.add('sm-lock');
+    }
+    input.focus();
+    input.select();
+    void loadPagefind();
+  }
+
+  function closeModal() {
+    if (overlay.hidden) return;
+    overlay.classList.remove('open');
+    document.documentElement.classList.remove('sm-lock');
+    window.clearTimeout(closeTimer);
+    closeTimer = window.setTimeout(() => {
+      overlay.hidden = true;
+    }, reduced() ? 0 : 190);
+    prevFocus?.focus?.();
+    prevFocus = null;
+  }
+
+  // ── 결과 렌더 ──
+  const escHtml = (s: string) =>
+    s.replace(/[&<>"']/g, (c) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!
+    );
+
+  function hlTitle(title: string, q: string): string {
+    const terms = q
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    const out = escHtml(title);
+    if (terms.length === 0) return out;
+    return out.replace(new RegExp(`(${terms.join('|')})`, 'gi'), '<mark>$1</mark>');
+  }
+
+  function setActive(i: number, scroll = true) {
+    active = i;
+    list.querySelectorAll('li').forEach((li, k) => {
+      const on = k === i;
+      li.classList.toggle('active', on);
+      li.setAttribute('aria-selected', String(on));
+    });
+    if (i >= 0) {
+      input.setAttribute('aria-activedescendant', `sm-opt-${i}`);
+      if (scroll) items[i]?.closest('li')?.scrollIntoView({ block: 'nearest' });
+    } else {
+      input.removeAttribute('aria-activedescendant');
+    }
+  }
+
+  function clearResults() {
+    list.innerHTML = '';
+    list.hidden = true;
+    status.hidden = true;
+    status.textContent = '';
+    items = [];
+    setActive(-1);
+    input.setAttribute('aria-expanded', 'false');
+  }
+
+  function render(q: string, total: number, datas: any[]) {
+    list.innerHTML = '';
+    items = [];
+    status.hidden = false;
+    if (total === 0) {
+      list.hidden = true;
+      status.textContent = MSG_EMPTY;
+      setActive(-1);
+      input.setAttribute('aria-expanded', 'false');
+      return;
+    }
+    status.textContent = MSG_HEADING(total);
+    datas.forEach((d, i) => {
+      const li = document.createElement('li');
+      li.id = `sm-opt-${i}`;
+      li.setAttribute('role', 'option');
+      li.setAttribute('aria-selected', 'false');
+      const metaBits = [d.meta?.place, d.meta?.date].filter(Boolean).map(escHtml);
+      li.innerHTML =
+        `<a href="${escHtml(d.url)}" tabindex="-1">` +
+        `<span class="smr-title">${hlTitle(d.meta?.title ?? d.url, q)}</span>` +
+        (metaBits.length
+          ? `<span class="smr-meta">${metaBits.join('<i class="smr-dot" aria-hidden="true">✦</i>')}</span>`
+          : '') +
+        `<span class="smr-excerpt">${d.excerpt ?? ''}</span>` +
+        `</a>`;
+      li.addEventListener('mouseenter', () => setActive(i, false));
+      list.appendChild(li);
+    });
+    items = Array.from(list.querySelectorAll('a'));
+    list.hidden = false;
+    list.scrollTop = 0;
+    input.setAttribute('aria-expanded', 'true');
+    setActive(0, false);
+  }
+
+  // ── 검색 (Pagefind 내장 디바운스 150ms — 뒤처진 호출은 null 반환) ──
+  async function runSearch() {
+    await loadPagefind();
+    if (loadFailed || !pagefind) return;
+    const q = input.value.trim();
+    if (!q) {
+      clearResults();
+      return;
+    }
+    const search = await pagefind.debouncedSearch(q, {}, 150);
+    if (search === null) return; // 더 새 입력이 대체함
+    const datas = await Promise.all(search.results.slice(0, 8).map((r: any) => r.data()));
+    if (input.value.trim() !== q) return; // 응답 도착 전 입력이 바뀜
+    render(q, search.results.length, datas);
+  }
+
+  input.addEventListener('input', () => void runSearch());
+
+  // ── 트리거: 헤더 버튼(Base) → open-search · 404 버튼도 같은 계약 ──
+  document.addEventListener('open-search', openModal);
+  closeBtn.addEventListener('click', closeModal);
+
+  // 오버레이(패널 밖) 클릭으로 닫기
+  overlay.addEventListener('mousedown', (e) => {
+    if (!panel.contains(e.target as Node)) closeModal();
+  });
+
+  // ── 키보드 ──
+  document.addEventListener('keydown', (e) => {
+    if (overlay.hidden) {
+      const t = e.target as HTMLElement | null;
+      const typing =
+        !!t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
+      if ((e.key === 'k' || e.key === 'K') && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        openModal();
+      } else if (e.key === '/' && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        openModal();
+      }
+      return;
+    }
+    switch (e.key) {
+      case 'Escape':
+        e.preventDefault();
+        closeModal();
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        if (items.length) setActive((active + 1) % items.length);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        if (items.length) setActive((active - 1 + items.length) % items.length);
+        break;
+      case 'Enter':
+        if (document.activeElement === input && active >= 0 && items[active]) {
+          e.preventDefault();
+          window.location.assign(items[active].href);
+        }
+        break;
+      case 'Tab': {
+        // 포커스 트랩 — 입력창 ↔ 닫기 버튼 (결과는 ↑↓로 순회)
+        e.preventDefault();
+        const cycle = [input, closeBtn].filter((el) => el.offsetParent !== null);
+        const idx = cycle.indexOf(document.activeElement as any);
+        const next = e.shiftKey
+          ? cycle[(idx - 1 + cycle.length) % cycle.length]
+          : cycle[(idx + 1) % cycle.length];
+        next.focus();
+        break;
+      }
+    }
+  });
+</script>
+
+<style is:global>
+  /* ══ 길잡이에게 묻기 — 검색 모달 (v4) ══
+     결과 행은 런타임에 주입되므로 전역 스타일로 작성 (셀렉터는 전부 sm- 접두). */
+
+  html.sm-lock {
+    overflow: hidden;
+  }
+
+  /* 프로스트 글라스 오버레이 */
+  .search-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 300; /* 헤더(100)·스킵 링크(200) 위 */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: min(13vh, 120px) 20px 40px;
+    background: color-mix(in srgb, var(--bg) 42%, transparent);
+    backdrop-filter: blur(9px);
+    -webkit-backdrop-filter: blur(9px);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .search-overlay.open {
+    opacity: 1;
+  }
+  .search-overlay[hidden] {
+    display: none;
+  }
+
+  /* 양피지/숲 패널 — 각진 판형 + 금 헤어라인 + 코너 장식(전역 .card-corner) */
+  .sm-panel {
+    position: relative;
+    isolation: isolate;
+    width: min(620px, 100%);
+    max-height: calc(100dvh - min(13vh, 120px) - 40px);
+    display: flex;
+    flex-direction: column;
+    padding: 16px 22px 20px;
+    background: var(--card);
+    border: 1px solid color-mix(in srgb, var(--gold) 38%, var(--line));
+    box-shadow: var(--shadow), 0 0 44px color-mix(in srgb, var(--gold) 12%, transparent);
+    transform: translateY(12px);
+    transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .search-overlay.open .sm-panel {
+    transform: none;
+  }
+  /* 양피지 grain — 셸 카드와 동일 레시피 */
+  .sm-panel::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.4 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)'/%3E%3C/svg%3E");
+    background-size: 140px 140px;
+    opacity: 0.1;
+    mix-blend-mode: var(--grain-blend);
+  }
+
+  /* 헤드피스 오너먼트 (initOrnaments가 채운다) */
+  .sm-orn {
+    flex: none;
+    margin: 2px 0 12px;
+  }
+  .sm-orn svg {
+    width: 220px;
+    height: auto;
+  }
+
+  /* 입력 행 — ✦ + 입력창 + 닫기 */
+  .sm-input-row {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 13px;
+    border: 1px solid var(--card-border);
+    background: color-mix(in srgb, var(--bg) 55%, transparent);
+    transition: border-color 0.2s;
+  }
+  .sm-input-row:focus-within {
+    border-color: var(--gold);
+  }
+  .sm-dia {
+    flex: none;
+    color: var(--gold);
+    font-size: 11px;
+    filter: var(--glow);
+  }
+  #sm-input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    outline: none;
+    font-family: var(--serif);
+    font-size: 16px;
+    color: var(--ink);
+    padding: 2px 0;
+  }
+  #sm-input::placeholder {
+    color: var(--muted);
+    opacity: 0.8;
+  }
+  .sm-close {
+    flex: none;
+    font-family: var(--serif);
+    font-size: 12px;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid var(--card-border);
+    padding: 4px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .sm-close:hover {
+    color: var(--gold);
+    border-color: var(--gold);
+  }
+
+  /* 결과 헤딩 — "길잡이가 N개의 길을 안다" / 결과 없음 */
+  .sm-status {
+    flex: none;
+    font-family: var(--serif);
+    font-size: 13.5px;
+    color: var(--gold-text);
+    margin: 14px 2px 0;
+  }
+  .sm-status::before {
+    content: '✦ ';
+    color: var(--gold);
+    font-size: 9px;
+  }
+
+  /* 결과 목록 */
+  .sm-results {
+    list-style: none;
+    margin: 8px 0 0;
+    padding: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    max-height: min(52vh, 440px);
+  }
+  .sm-results li + li {
+    border-top: 1px dashed var(--card-border);
+  }
+  .sm-results a {
+    display: block;
+    padding: 11px 10px 12px;
+    color: var(--ink);
+  }
+  .sm-results a:hover {
+    text-decoration: none;
+  }
+  .sm-results li.active > a {
+    background: color-mix(in srgb, var(--gold) 8%, transparent);
+    box-shadow: inset 2px 0 0 var(--gold);
+  }
+  .smr-title {
+    display: block;
+    font-family: var(--serif);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.5;
+  }
+  .smr-title mark,
+  .smr-excerpt mark {
+    background: var(--gold-soft);
+    color: var(--gold-text);
+    padding: 0 1px;
+  }
+  .smr-meta {
+    display: block;
+    margin-top: 3px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .smr-meta .smr-dot {
+    color: var(--gold);
+    font-size: 8px;
+    font-style: normal;
+    margin: 0 6px;
+  }
+  .smr-excerpt {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    margin-top: 4px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+
+  /* dev 안내 — 인덱스 없는 개발 모드에서만 렌더·표시 */
+  .sm-dev {
+    flex: none;
+    margin: 14px 0 0;
+    padding: 10px 13px;
+    border: 1px dashed var(--card-border);
+    font-family: var(--serif);
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--muted);
+  }
+  .sm-dev code {
+    font-family: var(--mono);
+    font-size: 0.85em;
+    color: var(--gold-text);
+    background: var(--gold-soft);
+    padding: 1px 6px;
+  }
+  .sm-dev .sm-dev-tag {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    opacity: 0.7;
+  }
+
+  /* 모션 감소 존중 */
+  @media (prefers-reduced-motion: reduce) {
+    .search-overlay,
+    .sm-panel {
+      transition: none;
+    }
+    .sm-panel {
+      transform: none;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .search-overlay {
+      padding: 8vh 12px 24px;
+    }
+    .sm-panel {
+      padding: 12px 14px 16px;
+    }
+    .sm-orn svg {
+      width: 170px;
+    }
+    .sm-close {
+      display: none; /* 좁은 화면 — Esc·오버레이 탭으로 닫는다 */
+    }
+  }
+</style>

@@ -31,7 +31,14 @@ const weekday = WEEKDAYS[new Date(`${entry.id}T00:00:00`).getDay()];
   </PageBanner>
 
   <!-- 수첩 낱장 한 장 -->
-  <article class="leaf" data-animate>
+  <article class="leaf" data-animate data-pagefind-body>
+    <!-- Pagefind 색인 메타 — 화면에는 보이지 않는다 (제목·출처·날짜·표식) -->
+    <div class="pf-meta" aria-hidden="true">
+      <p data-pagefind-meta="title">{metaTitle}</p>
+      <p data-pagefind-meta="place" data-pagefind-filter="장소">방랑자의 일지</p>
+      <p data-pagefind-meta="date">{entry.id}</p>
+      {entry.data.tags.map((tag) => <p data-pagefind-filter="표식">{tag}</p>)}
+    </div>
     <div class="leaf-body">
       <Content />
     </div>

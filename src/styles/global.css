@@ -307,6 +307,11 @@ time {
   font-feature-settings: 'tnum';
 }
 
+/* Pagefind 색인 전용 메타 — 화면·보조기기 모두 숨김 (색인기는 정적 HTML을 읽는다) */
+.pf-meta {
+  display: none;
+}
+
 /* 스킵 링크 (접근성 — 평범하게) */
 .skip-link {
   position: fixed;

@@ -118,7 +118,15 @@ const campfirePlace = placeBySlug('campfire');
         class={`record tinted${isEssay ? ' dropcap' : ''}`}
         id="record-article"
         style={tintStyle(place)}
+        data-pagefind-body
       >
+        <!-- Pagefind 색인 메타 — 화면에는 보이지 않는다 (제목·장소·날짜·표식) -->
+        <div class="pf-meta" aria-hidden="true">
+          <p data-pagefind-meta="title">{rec.data.title}</p>
+          <p data-pagefind-meta="place" data-pagefind-filter="장소">{place.ko}</p>
+          <p data-pagefind-meta="date">{fmtDate(rec.data.date)}</p>
+          {rec.data.tags.map((tag) => <p data-pagefind-filter="표식">{tag}</p>)}
+        </div>
         {
           rec.data.series && (
             <aside class="chronicle" aria-label="시리즈 정보">
