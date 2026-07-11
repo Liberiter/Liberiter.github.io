@@ -13,6 +13,10 @@ const DEV = import.meta.env.DEV;
     <i class="card-corner card-corner-bl" aria-hidden="true"></i>
     <i class="card-corner card-corner-br" aria-hidden="true"></i>
 
+    <button type="button" class="sm-close" id="sm-close" aria-label="검색 닫기">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"></path></svg>
+    </button>
+
     <div class="orn-line sm-orn" data-orn="headpiece" aria-hidden="true"></div>
 
     <div class="sm-input-row">
@@ -30,14 +34,15 @@ const DEV = import.meta.env.DEV;
         aria-autocomplete="list"
         aria-label="검색어 입력"
       />
-      <button type="button" class="sm-close" id="sm-close" aria-label="검색 닫기">
-        <span class="sm-close-full">그만 묻기 (Esc)</span>
-        <span class="sm-close-min">닫기</span>
-      </button>
     </div>
 
     <p class="sm-status" id="sm-status" aria-live="polite" hidden></p>
     <ul class="sm-results" id="sm-results" role="listbox" aria-label="검색 결과" hidden></ul>
+
+    <p class="sm-hints" aria-hidden="true">
+      <span><kbd>Esc</kbd> — 그만 묻기</span><i class="sm-hint-dia">✦</i><span><kbd>↑↓</kbd> 길 고르기</span><i
+        class="sm-hint-dia">✦</i><span><kbd>Enter</kbd> 떠나기</span>
+    </p>
 
     {
       DEV && (
@@ -263,7 +268,7 @@ const DEV = import.meta.env.DEV;
         }
         break;
       case 'Tab': {
-        // 포커스 트랩 — 입력창 ↔ 닫기 버튼 (결과는 ↑↓로 순회)
+        // 포커스 트랩 — 입력창 ↔ 우상단 ✕ 닫기 버튼 (결과는 ↑↓로 순회)
         e.preventDefault();
         const cycle = [input, closeBtn].filter((el) => el.offsetParent !== null);
         const idx = cycle.indexOf(document.activeElement as any);
@@ -348,7 +353,7 @@ const DEV = import.meta.env.DEV;
     height: auto;
   }
 
-  /* 입력 행 — ✦ + 입력창 + 닫기 */
+  /* 입력 행 — ✦ + 입력창 */
   .sm-input-row {
     flex: none;
     display: flex;
@@ -383,24 +388,37 @@ const DEV = import.meta.env.DEV;
     color: var(--muted);
     opacity: 0.8;
   }
+  /* 우상단 ✕ 닫기 — 각진 고스트, 44px 터치 타깃 (제출 버튼 오독 방지) */
   .sm-close {
-    flex: none;
-    font-family: var(--serif);
-    font-size: 12px;
-    color: var(--muted);
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    z-index: 1;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
     background: transparent;
-    border: 1px solid var(--card-border);
-    padding: 4px 10px;
+    border: 1px solid transparent;
+    color: var(--muted);
     cursor: pointer;
-    white-space: nowrap;
     transition: color 0.2s, border-color 0.2s;
   }
-  .sm-close:hover {
-    color: var(--gold);
-    border-color: var(--gold);
+  .sm-close svg {
+    display: block;
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
   }
-  .sm-close .sm-close-min {
-    display: none;
+  .sm-close:hover,
+  .sm-close:focus-visible {
+    color: var(--gold);
+    border-color: var(--card-border);
   }
 
   /* 결과 헤딩 — "길잡이가 N개의 길을 안다" / 결과 없음 */
@@ -477,6 +495,28 @@ const DEV = import.meta.env.DEV;
     color: var(--muted);
   }
 
+  /* 하단 힌트 행 — 키보드 길잡이 (copy-deck 어투, 작고 흐리게) */
+  .sm-hints {
+    flex: none;
+    margin: 14px 2px 0;
+    text-align: center;
+    font-family: var(--serif);
+    font-size: 11.5px;
+    color: var(--muted);
+    opacity: 0.75;
+  }
+  .sm-hints kbd {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.02em;
+  }
+  .sm-hints .sm-hint-dia {
+    font-style: normal;
+    color: var(--gold);
+    font-size: 8px;
+    margin: 0 8px;
+  }
+
   /* dev 안내 — 인덱스 없는 개발 모드에서만 렌더·표시 */
   .sm-dev {
     flex: none;
@@ -523,12 +563,9 @@ const DEV = import.meta.env.DEV;
     .sm-orn svg {
       width: 170px;
     }
-    /* 좁은 화면(터치) — Esc가 없으므로 버튼은 유지, 라벨만 축약 */
-    .sm-close .sm-close-full {
+    /* 좁은 화면(터치) — 물리 키가 없으니 키보드 힌트는 접는다 (닫기는 ✕가 담당) */
+    .sm-hints {
       display: none;
-    }
-    .sm-close .sm-close-min {
-      display: inline;
     }
   }
 </style>

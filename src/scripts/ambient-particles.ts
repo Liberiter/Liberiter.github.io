@@ -10,6 +10,9 @@
 // - 발광 헤일로는 매 프레임 createRadialGradient 대신, init 때 한 번 그린
 //   radial-gradient 스프라이트(오프스크린 캔버스)를 drawImage로 찍는다
 // - 탭이 숨겨지면 rAF 루프 정지, 다시 보이면 재개 (visibilitychange)
+// - 모바일(<768px 또는 coarse pointer)은 상시 rAF 루프 없이 "정적 파티클":
+//   표류·반짝임을 끄고, 스크롤 때만 rAF 스로틀로 현재 위치 프레임을 다시 그린다
+//   (reduced-motion과 같은 경로). 데스크톱은 현행 유지
 
 interface Star {
   x: number;
@@ -30,6 +33,9 @@ export function initAmbientParticles(canvas: HTMLCanvasElement) {
 
   const root = document.documentElement;
   const mqMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const mqCoarse = matchMedia('(pointer: coarse)');
+  // 정적 모드 — 모션 감소 또는 모바일: 루프 없이 스크롤 때만 재그리기
+  const isStatic = () => mqMotion.matches || window.innerWidth < 768 || mqCoarse.matches;
 
   let stars: Star[] = [];
   let movers: Mover[] = [];
@@ -114,8 +120,8 @@ export function initAmbientParticles(canvas: HTMLCanvasElement) {
     movers = [];
     for (let i = 0; i < ns; i++) stars.push(mkStar());
     for (let i = 0; i < nm; i++) movers.push(mkMover());
-    if (mqMotion.matches) {
-      // 모션 감소: 정적 프레임 한 장
+    if (isStatic()) {
+      // 모션 감소·모바일: 정적 프레임 한 장 (스크롤 핸들러가 위치 갱신)
       stopLoop();
       drawFrame(true);
       return;
@@ -194,7 +200,7 @@ export function initAmbientParticles(canvas: HTMLCanvasElement) {
   // 탭 숨김 → 루프 정지 / 복귀 → 재개 (fixed 캔버스라 IntersectionObserver는 불필요)
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) stopLoop();
-    else if (!mqMotion.matches) startLoop();
+    else if (!isStatic()) startLoop();
   });
 
   // 테마 전환 → 색·분포 재생성 (Base.astro 토글이 발행하는 이벤트)
@@ -211,16 +217,22 @@ export function initAmbientParticles(canvas: HTMLCanvasElement) {
     init();
   });
 
-  // 모션 감소: 스크롤 시 현재 위치의 정적 프레임 재그리기 (rAF 스로틀)
+  // 정적 모드(모션 감소·모바일): 스크롤 시 현재 위치의 정적 프레임 재그리기 (rAF 스로틀)
   // — 문서 좌표 앵커이므로 스크롤에 따라 보이는 파티클이 달라져야 한다
   let staticScrollPending = false;
   window.addEventListener(
     'scroll',
     () => {
-      if (!mqMotion.matches || staticScrollPending) return;
+      if (!isStatic() || staticScrollPending) return;
       staticScrollPending = true;
       requestAnimationFrame(() => {
         staticScrollPending = false;
+        // 루프가 없으니 문서 높이 변화도 여기서 감지 → 재분포
+        const dh = docHeight() * dpr;
+        if (Math.abs(dh - docHpx) > 2 * dpr) {
+          init();
+          return;
+        }
         drawFrame(true);
       });
     },
