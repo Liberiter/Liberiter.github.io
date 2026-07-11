@@ -13,6 +13,8 @@
 // - 모바일(<768px 또는 coarse pointer)은 상시 rAF 루프 없이 "정적 파티클":
 //   표류·반짝임을 끄고, 스크롤 때만 rAF 스로틀로 현재 위치 프레임을 다시 그린다
 //   (reduced-motion과 같은 경로). 데스크톱은 현행 유지
+// - 모바일은 분포 공간을 히어로/배너([data-hd-range])까지로 제한:
+//   히어로를 지나면 파티클이 없으므로 본문 스크롤 중 그리기 부담이 사라진다
 
 interface Star {
   x: number;
@@ -34,14 +36,16 @@ export function initAmbientParticles(canvas: HTMLCanvasElement) {
   const root = document.documentElement;
   const mqMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const mqCoarse = matchMedia('(pointer: coarse)');
+  // 모바일 판정 — 좁은 화면(<768px) 또는 터치 주력 기기(태블릿 포함)
+  const isMobileView = () => window.innerWidth < 768 || mqCoarse.matches;
   // 정적 모드 — 모션 감소 또는 모바일: 루프 없이 스크롤 때만 재그리기
-  const isStatic = () => mqMotion.matches || window.innerWidth < 768 || mqCoarse.matches;
+  const isStatic = () => mqMotion.matches || isMobileView();
 
   let stars: Star[] = [];
   let movers: Mover[] = [];
   let rafId: number | null = null;
   let dpr = 1;
-  let docHpx = 0; // 문서 전체 높이 (캔버스 픽셀 단위)
+  let docHpx = 0; // 파티클 분포 공간 높이 (캔버스 픽셀 단위) — 데스크톱: 문서 전체 / 모바일: 히어로까지
   let frameCount = 0;
   let glowSprite: HTMLCanvasElement | null = null;
   let haloScale = 6; // 헤일로 반경 = r * haloScale (라이트는 축소 — 얼룩 방지)
@@ -49,6 +53,14 @@ export function initAmbientParticles(canvas: HTMLCanvasElement) {
   // Base.astro 인라인 스크립트가 페인트 전에 항상 data-theme를 확정한다
   const isDark = () => root.dataset.theme !== 'light';
   const docHeight = () => document.documentElement.scrollHeight;
+  // 히어로/배너 하단의 문서 좌표 — 모든 페이지가 [data-hd-range]를 가진다 (없으면 한 화면)
+  function heroBottom() {
+    const el = document.querySelector('[data-hd-range]');
+    if (!el) return window.innerHeight;
+    return el.getBoundingClientRect().bottom + (window.scrollY || 0);
+  }
+  // 분포 공간 높이(CSS px) — 모바일은 히어로까지만 뿌려 본문 스크롤 부담 제거
+  const distHeight = () => (isMobileView() ? heroBottom() : docHeight());
 
   function sizeCanvas() {
     // DPR 캡 1.5 — 3x 폰에서도 렌더 픽셀을 절반 이하로
@@ -106,14 +118,16 @@ export function initAmbientParticles(canvas: HTMLCanvasElement) {
 
   function init() {
     sizeCanvas();
-    docHpx = docHeight() * dpr;
+    const distH = distHeight();
+    docHpx = distH * dpr;
     // 테마별 헤일로 — 라이트 발광 먼지는 반경·불투명도를 낮춰 "은은한 먼지"로
     const dark = isDark();
     haloScale = dark ? 6 : 4.5;
     glowSprite = makeGlowSprite(dark ? '212,170,48' : '139,105,20', dark ? 0.5 : 0.3);
-    // 화면(100dvh)당 동일 밀도 — 문서 높이에 비례해 생성. 모바일은 60%
-    const screens = Math.max(1, docHeight() / Math.max(1, window.innerHeight));
-    const density = window.innerWidth < 768 ? 0.6 : 1;
+    // 화면(100dvh)당 동일 밀도 — 분포 공간 높이에 비례해 생성. 모바일은 60%
+    // (모바일 배너는 한 화면보다 작을 수 있으므로 하한 0.5화면 분량은 보장)
+    const screens = Math.max(isMobileView() ? 0.5 : 1, distH / Math.max(1, window.innerHeight));
+    const density = isMobileView() ? 0.6 : 1;
     const ns = Math.round(44 * screens * density);
     const nm = Math.round(12 * screens * density);
     stars = [];
@@ -229,10 +243,16 @@ export function initAmbientParticles(canvas: HTMLCanvasElement) {
     if (y !== followLastY) {
       followLastY = y;
       followIdle = 0;
-      // 루프가 없는 모드이므로 문서 높이 변화도 여기서 감지 → 재분포
-      const dh = docHeight() * dpr;
-      if (Math.abs(dh - docHpx) > 2 * dpr) init();
-      else drawFrame(true);
+      if (isMobileView()) {
+        // 모바일 분포 공간은 히어로 높이라 문서 높이 변화와 무관 — 재감지 없이 그리기만
+        // (스크롤 중 getBoundingClientRect 강제 레이아웃도 피한다)
+        drawFrame(true);
+      } else {
+        // 루프가 없는 모드이므로 문서 높이 변화도 여기서 감지 → 재분포
+        const dh = docHeight() * dpr;
+        if (Math.abs(dh - docHpx) > 2 * dpr) init();
+        else drawFrame(true);
+      }
     } else if (++followIdle > 15) {
       // ~0.25초 정지 → 추적 종료 (다음 스크롤에서 다시 시작)
       followRaf = 0;
