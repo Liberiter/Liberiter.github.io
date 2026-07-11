@@ -207,24 +207,30 @@ const isCurrent = (href: string) =>
     mix-blend-mode: var(--grain-blend);
   }
 
-  /* 머리 — 헤드피스 + 닫기 */
+  /* 머리 — 헤드피스는 중앙(사이트 오너먼트 언어와 동일), 닫기는 우측에 띄운다 */
   .mm-head {
+    position: relative;
     flex: none;
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin: 2px 0 10px;
+    justify-content: center;
+    margin: 6px 0 12px;
+    min-height: 34px;
   }
   .mm-orn {
-    flex: 1;
-    justify-content: flex-start;
+    flex: none;
+    justify-content: center;
   }
   .mm-orn svg {
-    width: min(190px, 52vw);
+    /* 우측 닫기 버튼과 겹치지 않는 폭 — 좌우 대칭 여백 확보 */
+    width: min(190px, 44vw);
     height: auto;
   }
   .mm-close {
-    flex: none;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
     font-family: var(--serif);
     font-size: 12px;
     color: var(--muted);

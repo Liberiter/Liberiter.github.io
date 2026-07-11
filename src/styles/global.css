@@ -335,8 +335,13 @@ time {
    헤더를 침범하지 않고 헤더 아래부터. 전체 괘선 프레임은 쓰지 않는다. */
 .folio-frame {
   position: fixed;
-  inset: 10px;
   top: calc(var(--header-h) + 10px);
+  left: 10px;
+  right: 10px;
+  /* 바닥 고정(inset) 대신 svh 기준 높이 고정 — 모바일 주소창이 접히며
+     레이아웃 뷰포트가 커질 때 하단 코너가 "띵" 튀는 것을 막는다.
+     svh는 주소창이 보이는 상태의 안정 높이 (데스크톱에선 vh와 동일) */
+  height: calc(100svh - var(--header-h) - 20px);
   z-index: 80; /* 헤더(z100) 미만, 콘텐츠(z2) 초과 */
   pointer-events: none;
 }
@@ -731,7 +736,10 @@ nav.primary a:hover {
   opacity: 1;
   transform: none;
 }
-@media (prefers-reduced-motion: reduce) {
+/* 모션 감소 + 모바일·터치 기기: 등장 애니메이션 없이 즉시 표시.
+   터치 기기의 1열 스크롤에선 다수 카드가 동시에 트랜지션되어 버벅인다
+   (scroll-animations.ts의 조기 탈출과 쌍 — CSS가 JS 실패 시의 안전망) */
+@media (prefers-reduced-motion: reduce), (pointer: coarse), (max-width: 768px) {
   [data-animate] {
     opacity: 1 !important;
     transform: none !important;

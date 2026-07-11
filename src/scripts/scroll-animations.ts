@@ -2,6 +2,14 @@ export function initScrollAnimations() {
   const elements = document.querySelectorAll<HTMLElement>("[data-animate]");
   if (elements.length === 0) return;
 
+  // 모바일·터치 기기: 등장 애니메이션 생략 (global.css 미디어 쿼리와 쌍).
+  // 1열 레이아웃에선 스크롤 내내 카드 여러 장이 동시에 트랜지션되어
+  // (blend-mode grain + filter 코너 장식까지 매 프레임 재합성) 버벅임의 주범이 된다
+  if (matchMedia("(pointer: coarse)").matches || window.innerWidth < 768) {
+    elements.forEach((el) => el.classList.add("is-visible"));
+    return;
+  }
+
   // stagger delay 적용
   document.querySelectorAll<HTMLElement>("[data-stagger]").forEach((container) => {
     const children = container.querySelectorAll<HTMLElement>("[data-animate]");
