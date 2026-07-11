@@ -1291,3 +1291,42 @@ a.tag:hover {
     display: none;
   }
 }
+
+/* ── 낮↔밤 전환 — View Transitions (Base.astro setTheme) ──
+   dusk(→모닥불): 새 화면이 위→아래로 덮인다 — 밤이 내린다.
+   dawn(→여명): 아래→위로 걷힌다 — 해가 떠오른다.
+   old는 그대로 두고(정지) new만 clip-path로 밀려온다. new가 항상 위.
+   미지원 브라우저·prefers-reduced-motion은 JS에서 즉시 전환으로 폴백. */
+::view-transition-old(root) {
+  animation: none;
+}
+::view-transition-new(root) {
+  z-index: 1;
+}
+:root[data-theme-dir='dusk']::view-transition-new(root) {
+  animation: night-falls 1.1s ease-in-out both;
+}
+:root[data-theme-dir='dawn']::view-transition-new(root) {
+  animation: sun-rises 1.1s ease-in-out both;
+}
+@keyframes night-falls {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+@keyframes sun-rises {
+  from {
+    clip-path: inset(100% 0 0 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+/* 전환 중에는 body 색 페이드(0.4s)를 끈다 — 밀려오는 새 화면(live 스냅샷)이
+   이미 완성된 밤/낮이어야 경계가 또렷하다 */
+:root[data-theme-dir] body {
+  transition: none;
+}

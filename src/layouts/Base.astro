@@ -188,11 +188,26 @@ const ogImageURL = new URL(ogImage ?? ogPath, Astro.site);
         for (const b of themeBtns) b.setAttribute('aria-pressed', String(b.dataset.setTheme === t));
       }
       function setTheme(t: 'light' | 'dark') {
-        root.dataset.theme = t;
-        localStorage.setItem('theme', t);
-        syncToggle();
-        // 파티클 등 테마 연동 요소에 알림 (legacy 호환 이벤트)
-        document.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme: t } }));
+        if (effectiveTheme() === t) return;
+        const apply = () => {
+          root.dataset.theme = t;
+          localStorage.setItem('theme', t);
+          syncToggle();
+          // 파티클 등 테마 연동 요소에 알림 (legacy 호환 이벤트)
+          document.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme: t } }));
+        };
+        // ── 서사적 전환: 밤이 내린다(dusk) / 해가 떠오른다(dawn) ──
+        // View Transitions 미지원(Firefox 구버전 등)·모션 감소 선호 시 즉시 전환으로 폴백
+        const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (!document.startViewTransition || reduceMotion) {
+          apply();
+          return;
+        }
+        root.dataset.themeDir = t === 'dark' ? 'dusk' : 'dawn';
+        const vt = document.startViewTransition(apply);
+        vt.finished.finally(() => {
+          delete root.dataset.themeDir;
+        });
       }
       for (const b of themeBtns) {
         b.addEventListener('click', () => setTheme(b.dataset.setTheme === 'dark' ? 'dark' : 'light'));
