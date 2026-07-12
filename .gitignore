@@ -7,3 +7,16 @@ github-page/
 *.log
 .env
 .env.*
+
+# 외부 원고 투입함 (정본은 각 하네스에)
+inbox/*
+!inbox/README.md
+
+# Claude Code 로컬 권한 설정 (개인용)
+.claude/settings.local.json
+
+# 루트에 떨어지는 QA 스크린샷 (정식 이미지는 public/·assets/에)
+/*.png
+/*.jpg
+/*.jpeg
+/*.gif

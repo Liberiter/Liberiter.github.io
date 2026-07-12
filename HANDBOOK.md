@@ -15,6 +15,7 @@
 | 콘텐츠 관리 | Astro Content Collections | frontmatter 스키마 검증 (`src/content.config.ts`) |
 | 수식 | remark-math + KaTeX | `$...$`, `$$...$$` 문법 |
 | 정리/증명 박스 | remark-directive + 커스텀 플러그인 (`src/lib/remark-boxes.ts`) | `:::theorem` 등 — §4.4 참고 |
+| 다이어그램 | mermaid (셀프호스팅) + 커스텀 플러그인 (`src/lib/remark-mermaid.ts`) | ` ```mermaid ` 펜스 — §4.7 참고 |
 | 코드 하이라이팅 | Shiki | 라이트 `vitesse-light` / 다크 `everforest-dark` 자동 전환 — 배경은 v4 "필사 노트" 톤(`--code-bg`)으로 오버라이드 |
 | 폰트 (셀프호스팅) | Cinzel(영문 디스플레이) · 고운바탕(한글 제목) · Pretendard(본문) · 나눔고딕코딩(코드, 한:영 2:1 정폭) | npm 패키지로 번들 — 외부 CDN 의존 없음 |
 | RSS / 사이트맵 | @astrojs/rss, @astrojs/sitemap | `/rss.xml`, `/sitemap-index.xml` |
@@ -27,7 +28,8 @@
 ## 2. 컨셉 요약
 
 **판타지 세계 "교차로"에 세워진 블로그.** 모든 길이 만나는 교차로에 방랑자(블로그 주인)가
-정착해, 주제마다 건물(장소)을 세우고 기록을 남긴다.
+머물며, 주제마다 건물(장소)을 세우고 기록을 남긴다.
+방랑자는 어디까지나 여행자다 — 쉼터(여관)의 주인이 아니라 오래 머무는 손님 (WORLDBOOK §1.1).
 
 - **12개 장소 = 카테고리** (기록관·탑·연구실·길드·도서관·정원·예배당·광장·집필실·작업실·거울·모닥불)
 - **방랑자의 일지 = TIL** — 장소가 아닌 메타 공간, 짧은 메모도 당당하게
@@ -158,6 +160,31 @@ git push
 ```
 push하면 GitHub Actions가 자동으로 빌드·배포한다 (약 1~2분).
 
+### 4.6 다이어그램 (Mermaid)
+
+` ```mermaid ` 코드펜스가 그대로 다이어그램이 된다 (flowchart, sequenceDiagram, ER 등):
+
+````markdown
+```mermaid
+flowchart LR
+  A["원고"] --> B["기록"]
+```
+````
+
+- `src/lib/remark-mermaid.ts`가 펜스를 렌더 대상으로 바꾸고, 페이지에 다이어그램이
+  **있을 때만** `src/scripts/mermaid-client.ts`가 mermaid 라이브러리를 동적 로드한다
+  (없는 페이지는 1바이트도 안 내려받음, 외부 CDN 없이 npm 번들).
+- 색·폰트는 디자인 토큰(`--card`·`--ink`·`--gold-dim` 등)을 읽어 자동으로 입히고,
+  낮↔밤 전환 시 다시 그린다. 스타일 박스는 `global.css`의 `.mermaid-figure`.
+- JS가 없거나 렌더가 실패하면 원본 소스가 그대로 보인다 (폴백).
+
+### 4.7 외부 원고 가져오기 (import)
+
+다른 하네스(예: `D:\Coding\learning-harness-fable`)에서 쓴 순수 `.md`는 `inbox/`에 넣고
+Claude Code에서 `/import-record`를 실행한다 — frontmatter 부여 → 본문 규칙 변환 →
+빌드·세계관 감사까지 자동. `inbox/`는 git에 올라가지 않는다 (README 제외).
+학습 챕터는 과목 하나 = 연대기 하나(`series` = 코스 슬러그)로 들어간다.
+
 ## 5. 로컬 개발
 
 ```bash
@@ -202,6 +229,8 @@ npm run preview    # 빌드 결과물 로컬 확인
   프롬프트 초안은 `docs/legacy-design-system.md` Part II에 이미 있다.
   생성 후 WebP 최적화 + 시차(parallax) 레이어로 교체
 - 아이디어 창고: 방명록(여관의 방명록), 다크모드 배경 유성, 장소별 OG 문장 도장
+- 예약된 개선 — **장소 페이지 연대기 서가 접기/펼치기**: 한 장소에 장편 연대기(챕터 10편+)가
+  여러 개 쌓여 목록이 길어지면 착수
 
 ## 9. 문서 지도
 
@@ -209,6 +238,8 @@ npm run preview    # 빌드 결과물 로컬 확인
 |---|---|
 | `WORLDBOOK.md` | 세계관·용어·디자인 규칙의 유일한 진실 (왜) — 디자인 시스템 v4는 §3 |
 | `HANDBOOK.md` | 운영 매뉴얼 — 글쓰기·배포·수정 절차 (어떻게) |
+| `CLAUDE.md` + `.claude/` | Claude Code 하네스 — 프로젝트 지침, 스킬(가져오기·집필·디자인·발행), 감사 에이전트 |
+| `docs/harness-guide.md` | 하네스 상세 가이드 — 구조·워크플로우·확장법·트러블슈팅 |
 | `README.md` | 저장소 방문자용 요약 |
 | `docs/copy-deck.md` | v4 화면별 문구 사전 |
 | `docs/mockups/` | v4 화면 스펙 목업 (HTML) |
