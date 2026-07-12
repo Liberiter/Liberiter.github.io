@@ -303,5 +303,10 @@ const jsonLd = article
         document.dispatchEvent(new CustomEvent('open-search'));
       });
     </script>
+    <script>
+      // Mermaid 다이어그램 — 페이지에 다이어그램이 있을 때만 라이브러리를 동적 로드
+      // (remark-mermaid가 .mermaid-figure를 심고, mermaid-client가 토큰 테마로 그린다)
+      if (document.querySelector('.mermaid-figure')) import('../scripts/mermaid-client');
+    </script>
   </body>
 </html>
