@@ -374,19 +374,22 @@ const nextPlace = nextRec ? placeBySlug(nextRec.data.place) : null;
     border-color: var(--viridian);
   }
 
-  /* ══ 본문 레이아웃 — 68ch 본문 + 우측 sticky 목차 ══ */
+  /* ══ 본문 레이아웃 — 68ch 본문을 뷰포트 정중앙에, 목차는 오른쪽 여백의 방주(marginalia) ══
+     배너 제목·오너먼트·폴리오 프레임이 전부 중앙 대칭이므로 본문 축도 화면 중심에 맞춘다.
+     목차가 68ch 오른쪽 여백에 들어가지 못하는 폭(<1240px)에서는 접이식 목차로 전환. */
   .page-body {
     margin-top: 26px;
   }
   .article-layout {
     display: grid;
-    grid-template-columns: minmax(0, 68ch) 216px;
-    gap: clamp(36px, 5vw, 76px);
-    justify-content: center;
+    /* 사이드 트랙을 강제 등분(minmax(0,1fr))해 본문을 wrap 중앙 = 뷰포트 중앙에 고정.
+       목차(216px)는 좁은 오른쪽 트랙을 넘어 여백 존으로 흘러나간다 (1240px+에서만 노출). */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 68ch) minmax(0, 1fr);
+    column-gap: clamp(32px, 3vw, 60px);
     align-items: start;
   }
-  .article-layout.no-toc {
-    grid-template-columns: minmax(0, 68ch);
+  .article-layout > .record {
+    grid-column: 2;
   }
   @media (max-width: 1023px) {
     .article-layout {
@@ -394,17 +397,22 @@ const nextPlace = nextRec ? placeBySlug(nextRec.data.place) : null;
       max-width: 68ch;
       margin: 0 auto;
     }
-    .toc-side {
-      display: none;
-    }
   }
 
   /* ── 목차: 이 기록의 지도 ── */
   .toc-side {
+    grid-column: 3;
+    justify-self: start;
+    width: 216px;
     position: sticky;
     top: calc(var(--header-h) + 30px);
     font-size: 13px;
     padding-left: 2px;
+  }
+  @media (max-width: 1239px) {
+    .toc-side {
+      display: none;
+    }
   }
   .toc-title {
     display: flex;
@@ -458,7 +466,7 @@ const nextPlace = nextRec ? placeBySlug(nextRec.data.place) : null;
     max-width: 68ch;
     margin: 0 auto 30px;
   }
-  @media (max-width: 1023px) {
+  @media (max-width: 1239px) {
     .toc-mobile {
       display: block;
     }
