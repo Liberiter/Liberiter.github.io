@@ -105,20 +105,21 @@ const nextLeaf = leafIdx >= 0 && leafIdx < leaves.length - 1 ? leaves[leafIdx + 
     letter-spacing: 0.02em;
   }
 
-  /* ═══ 수첩 낱장 — 목록의 펼친 낱장과 같은 판형 (워시 없음) ═══ */
+  /* ═══ 수첩 낱장 — 목록의 낱장 줄기(720px)와 같은 판형 (워시 없음) ═══ */
   .leaf {
-    max-width: 640px;
+    max-width: 720px;
     margin: 40px auto 0;
     background: var(--card);
     border: 1px solid color-mix(in srgb, var(--gold) 30%, var(--line));
     box-shadow: var(--shadow);
     padding: 20px 22px;
   }
+  /* 긴 TIL도 기록 페이지(68ch/17px)와 비슷한 호흡으로 읽히게 — 일지는 한 단계 가볍게 16px */
   .leaf-body {
     display: grid;
     gap: 10px;
-    font-size: 15px;
-    line-height: 1.9;
+    font-size: 16px;
+    line-height: 1.85;
     color: var(--ink);
   }
   .leaf-body :global(p) {
@@ -128,7 +129,7 @@ const nextLeaf = leafIdx >= 0 && leafIdx < leaves.length - 1 ? leaves[leafIdx + 
      본문이 grid라 gap 10px 위에 얹는 여백만 margin으로 준다. */
   .leaf-body :global(h2) {
     font-family: var(--serif);
-    font-size: 18.5px;
+    font-size: 20px;
     font-weight: 700;
     line-height: 1.5;
     letter-spacing: 0.02em;
@@ -147,7 +148,7 @@ const nextLeaf = leafIdx >= 0 && leafIdx < leaves.length - 1 ? leaves[leafIdx + 
   }
   .leaf-body :global(h3) {
     font-family: var(--serif);
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 700;
     line-height: 1.55;
     margin: 8px 0 0;
@@ -213,7 +214,7 @@ const nextLeaf = leafIdx >= 0 && leafIdx < leaves.length - 1 ? leaves[leafIdx + 
     display: block;
     overflow-x: auto;
     border-collapse: collapse;
-    font-size: 13.5px;
+    font-size: 14.5px;
     line-height: 1.7;
   }
   .leaf-body :global(th),
@@ -292,7 +293,7 @@ const nextLeaf = leafIdx >= 0 && leafIdx < leaves.length - 1 ? leaves[leafIdx + 
     justify-content: space-between;
     gap: 14px;
     flex-wrap: wrap;
-    max-width: 640px;
+    max-width: 720px;
     margin: 22px auto 0;
     font-family: var(--serif);
     font-size: 13.5px;
