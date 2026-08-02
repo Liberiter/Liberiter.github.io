@@ -124,6 +124,39 @@ const nextLeaf = leafIdx >= 0 && leafIdx < leaves.length - 1 ? leaves[leafIdx + 
   .leaf-body :global(p) {
     margin: 0;
   }
+  /* 소제목 — 기록 페이지의 문법(✦ + 금 헤어라인)을 낱장 판형으로 축소.
+     본문이 grid라 gap 10px 위에 얹는 여백만 margin으로 준다. */
+  .leaf-body :global(h2) {
+    font-family: var(--serif);
+    font-size: 18.5px;
+    font-weight: 700;
+    line-height: 1.5;
+    letter-spacing: 0.02em;
+    margin: 12px 0 0;
+    padding-bottom: 0.35em;
+    border-bottom: 1px solid color-mix(in srgb, var(--gold) 30%, var(--line));
+    scroll-margin-top: calc(var(--header-h) + 22px);
+  }
+  .leaf-body :global(h2)::before {
+    content: '✦';
+    color: var(--gold);
+    font-size: 10px;
+    margin-right: 8px;
+    vertical-align: 3px;
+    filter: var(--glow);
+  }
+  .leaf-body :global(h3) {
+    font-family: var(--serif);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.55;
+    margin: 8px 0 0;
+    scroll-margin-top: calc(var(--header-h) + 22px);
+  }
+  .leaf-body :global(h2:first-child),
+  .leaf-body :global(h3:first-child) {
+    margin-top: 0;
+  }
   .leaf-body :global(ul),
   .leaf-body :global(ol) {
     margin: 0;
@@ -174,6 +207,66 @@ const nextLeaf = leafIdx >= 0 && leafIdx < leaves.length - 1 ? leaves[leafIdx + 
   .leaf-body :global(strong) {
     font-weight: 700;
     color: var(--ink);
+  }
+  /* 표 — 낱장 폭(640px)을 넘으면 페이지가 아니라 표만 가로로 흐른다 */
+  .leaf-body :global(table) {
+    display: block;
+    overflow-x: auto;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    line-height: 1.7;
+  }
+  .leaf-body :global(th),
+  .leaf-body :global(td) {
+    border: 1px solid var(--line);
+    padding: 5px 11px;
+    text-align: left;
+  }
+  /* 낱장 바탕이 --card라 머리줄은 카드색 대신 옅은 금 워시로 구분한다 */
+  .leaf-body :global(th) {
+    font-family: var(--serif);
+    font-weight: 700;
+    background: color-mix(in srgb, var(--gold) 7%, transparent);
+  }
+  /* 인용 — WORLDBOOK §3.3: 왼쪽 금 괘선 + 워시 (이탤릭 없이) */
+  .leaf-body :global(blockquote) {
+    margin: 0;
+    padding: 10px 14px;
+    background: var(--wash);
+    border: 1px solid var(--line);
+    border-left: 2px solid var(--gold);
+    font-family: var(--serif);
+    color: var(--ink);
+  }
+  .leaf-body :global(blockquote p) {
+    margin: 0 0 0.5em;
+  }
+  .leaf-body :global(blockquote p:last-child) {
+    margin-bottom: 0;
+  }
+  /* 구분선 — WORLDBOOK §3.3: 선이 아니라 ✦ 오너먼트 */
+  .leaf-body :global(hr) {
+    border: 0;
+    margin: 6px auto;
+    width: 100%;
+    max-width: 220px;
+    height: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold-dim);
+    filter: var(--glow);
+    background:
+      linear-gradient(to right, transparent, color-mix(in srgb, var(--gold) 55%, transparent))
+        left center / calc(50% - 40px) 1px no-repeat,
+      linear-gradient(to left, transparent, color-mix(in srgb, var(--gold) 55%, transparent))
+        right center / calc(50% - 40px) 1px no-repeat;
+  }
+  .leaf-body :global(hr)::before {
+    content: '✦\2002\2002✦\2002\2002✦';
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    line-height: 1;
   }
   .leaf-tags {
     display: flex;

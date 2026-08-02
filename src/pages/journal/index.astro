@@ -469,6 +469,36 @@ const monthMeta = (key: string) => {
   .til-body-in :global(p) {
     margin: 0;
   }
+  /* 소제목 — 낱장 페이지(/journal/{날짜}/)와 같은 문법, 목록 판형에 맞춰 한 단계 작게 */
+  .til-body-in :global(h2) {
+    font-family: var(--serif);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.5;
+    letter-spacing: 0.02em;
+    margin: 10px 0 0;
+    padding-bottom: 0.3em;
+    border-bottom: 1px solid color-mix(in srgb, var(--gold) 30%, var(--line));
+  }
+  .til-body-in :global(h2)::before {
+    content: '✦';
+    color: var(--gold);
+    font-size: 9px;
+    margin-right: 7px;
+    vertical-align: 3px;
+    filter: var(--glow);
+  }
+  .til-body-in :global(h3) {
+    font-family: var(--serif);
+    font-size: 14.5px;
+    font-weight: 700;
+    line-height: 1.55;
+    margin: 7px 0 0;
+  }
+  .til-body-in :global(h2:first-child),
+  .til-body-in :global(h3:first-child) {
+    margin-top: 0;
+  }
   .til-body-in :global(ul),
   .til-body-in :global(ol) {
     margin: 0;
@@ -519,6 +549,65 @@ const monthMeta = (key: string) => {
   .til-body-in :global(strong) {
     font-weight: 700;
     color: var(--ink);
+  }
+  /* 표 — 좁은 목록 판형에서 표만 가로로 흐른다 */
+  .til-body-in :global(table) {
+    display: block;
+    overflow-x: auto;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    line-height: 1.65;
+  }
+  .til-body-in :global(th),
+  .til-body-in :global(td) {
+    border: 1px solid var(--line);
+    padding: 4px 9px;
+    text-align: left;
+  }
+  .til-body-in :global(th) {
+    font-family: var(--serif);
+    font-weight: 700;
+    background: color-mix(in srgb, var(--gold) 7%, transparent);
+  }
+  /* 인용 — WORLDBOOK §3.3: 왼쪽 금 괘선 + 워시 */
+  .til-body-in :global(blockquote) {
+    margin: 0;
+    padding: 8px 12px;
+    background: var(--wash);
+    border: 1px solid var(--line);
+    border-left: 2px solid var(--gold);
+    font-family: var(--serif);
+    color: var(--ink);
+  }
+  .til-body-in :global(blockquote p) {
+    margin: 0 0 0.45em;
+  }
+  .til-body-in :global(blockquote p:last-child) {
+    margin-bottom: 0;
+  }
+  /* 구분선 — WORLDBOOK §3.3: 선이 아니라 ✦ 오너먼트 */
+  .til-body-in :global(hr) {
+    border: 0;
+    margin: 5px auto;
+    width: 100%;
+    max-width: 190px;
+    height: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold-dim);
+    filter: var(--glow);
+    background:
+      linear-gradient(to right, transparent, color-mix(in srgb, var(--gold) 55%, transparent))
+        left center / calc(50% - 36px) 1px no-repeat,
+      linear-gradient(to left, transparent, color-mix(in srgb, var(--gold) 55%, transparent))
+        right center / calc(50% - 36px) 1px no-repeat;
+  }
+  .til-body-in :global(hr)::before {
+    content: '✦\2002\2002✦\2002\2002✦';
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    line-height: 1;
   }
   /* 낱장 고유 주소 (RSS·공유용 /journal/{날짜}/ 유지) */
   .til-perma {
