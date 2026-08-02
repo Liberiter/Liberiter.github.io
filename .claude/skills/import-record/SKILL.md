@@ -50,6 +50,7 @@ description: 저작 하네스(blog-loop·study-loop)에서 작성한 순수 .md 
 `inbox/til/`의 원고는 **`src/content/journal/YYYY-MM-DD.md`**로 간다. 위 표를 적용하지 않는다:
 
 - frontmatter는 `title`·`tags`뿐이고 **둘 다 선택**이다. `place`·`description`·`series`·`draft`를 붙이지 않는다 (스키마: `src/content.config.ts`의 journal).
+- `title`은 원고 2행의 `# 제목` H1에서 가져오고 **H1은 본문에서 제거한다** (기록·학습 챕터와 같은 규칙). H1이 없으면 `title`을 생략한다 — 블로그가 날짜를 제목으로 쓴다. `tags`는 import-hint가 있으면 그 값, 없으면 본문 근거로 3개 이내.
 - 파일명은 원고 날짜(`til/2026-08-05-….md` → `2026-08-05.md`). 같은 날짜가 이미 있으면 덮어쓰지 말고 사용자에게 병합 여부를 묻는다.
 - 원고 1행의 트랜스크립트 경로 주석(`<!-- transcript: ~/.claude/projects/… -->`)은 **반드시 제거한다** — 로컬 경로가 공개 저장소에 남으면 안 된다.
 - 짧다고 살 붙이지 않는다. 세 줄이면 세 줄로 발행한다.
