@@ -70,11 +70,15 @@ blog/
 **URL 지도**: `/`(교차로) · `/places/`(여정) · `/places/{장소}/` · `/records/`(서고) ·
 `/records/{슬러그}/` · `/journal/` · `/chronicles/{시리즈}/` · `/tags/{태그}/` · `/rest/`(소개) · `/rss.xml`
 
-## 4. 글 쓰는 법
+## 4. 콘텐츠 형식 — 원고가 도착하는 모양
+
+> **글은 이 저장소에서 쓰지 않는다.** 원고는 저작 하네스(`blog-loop`·`study-loop`)에서
+> 쓰고 `inbox/`를 거쳐 `/import-record`가 변환해 넣는다 (§4.7이 유일한 입구).
+> 아래는 그 변환의 **목표 형식**이자 스키마 참조지, 손으로 채우는 서식이 아니다.
 
 ### 4.1 기록 (본편)
 
-`src/content/records/{장소슬러그}/{글슬러그}.md` 파일 생성:
+`src/content/records/{장소슬러그}/{글슬러그}.md` — import가 만드는 형식:
 
 ```yaml
 ---
@@ -116,15 +120,18 @@ seriesOrder: 3               # 화수
 
 ### 4.3 일지 (TIL)
 
-`src/content/journal/2026-07-10.md` — 파일명이 곧 날짜:
+`src/content/journal/2026-07-10.md` — 파일명이 곧 날짜. 유일하게 `records`가 아닌
+컬렉션으로 가는 원고이고, 출처는 `blog-loop`의 `til/`이다 (`inbox/til/` 경유):
 
 ```yaml
 ---
 title: "오늘 배운 것"    # 선택 (없으면 날짜가 제목)
 tags: [python]          # 선택
 ---
-- 세 줄이어도 당당하게. 일지의 적은 완벽주의다.
 ```
+
+`place`·`description`·`series`가 없다 — 일지는 장소에 속하지 않는 메타 공간이다
+(WORLDBOOK §2, 컨셉 요약 §2).
 
 ### 4.4 수학 박스 (정리·증명)
 
@@ -178,12 +185,21 @@ flowchart LR
   낮↔밤 전환 시 다시 그린다. 스타일 박스는 `global.css`의 `.mermaid-figure`.
 - JS가 없거나 렌더가 실패하면 원본 소스가 그대로 보인다 (폴백).
 
-### 4.7 외부 원고 가져오기 (import)
+### 4.7 원고 가져오기 (import) — 유일한 입구
 
-다른 하네스(예: `D:\Coding\learning-harness-fable`)에서 쓴 순수 `.md`는 `inbox/`에 넣고
-Claude Code에서 `/import-record`를 실행한다 — frontmatter 부여 → 본문 규칙 변환 →
-빌드·세계관 감사까지 자동. `inbox/`는 git에 올라가지 않는다 (README 제외).
-학습 챕터는 과목 하나 = 연대기 하나(`series` = 코스 슬러그)로 들어간다.
+저작 하네스에서 쓴 순수 `.md`를 `inbox/`의 해당 폴더에 넣고 `/import-record`를 실행한다 —
+frontmatter 부여 → 본문 규칙 변환 → 빌드·세계관 감사까지 자동.
+`inbox/`는 git에 올라가지 않는다 (README 제외).
+
+| 원고 | 하네스 | inbox 폴더 | 도착지 |
+|---|---|---|---|
+| 학습 챕터 | `~/projects/study-loop` | `learning/{코스슬러그}/` | records — 과목 하나 = 연대기 하나 (`series` = 코스 슬러그) |
+| TIL | `~/projects/blog-loop` | `til/` | **journal** |
+| 이야기·에세이 | `~/projects/blog-loop` | `essay/` | records — 단발, series 없음 |
+| 소설 | `novel-loop` (미착수) | `fiction/{시리즈}/` | records — 집필실, series 필수 |
+
+**정본은 원 하네스에 있다.** 발행된 글의 본문을 고칠 일이 생기면 여기서 고치지 말고
+원 하네스에서 고쳐 다시 들여온다 — 여기서 손대는 순간 정본이 둘로 갈라진다.
 
 ## 5. 로컬 개발
 
@@ -237,8 +253,9 @@ npm run preview    # 빌드 결과물 로컬 확인
 | 문서 | 역할 |
 |---|---|
 | `WORLDBOOK.md` | 세계관·용어·디자인 규칙의 유일한 진실 (왜) — 디자인 시스템 v4는 §3 |
-| `HANDBOOK.md` | 운영 매뉴얼 — 글쓰기·배포·수정 절차 (어떻게) |
-| `CLAUDE.md` + `.claude/` | Claude Code 하네스 — 프로젝트 지침, 스킬(가져오기·집필·디자인·발행), 감사 에이전트 |
+| `HANDBOOK.md` | 운영 매뉴얼 — 가져오기·배포·수정 절차 (어떻게) |
+| `CLAUDE.md` + `.claude/` | Claude Code 하네스 — 프로젝트 지침, 스킬(가져오기·디자인·발행), 감사 에이전트 |
+| `~/projects/blog-loop` | **원고를 쓰는 곳** — TIL·이야기·신앙. 학습 챕터는 `~/projects/study-loop` |
 | `docs/harness-guide.md` | 하네스 상세 가이드 — 구조·워크플로우·확장법·트러블슈팅 |
 | `README.md` | 저장소 방문자용 요약 |
 | `docs/copy-deck.md` | v4 화면별 문구 사전 |

@@ -3,7 +3,10 @@
 판타지 세계관 블로그 — 모든 길이 만나는 교차로. https://liberiter.github.io
 
 - 세계관·디자인 규칙(왜): **[WORLDBOOK.md](./WORLDBOOK.md)** — 유일한 진실의 원천. 구조를 바꿀 때는 설정집부터.
-- 운영 매뉴얼(어떻게): **[HANDBOOK.md](./HANDBOOK.md)** — 글쓰기·배포·수정 절차 전부.
+- 운영 매뉴얼(어떻게): **[HANDBOOK.md](./HANDBOOK.md)** — 가져오기·배포·수정 절차 전부.
+
+> 이 저장소는 블로그를 **호스팅하고 원고를 변환**한다. 글 자체는 여기서 쓰지 않는다 —
+> 원고는 저작 하네스(`blog-loop`·`study-loop`)에서 쓰고 `inbox/`를 거쳐 들어온다.
 
 ## 개발
 
@@ -13,7 +16,7 @@ npm run dev      # http://localhost:4321
 npm run build    # dist/ 에 정적 빌드
 ```
 
-## 글쓰기
+## 콘텐츠 형식 (import가 만드는 모양)
 
 **기록 (본편)** — `src/content/records/{장소}/{슬러그}.md`
 

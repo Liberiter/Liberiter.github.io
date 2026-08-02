@@ -16,6 +16,10 @@
 
 ## 절대 규칙
 
+- **글은 이 저장소에서 만들어지지 않는다.** 원고는 저작 하네스(`~/projects/blog-loop` —
+  TIL·이야기·신앙, `~/projects/study-loop` — 학습 챕터)에서 쓰고 `inbox/`를 거쳐
+  `/import-record`로 들어온다. 여기가 하는 일은 **변환·디자인·배포**뿐이다.
+  본문을 여기서 새로 쓰거나 고쳐 쓰지 않는다 — 고칠 것은 원 하네스에서 고쳐 다시 들여온다.
 - **세계관 용어는 화면에 보이는 UI에만.** `<title>`·meta·OG·aria-label·URL·frontmatter(title/description/tags)는 평범하고 정확하게 (WORLDBOOK §1.2).
 - **방랑자(블로그 주인)는 여관(쉼터)의 주인이 아니라 오래 머무는 손님.** "여관 주인" 표현 금지 (WORLDBOOK §1.1).
 - **게시글 본문은 일반 기술/일반 블로그 문체.** 본문을 판타지화하지 않는다 — 도입·맺음 한 줄 양념만 선택 허용.
@@ -31,7 +35,7 @@
 ## 콘텐츠 구조
 
 - 기록: `src/content/records/{place}/{slug}.md` — 스키마는 `src/content.config.ts`
-- 일지(TIL): `src/content/journal/YYYY-MM-DD.md`
+- 일지(TIL): `src/content/journal/YYYY-MM-DD.md` — 원고는 blog-loop `til/`에서 `inbox/til/`을 거쳐 온다
 - 연대기(시리즈): frontmatter `series`/`seriesTitle`/`seriesOrder` (+1화에 `seriesDescription`, 완결 시 `seriesStatus: completed`)
 - **학습 시리즈(과목별 Ch01~N) = 연대기 하나. 단발 글은 series 없이 발행 (말머리 대신 태그).**
 - 수식: `$..$`/`$$..$$` (KaTeX). 정리·증명 박스: `:::theorem` 등 (HANDBOOK §4.4).
@@ -39,8 +43,7 @@
 
 ## 하네스 (프로젝트 스킬·에이전트)
 
-- `/import-record` — 외부 순수 .md(learning-harness-fable 산출물 등)를 블로그 기록으로 변환. 원고 투입함은 `inbox/`
-- `/new-record` — 새 기록/일지 스캐폴딩
+- `/import-record` — 외부 순수 .md(blog-loop·study-loop 산출물)를 블로그 기록·일지로 변환. 원고 투입함은 `inbox/`
 - `/design-work` — 디자인·UI·기능 변경 절차와 확정 정책 (디자인 작업 전 필수 로드)
 - `/release-check` — 발행 전 최종 점검 (빌드·스키마·세계관 감사)
 - `lore-auditor` 서브에이전트 — 세계관·카피 규칙 감사

@@ -1,6 +1,6 @@
 ---
 name: import-record
-description: 외부에서 작성한 순수 .md 원고(특히 learning-harness-fable 학습 챕터)를 블로그 기록으로 변환한다. inbox/에 원고가 들어왔거나 사용자가 원고를 "가져와줘/변환해줘/블로그 글로 만들어줘"라고 할 때 사용.
+description: 저작 하네스(blog-loop·study-loop)에서 작성한 순수 .md 원고를 블로그 기록·일지로 변환한다. inbox/에 원고가 들어왔거나 사용자가 원고를 "가져와줘/변환해줘/블로그 글로 만들어줘"라고 할 때 사용.
 ---
 
 # 외부 원고 → 블로그 기록 변환
@@ -8,8 +8,8 @@ description: 외부에서 작성한 순수 .md 원고(특히 learning-harness-fa
 ## 1. 입력
 
 - 인자로 파일/디렉터리 경로를 받으면 그것을 처리한다. 없으면 `inbox/`를 스캔해 `.md` 전부(README 제외)를 대상으로 삼는다.
-- **inbox 디렉터리가 원고의 종류를 알린다**: `inbox/learning/{코스슬러그}/`(학습 챕터 — 폴더명이 series 슬러그의 근거), `inbox/essay/`(단발 에세이), `inbox/fiction/{시리즈슬러그}/`(소설 연재 — 폴더명과 import-hint의 series를 교차 검증, 불일치 시 보고). 분류 밖 경로에 놓인 원고는 내용으로 형식을 판별하되 판단 근거를 보고한다.
-- learning-harness-fable(`D:\Coding\learning-harness-fable`)에서 직접 가져올 때는 `courses/<slug>/public/`의 **공개 사본을 우선** 사용한다. `chapters/` 원본은 하네스 내부 참조(LO-MAP, shared_context 등)를 포함하므로, public이 없을 때만 쓰고 아래 제거 규칙을 적용한다.
+- **inbox 디렉터리가 원고의 종류를 알린다**: `inbox/til/`(일지 — **journal 컬렉션으로 간다**, §4.1), `inbox/learning/{코스슬러그}/`(학습 챕터 — 폴더명이 series 슬러그의 근거), `inbox/essay/`(단발 에세이·이야기), `inbox/fiction/{시리즈슬러그}/`(소설 연재 — 폴더명과 import-hint의 series를 교차 검증, 불일치 시 보고). 분류 밖 경로에 놓인 원고는 내용으로 형식을 판별하되 판단 근거를 보고한다.
+- 원고의 정본은 항상 저작 하네스(`~/projects/blog-loop`·`~/projects/study-loop`)에 있다. 하네스 내부 참조(LO-MAP, shared_context, 트랜스크립트 경로 주석 등)가 남아 있으면 아래 제거 규칙을 적용한다.
 
 ## 2. 원고 형식 판별
 
@@ -17,7 +17,7 @@ description: 외부에서 작성한 순수 .md 원고(특히 learning-harness-fa
 
 그 외는 일반 원고 — frontmatter 생성과 최소 변환만 한다.
 
-**import-hint 주석**: essay-harness-fable(`D:\Coding\essay-harness-fable`)·fiction-harness-fable(`D:\Coding\fiction-harness-fable`) 산출물은 원고 **1행**에 다음 형식의 힌트를 싣는다:
+**import-hint 주석**: 저작 하네스(`~/projects/blog-loop`의 이야기·에세이, 훗날 `novel-loop`의 소설) 산출물은 원고 **1행**에 다음 형식의 힌트를 실을 수 있다:
 
 ```
 <!-- import-hint: title="…" | description="…" | place=슬러그 | tags=a,b,c | series=… | seriesTitle=… | seriesOrder=N | seriesStatus=completed -->
@@ -45,7 +45,16 @@ description: 외부에서 작성한 순수 .md 원고(특히 learning-harness-fa
 | `seriesStatus` | 커리큘럼 마지막 화까지 수입 완료 시에만 `completed` |
 | `draft` | 기본 `false`. 미해결 항목(mermaid 등)이 있으면 `true`로 두고 보고 |
 
-**파일 위치·슬러그**: `src/content/records/{place}/{slug}.md`, 슬러그는 `{series}-ch{NN}` (예: `apache-spark-ch01`). 단발 원고는 내용 기반 영문 케밥. **전역 유일**을 Glob(`src/content/records/**/*.md`)으로 확인한다.
+### 4.1 TIL은 예외 — journal 컬렉션
+
+`inbox/til/`의 원고는 **`src/content/journal/YYYY-MM-DD.md`**로 간다. 위 표를 적용하지 않는다:
+
+- frontmatter는 `title`·`tags`뿐이고 **둘 다 선택**이다. `place`·`description`·`series`·`draft`를 붙이지 않는다 (스키마: `src/content.config.ts`의 journal).
+- 파일명은 원고 날짜(`til/2026-08-05-….md` → `2026-08-05.md`). 같은 날짜가 이미 있으면 덮어쓰지 말고 사용자에게 병합 여부를 묻는다.
+- 원고 1행의 트랜스크립트 경로 주석(`<!-- transcript: ~/.claude/projects/… -->`)은 **반드시 제거한다** — 로컬 경로가 공개 저장소에 남으면 안 된다.
+- 짧다고 살 붙이지 않는다. 세 줄이면 세 줄로 발행한다.
+
+**파일 위치·슬러그** (기록에 한함): `src/content/records/{place}/{slug}.md`, 슬러그는 `{series}-ch{NN}` (예: `apache-spark-ch01`). 단발 원고는 내용 기반 영문 케밥. **전역 유일**을 Glob(`src/content/records/**/*.md`)으로 확인한다.
 
 ## 5. 본문 변환 규칙
 
