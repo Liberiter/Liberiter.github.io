@@ -1,8 +1,8 @@
 ---
 // 방랑자의 일지 v4 — "여행자의 수첩" (스펙: docs/mockups/journal.html, 문구: docs/copy-deck.md §6)
-// 좌측 점선 여정 레일 + 월 구분 + details/summary 인라인 펼침.
-// 일지는 짧으므로 본문 전문을 빌드 시 포함한다 — 펼치면 그 자리에서 읽는다.
-import { getCollection, render } from 'astro:content';
+// 좌측 점선 여정 레일 + 월 구분 + 낱장 카드.
+// 낱장은 통째로 링크다 — 다른 장소의 기록 카드와 같이 그 글의 상세 페이지(/journal/{날짜}/)로 간다.
+import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import Emblem from '../../components/Emblem.astro';
 import PageBanner from '../../components/PageBanner.astro';
@@ -43,18 +43,14 @@ function previewText(md: string): string {
 }
 
 const entries = (await getCollection('journal')).sort((a, b) => (a.id < b.id ? 1 : -1));
-const items = await Promise.all(
-  entries.map(async (entry) => {
-    const { Content } = await render(entry);
-    const d = new Date(`${entry.id}T00:00:00`);
-    return {
-      entry,
-      Content,
-      preview: previewText(entry.body ?? ''),
-      dateLabel: `${entry.id.slice(5)} ${WEEKDAYS[d.getDay()]}`,
-    };
-  })
-);
+const items = entries.map((entry) => {
+  const d = new Date(`${entry.id}T00:00:00`);
+  return {
+    entry,
+    preview: previewText(entry.body ?? ''),
+    dateLabel: `${entry.id.slice(5)} ${WEEKDAYS[d.getDay()]}`,
+  };
+});
 
 // 월별 그룹 (엔트리가 날짜 내림차순이므로 월도 내림차순으로 쌓인다)
 type Item = (typeof items)[number];
@@ -105,7 +101,7 @@ const monthMeta = (key: string) => {
     }
     {
       items.length > 0 && (
-        <p class="streak-sub">{items.length}장의 낱장이 쌓였다 · 낱장을 짚으면 그 자리에서 펼쳐진다</p>
+        <p class="streak-sub">{items.length}장의 낱장이 쌓였다 · 낱장을 짚으면 그 날의 기록으로 간다</p>
       )
     }
   </div>
@@ -129,36 +125,24 @@ const monthMeta = (key: string) => {
               {group.items.length === 0 ? (
                 <p class="empty-month" data-animate>이 달의 수첩은 비어 있다. 길이 없었던 것은 아니다.</p>
               ) : (
-                group.items.map(({ entry, Content, preview, dateLabel }) => (
-                  <details class="til" data-animate>
-                    <summary>
-                      <i class="til-node" aria-hidden="true"></i>
-                      <span class="til-top">
-                        <time datetime={entry.id}>{dateLabel}</time>
-                        <i class="tt-dia" aria-hidden="true">✦</i>
-                        <span class="tt">{entry.data.title ?? '이 날의 기록'}</span>
-                        <i class="chev" aria-hidden="true"></i>
+                group.items.map(({ entry, preview, dateLabel }) => (
+                  <a class="til" href={`/journal/${entry.id}/`} data-animate>
+                    <i class="til-node" aria-hidden="true"></i>
+                    <span class="til-top">
+                      <time datetime={entry.id}>{dateLabel}</time>
+                      <i class="tt-dia" aria-hidden="true">✦</i>
+                      <span class="tt">{entry.data.title ?? '이 날의 기록'}</span>
+                      <i class="chev" aria-hidden="true"></i>
+                    </span>
+                    {preview && <span class="til-preview">{preview}</span>}
+                    {entry.data.tags.length > 0 && (
+                      <span class="til-tags">
+                        {entry.data.tags.map((tag) => (
+                          <span class="tag">{tag}</span>
+                        ))}
                       </span>
-                      {preview && <span class="til-preview">{preview}</span>}
-                      {entry.data.tags.length > 0 && (
-                        <span class="til-tags">
-                          {entry.data.tags.map((tag) => (
-                            <span class="tag">{tag}</span>
-                          ))}
-                        </span>
-                      )}
-                    </summary>
-                    <div class="til-body">
-                      <div class="til-body-in">
-                        <Content />
-                        <a
-                          class="til-perma"
-                          href={`/journal/${entry.id}/`}
-                          aria-label={`이 낱장만 보기 — ${entry.data.title ?? '이 날의 기록'} (${entry.id})`}
-                        >이 낱장만 보기 →</a>
-                      </div>
-                    </div>
-                  </details>
+                    )}
+                  </a>
                 ))
               )}
             </section>
@@ -324,26 +308,28 @@ const monthMeta = (key: string) => {
   }
 
   /* ═══ 일지 엔트리 — 기록 카드보다 가벼운 "낱장" ═══
+     낱장 전체가 그 날의 기록(/journal/{날짜}/)으로 가는 링크다.
      워시 없음: 옅은 배경 + 헤어라인, 밀랍 봉인 대신 작은 나침반 점 */
-  details.til {
+  a.til {
+    display: block;
     position: relative;
+    padding: 13px 16px 12px;
+    color: inherit;
     background: color-mix(in srgb, var(--card) 55%, var(--bg));
     border: 1px solid var(--line);
     transition: border-color 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
   }
-  details.til + details.til {
+  a.til + a.til {
     margin-top: 10px;
   }
-  details.til:hover {
-    border-color: color-mix(in srgb, var(--gold) 38%, var(--line));
-    background: color-mix(in srgb, var(--card) 85%, var(--bg));
-  }
-  details.til[open] {
-    background: var(--card);
+  a.til:hover,
+  a.til:focus-visible {
+    text-decoration: none;
     border-color: color-mix(in srgb, var(--gold) 45%, var(--line));
+    background: var(--card);
     box-shadow: var(--shadow);
   }
-  /* 레일 위 여정 노드 (마름모) — 펼치면 금빛으로 점등 */
+  /* 레일 위 여정 노드 (마름모) — 짚으면 금빛으로 점등 */
   .til-node {
     position: absolute;
     left: -28px;
@@ -355,18 +341,10 @@ const monthMeta = (key: string) => {
     box-shadow: 0 0 0 3px var(--bg);
     transition: background-color 0.25s ease, box-shadow 0.25s ease;
   }
-  details.til[open] .til-node,
-  details.til:hover .til-node {
+  a.til:hover .til-node,
+  a.til:focus-visible .til-node {
     background: var(--gold);
     box-shadow: 0 0 0 3px var(--bg), 0 0 10px color-mix(in srgb, var(--gold) 55%, transparent);
-  }
-  details.til summary {
-    list-style: none;
-    cursor: pointer;
-    padding: 13px 16px 12px;
-  }
-  details.til summary::-webkit-details-marker {
-    display: none;
   }
   .til-top {
     display: flex;
@@ -396,6 +374,7 @@ const monthMeta = (key: string) => {
     color: var(--ink);
     min-width: 0;
   }
+  /* 오른쪽 갈매기 — 이 낱장의 기록으로 들어간다는 표시 */
   .til-top .chev {
     margin-left: auto;
     align-self: center;
@@ -404,11 +383,13 @@ const monthMeta = (key: string) => {
     height: 7px;
     border-right: 1.5px solid var(--gold-dim);
     border-bottom: 1.5px solid var(--gold-dim);
-    transform: rotate(45deg) translate(-1px, -1px);
-    transition: transform 0.25s ease;
+    transform: rotate(-45deg);
+    transition: transform 0.25s ease, border-color 0.25s ease;
   }
-  details.til[open] .chev {
-    transform: rotate(-135deg) translate(-1px, -1px);
+  a.til:hover .chev,
+  a.til:focus-visible .chev {
+    border-color: var(--gold);
+    transform: rotate(-45deg) translate(2px, -2px);
   }
   .til-preview {
     margin-top: 5px;
@@ -420,9 +401,6 @@ const monthMeta = (key: string) => {
     line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-  }
-  details.til[open] .til-preview {
-    display: none;
   }
   .til-tags {
     display: flex;
@@ -438,185 +416,6 @@ const monthMeta = (key: string) => {
     background: transparent;
     border: 1px solid color-mix(in srgb, var(--viridian) 40%, transparent);
     padding: 0 7px;
-  }
-
-  /* 펼친 본문 — 가벼운 조판 (콘텐츠 컬렉션 본문이 그대로 렌더된다) */
-  .til-body {
-    padding: 0 16px 15px;
-  }
-  .til-body-in {
-    border-top: 1px dashed var(--line);
-    padding-top: 12px;
-    display: grid;
-    gap: 9px;
-    font-size: 14.5px;
-    line-height: 1.8;
-    color: var(--ink);
-  }
-  details.til[open] .til-body-in {
-    animation: til-in 0.3s ease;
-  }
-  @keyframes til-in {
-    from {
-      opacity: 0;
-      transform: translateY(-4px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  .til-body-in :global(p) {
-    margin: 0;
-  }
-  /* 소제목 — 낱장 페이지(/journal/{날짜}/)와 같은 문법, 목록 판형에 맞춰 한 단계 작게 */
-  .til-body-in :global(h2) {
-    font-family: var(--serif);
-    font-size: 16px;
-    font-weight: 700;
-    line-height: 1.5;
-    letter-spacing: 0.02em;
-    margin: 10px 0 0;
-    padding-bottom: 0.3em;
-    border-bottom: 1px solid color-mix(in srgb, var(--gold) 30%, var(--line));
-  }
-  .til-body-in :global(h2)::before {
-    content: '✦';
-    color: var(--gold);
-    font-size: 9px;
-    margin-right: 7px;
-    vertical-align: 3px;
-    filter: var(--glow);
-  }
-  .til-body-in :global(h3) {
-    font-family: var(--serif);
-    font-size: 14.5px;
-    font-weight: 700;
-    line-height: 1.55;
-    margin: 7px 0 0;
-  }
-  .til-body-in :global(h2:first-child),
-  .til-body-in :global(h3:first-child) {
-    margin-top: 0;
-  }
-  .til-body-in :global(ul),
-  .til-body-in :global(ol) {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    gap: 4px;
-  }
-  .til-body-in :global(li) {
-    position: relative;
-    padding-left: 16px;
-  }
-  .til-body-in :global(li::before) {
-    content: '✦';
-    position: absolute;
-    left: 0;
-    top: 0;
-    color: var(--gold-dim);
-    font-size: 9px;
-  }
-  .til-body-in :global(code) {
-    font-family: var(--mono);
-    font-size: 0.86em;
-    color: var(--gold-text);
-    background: var(--gold-soft);
-    border: 1px solid color-mix(in srgb, var(--gold) 18%, transparent);
-    padding: 0 5px;
-  }
-  .til-body-in :global(pre) {
-    margin: 0;
-    border: 1px solid var(--line);
-    padding: 10px 13px;
-    overflow-x: auto;
-    line-height: 1.65;
-    font-size: 12.5px;
-  }
-  .til-body-in :global(pre code) {
-    background: none;
-    border: 0;
-    padding: 0;
-    color: inherit;
-  }
-  .til-body-in :global(a) {
-    color: var(--gold-text);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-  .til-body-in :global(strong) {
-    font-weight: 700;
-    color: var(--ink);
-  }
-  /* 표 — 좁은 목록 판형에서 표만 가로로 흐른다 */
-  .til-body-in :global(table) {
-    display: block;
-    overflow-x: auto;
-    border-collapse: collapse;
-    font-size: 12.5px;
-    line-height: 1.65;
-  }
-  .til-body-in :global(th),
-  .til-body-in :global(td) {
-    border: 1px solid var(--line);
-    padding: 4px 9px;
-    text-align: left;
-  }
-  .til-body-in :global(th) {
-    font-family: var(--serif);
-    font-weight: 700;
-    background: color-mix(in srgb, var(--gold) 7%, transparent);
-  }
-  /* 인용 — WORLDBOOK §3.3: 왼쪽 금 괘선 + 워시 */
-  .til-body-in :global(blockquote) {
-    margin: 0;
-    padding: 8px 12px;
-    background: var(--wash);
-    border: 1px solid var(--line);
-    border-left: 2px solid var(--gold);
-    font-family: var(--serif);
-    color: var(--ink);
-  }
-  .til-body-in :global(blockquote p) {
-    margin: 0 0 0.45em;
-  }
-  .til-body-in :global(blockquote p:last-child) {
-    margin-bottom: 0;
-  }
-  /* 구분선 — WORLDBOOK §3.3: 선이 아니라 ✦ 오너먼트 */
-  .til-body-in :global(hr) {
-    border: 0;
-    margin: 5px auto;
-    width: 100%;
-    max-width: 190px;
-    height: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--gold-dim);
-    filter: var(--glow);
-    background:
-      linear-gradient(to right, transparent, color-mix(in srgb, var(--gold) 55%, transparent))
-        left center / calc(50% - 36px) 1px no-repeat,
-      linear-gradient(to left, transparent, color-mix(in srgb, var(--gold) 55%, transparent))
-        right center / calc(50% - 36px) 1px no-repeat;
-  }
-  .til-body-in :global(hr)::before {
-    content: '✦\2002\2002✦\2002\2002✦';
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    line-height: 1;
-  }
-  /* 낱장 고유 주소 (RSS·공유용 /journal/{날짜}/ 유지) */
-  .til-perma {
-    justify-self: end;
-    font-size: 12px;
-    color: var(--muted);
-  }
-  .til-perma:hover {
-    color: var(--gold);
   }
 
   /* 여정의 끝 문구 */
@@ -655,13 +454,14 @@ const monthMeta = (key: string) => {
   }
 
   @media (prefers-reduced-motion: reduce) {
-    details.til,
+    a.til,
     .til-node,
     .til-top .chev {
       transition: none;
     }
-    details.til[open] .til-body-in {
-      animation: none;
+    a.til:hover .chev,
+    a.til:focus-visible .chev {
+      transform: rotate(-45deg);
     }
   }
 </style>
