@@ -1,0 +1,323 @@
+/* ═══════════════════════════════════════════════════════════════════
+   본문 조판 (.prose) — 기록·일지가 함께 쓰는 단 하나의 산문 조판.
+   68ch / 17px / 1.8. 여기를 고치면 두 곳이 같이 바뀐다 — 그게 목적이다.
+   판형(측정폭·여백)은 각 페이지가, 조판(활자·간격·박스)은 여기가 소유한다.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ══ 본문 조판 (주인공) — 68ch / 17px / 1.8 ══ */
+.prose {
+  font-size: 17px;
+  line-height: 1.8;
+}
+.prose p {
+  margin: 0 0 1.25em;
+  text-wrap: pretty;
+}
+.prose h2 {
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+  margin: 2.4em 0 0.85em;
+  padding-bottom: 0.4em;
+  border-bottom: 1px solid color-mix(in srgb, var(--gold) 30%, var(--line));
+  scroll-margin-top: calc(var(--header-h) + 22px);
+}
+.prose h2::before {
+  content: '✦';
+  color: var(--gold);
+  font-size: 12px;
+  margin-right: 10px;
+  vertical-align: 3px;
+  filter: var(--glow);
+}
+.prose h3 {
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.5;
+  margin: 1.9em 0 0.7em;
+  color: var(--ink);
+  scroll-margin-top: calc(var(--header-h) + 22px);
+}
+.prose h3::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 9px;
+  vertical-align: 1px;
+  border: 1.5px solid var(--viridian);
+  transform: rotate(45deg);
+}
+.prose h4 {
+  font-family: var(--serif);
+  font-size: 17px;
+  margin: 1.7em 0 0.6em;
+  scroll-margin-top: calc(var(--header-h) + 22px);
+}
+.prose strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+.prose a {
+  color: var(--gold-text);
+  border-bottom: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+  transition: color 0.2s, border-color 0.2s;
+}
+.prose a:hover {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+  text-decoration: none;
+}
+.prose ul,
+.prose ol {
+  margin: 0 0 1.25em;
+  padding-left: 1.5em;
+}
+.prose li {
+  margin: 0.35em 0;
+}
+.prose li::marker {
+  color: var(--gold-dim);
+}
+.prose img {
+  display: block;
+  margin: 1.7em auto;
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow);
+}
+
+/* 인라인 코드 — 필사 노트와 같은 세피아/숲 바탕 + 비리디안 잉크 */
+.prose :not(pre) > code {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  color: var(--viridian-text);
+  background: color-mix(in srgb, var(--viridian) 5%, var(--code-bg));
+  border: 1px solid color-mix(in srgb, var(--viridian) 26%, transparent);
+  padding: 1px 6px;
+  margin: 0 1px;
+}
+
+/* 코드 블록 — 필사 노트 (배경은 전역 --code-bg, 여기선 액자와 헤더 바) */
+.prose pre.astro-code {
+  margin: 1.7em 0;
+  padding: 16px 18px;
+  border: 1px solid color-mix(in srgb, var(--gold) 32%, var(--line)); /* 가는 금 헤어라인 */
+  box-shadow: var(--shadow);
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 13.5px;
+  line-height: 1.75;
+  tab-size: 4;
+}
+/* 헤더 바(언어 라벨) — 잉크·금 톤: 세피아 위 옅은 금 워시 + 금 괘선 */
+.prose pre.astro-code::before {
+  content: '✦ ' attr(data-language);
+  display: block;
+  margin: -16px -18px 16px;
+  padding: 7px 15px;
+  font-family: var(--display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--gold-text);
+  background: color-mix(in srgb, var(--gold) 9%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--gold) 30%, transparent);
+}
+.prose pre.astro-code code {
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* 인용 블록 — 황금 괘선 + 비리디안 내선 + 수채 워시 카드 */
+.prose blockquote {
+  position: relative;
+  margin: 1.7em 0;
+  padding: 18px 22px 18px 26px;
+  background: var(--wash);
+  border: 1px solid var(--card-border);
+  border-left: 3px solid var(--gold);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--viridian) 45%, transparent);
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: 1.85;
+  color: var(--ink);
+}
+.prose blockquote p {
+  margin: 0 0 0.6em;
+}
+.prose blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* 구분선 hr = ✦ ── ✦ 오너먼트 */
+.prose hr {
+  border: 0;
+  margin: 44px auto;
+  max-width: 340px;
+  height: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold-dim);
+  filter: var(--glow);
+  background:
+    linear-gradient(to right, transparent, color-mix(in srgb, var(--gold) 55%, transparent))
+      left center / calc(50% - 46px) 1px no-repeat,
+    linear-gradient(to left, transparent, color-mix(in srgb, var(--gold) 55%, transparent))
+      right center / calc(50% - 46px) 1px no-repeat;
+}
+.prose hr::before {
+  content: '✦\2002\2002✦\2002\2002✦';
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  line-height: 1;
+}
+
+/* 표 */
+.prose table {
+  border-collapse: collapse;
+  display: block;
+  overflow-x: auto;
+  font-size: 15px;
+  margin: 1.5em 0;
+}
+.prose th,
+.prose td {
+  border: 1px solid var(--line);
+  padding: 7px 13px;
+}
+.prose th {
+  background: var(--card);
+  font-family: var(--serif);
+}
+
+/* 각주 — remark-gfm 출력(section.footnotes) 스타일 */
+.prose sup {
+  font-size: 0.72em;
+  line-height: 0;
+}
+.prose sup a[data-footnote-ref] {
+  font-family: var(--mono);
+  padding: 0 2px;
+  border-bottom: 1px dotted color-mix(in srgb, var(--gold) 55%, transparent);
+  scroll-margin-top: calc(var(--header-h) + 22px);
+}
+.prose section.footnotes {
+  margin-top: 56px;
+  padding-top: 18px;
+  font-size: 14px;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+}
+.prose section.footnotes::before {
+  content: '각주';
+  display: block;
+  font-family: var(--display);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--gold-text);
+  margin-bottom: 10px;
+}
+.prose section.footnotes #footnote-label {
+  display: none;
+}
+.prose section.footnotes ol {
+  margin: 0;
+  padding-left: 1.3em;
+}
+.prose section.footnotes li {
+  margin: 0.4em 0;
+  scroll-margin-top: calc(var(--header-h) + 22px);
+}
+.prose section.footnotes a[data-footnote-backref] {
+  margin-left: 6px;
+  border-bottom: 0;
+}
+
+/* KaTeX 수식 — 렌더링은 전역, 여백만 본문 리듬에 맞춘다 */
+.prose .katex-display {
+  margin: 1.5em 0;
+}
+
+/* ── 수학 박스 — 정리/보조정리/정의/증명 (remark-boxes, WORLDBOOK §3.3 탑 전용) ──
+   :::theorem{title="..."} → .math-box.math-box--theorem + .math-box-label */
+.prose .math-box {
+  margin: 1.7em 0;
+  font-size: 16px;
+}
+/* theorem/lemma: 금 헤어라인 테두리 + 카드 워시, 각진 판형 */
+.prose .math-box--theorem,
+.prose .math-box--lemma,
+.prose .math-box--definition {
+  padding: 16px 22px 17px;
+  background: var(--wash);
+  border: 1px solid color-mix(in srgb, var(--gold) 42%, var(--line));
+}
+/* definition: 같은 골격, 비리디안 액센트 */
+.prose .math-box--definition {
+  border-color: color-mix(in srgb, var(--viridian) 48%, var(--line));
+}
+/* 좌상단 스몰캡스 라벨 — "정리 · Theorem" */
+.prose .math-box-label {
+  margin: 0 0 0.55em;
+  font-family: var(--display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-variant: small-caps;
+  color: var(--gold-text);
+}
+.prose .math-box-label::before {
+  content: '✦';
+  font-size: 9px;
+  margin-right: 8px;
+  color: var(--gold);
+  filter: var(--glow);
+}
+.prose .math-box--definition .math-box-label {
+  color: var(--viridian-text);
+}
+.prose .math-box--definition .math-box-label::before {
+  color: var(--viridian);
+}
+/* proof: 테두리 없이 왼쪽 가는 괘선 + 끝에 ∎ */
+.prose .math-box--proof {
+  padding: 2px 0 2px 22px;
+  border-left: 1px solid color-mix(in srgb, var(--gold) 40%, var(--line));
+}
+.prose .math-box--proof .math-box-label {
+  color: var(--muted);
+}
+.prose .math-box--proof .math-box-label::before {
+  color: var(--gold-dim);
+}
+.prose .math-box--proof::after {
+  content: '∎';
+  display: block;
+  text-align: right;
+  line-height: 1;
+  margin-top: -0.4em;
+  color: var(--muted);
+}
+/* 박스 안 여백 보정 — 문단·KaTeX 블록이 박스 패딩과 겹치지 않게 */
+.prose .math-box > p:last-child {
+  margin-bottom: 0;
+}
+.prose .math-box .katex-display {
+  margin: 1em 0;
+}
+.prose .math-box > .katex-display:last-child,
+.prose .math-box > p:last-child .katex-display:last-child {
+  margin-bottom: 0.2em;
+}

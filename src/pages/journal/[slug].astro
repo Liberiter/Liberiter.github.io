@@ -1,6 +1,9 @@
 ---
-// 일지 낱장 한 장 — URL(/journal/{yyyy-mm-dd}/)은 RSS·공유용으로 유지하되 단순하게.
-// 컴팩트 배너 + 본문 + 일지 전체 보기 링크. 과한 장식은 두지 않는다.
+// 일지 낱장 한 장 — /journal/{yyyy-mm-dd}/.
+// 본문 조판은 기록 페이지와 같은 공용 .prose (src/styles/prose.css) — 읽는 자리는 한 곳이다.
+// 여기가 소유하는 건 판형(68ch)과 낱장 고유 요소(날짜·표식·이전/다음)뿐.
+// KaTeX CSS — 짝: src/pages/records/[slug].astro (전역 로드 금지 — 347KB 블로킹 방지)
+import 'katex/dist/katex.min.css';
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import Emblem from '../../components/Emblem.astro';
@@ -49,7 +52,7 @@ const nextLeaf = leafIdx >= 0 && leafIdx < leaves.length - 1 ? leaves[leafIdx + 
       <p data-pagefind-meta="date">{entry.id}</p>
       {entry.data.tags.map((tag) => <p data-pagefind-filter="표식">{tag}</p>)}
     </div>
-    <div class="leaf-body">
+    <div class="leaf-body prose">
       <Content />
     </div>
     {
@@ -105,177 +108,20 @@ const nextLeaf = leafIdx >= 0 && leafIdx < leaves.length - 1 ? leaves[leafIdx + 
     letter-spacing: 0.02em;
   }
 
-  /* ═══ 수첩 낱장 — 목록의 낱장 줄기(720px)와 같은 판형 (워시 없음) ═══ */
+  /* ═══ 수첩 낱장 — 기록 페이지와 같은 판형(68ch) ═══
+     박스 없이 바탕 위에 바로 앉는다. 조판은 공용 .prose(src/styles/prose.css)가 소유하고
+     여기는 판형과 낱장 고유 요소만 갖는다. */
   .leaf {
-    max-width: 720px;
+    max-width: 68ch;
     margin: 40px auto 0;
-    background: var(--card);
-    border: 1px solid color-mix(in srgb, var(--gold) 30%, var(--line));
-    box-shadow: var(--shadow);
-    padding: 20px 22px;
-  }
-  /* 긴 TIL도 기록 페이지(68ch/17px)와 비슷한 호흡으로 읽히게 — 일지는 한 단계 가볍게 16px */
-  .leaf-body {
-    display: grid;
-    gap: 10px;
-    font-size: 16px;
-    line-height: 1.85;
-    color: var(--ink);
-  }
-  .leaf-body :global(p) {
-    margin: 0;
-  }
-  /* 소제목 — 기록 페이지의 문법(✦ + 금 헤어라인)을 낱장 판형으로 축소.
-     본문이 grid라 gap 10px 위에 얹는 여백만 margin으로 준다. */
-  .leaf-body :global(h2) {
-    font-family: var(--serif);
-    font-size: 20px;
-    font-weight: 700;
-    line-height: 1.5;
-    letter-spacing: 0.02em;
-    margin: 12px 0 0;
-    padding-bottom: 0.35em;
-    border-bottom: 1px solid color-mix(in srgb, var(--gold) 30%, var(--line));
-    scroll-margin-top: calc(var(--header-h) + 22px);
-  }
-  .leaf-body :global(h2)::before {
-    content: '✦';
-    color: var(--gold);
-    font-size: 10px;
-    margin-right: 8px;
-    vertical-align: 3px;
-    filter: var(--glow);
-  }
-  .leaf-body :global(h3) {
-    font-family: var(--serif);
-    font-size: 17px;
-    font-weight: 700;
-    line-height: 1.55;
-    margin: 8px 0 0;
-    scroll-margin-top: calc(var(--header-h) + 22px);
-  }
-  .leaf-body :global(h2:first-child),
-  .leaf-body :global(h3:first-child) {
-    margin-top: 0;
-  }
-  .leaf-body :global(ul),
-  .leaf-body :global(ol) {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    gap: 5px;
-  }
-  .leaf-body :global(li) {
-    position: relative;
-    padding-left: 18px;
-  }
-  .leaf-body :global(li::before) {
-    content: '✦';
-    position: absolute;
-    left: 0;
-    top: 0;
-    color: var(--gold-dim);
-    font-size: 10px;
-  }
-  .leaf-body :global(code) {
-    font-family: var(--mono);
-    font-size: 0.86em;
-    color: var(--gold-text);
-    background: var(--gold-soft);
-    border: 1px solid color-mix(in srgb, var(--gold) 18%, transparent);
-    padding: 0 5px;
-  }
-  .leaf-body :global(pre) {
-    margin: 0;
-    border: 1px solid var(--line);
-    padding: 12px 15px;
-    overflow-x: auto;
-    line-height: 1.65;
-    font-size: 13.5px;
-  }
-  .leaf-body :global(pre code) {
-    background: none;
-    border: 0;
-    padding: 0;
-    color: inherit;
-  }
-  .leaf-body :global(a) {
-    color: var(--gold-text);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-  .leaf-body :global(strong) {
-    font-weight: 700;
-    color: var(--ink);
-  }
-  /* 표 — 낱장 폭(640px)을 넘으면 페이지가 아니라 표만 가로로 흐른다 */
-  .leaf-body :global(table) {
-    display: block;
-    overflow-x: auto;
-    border-collapse: collapse;
-    font-size: 14.5px;
-    line-height: 1.7;
-  }
-  .leaf-body :global(th),
-  .leaf-body :global(td) {
-    border: 1px solid var(--line);
-    padding: 5px 11px;
-    text-align: left;
-  }
-  /* 낱장 바탕이 --card라 머리줄은 카드색 대신 옅은 금 워시로 구분한다 */
-  .leaf-body :global(th) {
-    font-family: var(--serif);
-    font-weight: 700;
-    background: color-mix(in srgb, var(--gold) 7%, transparent);
-  }
-  /* 인용 — WORLDBOOK §3.3: 왼쪽 금 괘선 + 워시 (이탤릭 없이) */
-  .leaf-body :global(blockquote) {
-    margin: 0;
-    padding: 10px 14px;
-    background: var(--wash);
-    border: 1px solid var(--line);
-    border-left: 2px solid var(--gold);
-    font-family: var(--serif);
-    color: var(--ink);
-  }
-  .leaf-body :global(blockquote p) {
-    margin: 0 0 0.5em;
-  }
-  .leaf-body :global(blockquote p:last-child) {
-    margin-bottom: 0;
-  }
-  /* 구분선 — WORLDBOOK §3.3: 선이 아니라 ✦ 오너먼트 */
-  .leaf-body :global(hr) {
-    border: 0;
-    margin: 6px auto;
-    width: 100%;
-    max-width: 220px;
-    height: 11px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--gold-dim);
-    filter: var(--glow);
-    background:
-      linear-gradient(to right, transparent, color-mix(in srgb, var(--gold) 55%, transparent))
-        left center / calc(50% - 40px) 1px no-repeat,
-      linear-gradient(to left, transparent, color-mix(in srgb, var(--gold) 55%, transparent))
-        right center / calc(50% - 40px) 1px no-repeat;
-  }
-  .leaf-body :global(hr)::before {
-    content: '✦\2002\2002✦\2002\2002✦';
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    line-height: 1;
   }
   .leaf-tags {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    margin-top: 14px;
-    padding-top: 12px;
-    border-top: 1px dashed var(--line);
+    margin-top: 34px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
   }
   .leaf-tags .tag {
     font-family: var(--mono);
@@ -293,7 +139,7 @@ const nextLeaf = leafIdx >= 0 && leafIdx < leaves.length - 1 ? leaves[leafIdx + 
     justify-content: space-between;
     gap: 14px;
     flex-wrap: wrap;
-    max-width: 720px;
+    max-width: 68ch;
     margin: 22px auto 0;
     font-family: var(--serif);
     font-size: 13.5px;

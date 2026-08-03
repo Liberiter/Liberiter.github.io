@@ -27,10 +27,22 @@ function roman(n: number): string {
   return out;
 }
 
+// LaTeX 명령 → 미리보기용 유니코드. 미리보기는 KaTeX가 아니라 맨 텍스트라
+// `$2^{10}$`가 달러째 노출되지 않게 여기서 기호로 눌러 준다. 없는 명령은 지운다.
+const TEX_PLAIN: Record<string, string> = {
+  le: '≤', ge: '≥', ne: '≠', equiv: '≡', to: '→', iff: '⟺', in: '∈',
+  sum: 'Σ', pi: 'π', infty: '∞', times: '×', cdot: '·', sim: '~',
+  dots: '…', ldots: '…', bmod: 'mod', pmod: 'mod',
+};
+
 // 마크다운 → 미리보기용 평문 (2줄 클램프는 CSS가 담당)
 function previewText(md: string): string {
   return md
     .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/\$\$[\s\S]*?\$\$/g, ' ')
+    .replace(/\$([^$\n]+?)\$/g, (_m, tex: string) =>
+      tex.replace(/\\([a-zA-Z]+)\s?/g, (_c, name: string) => TEX_PLAIN[name] ?? '').replace(/[{}]/g, '')
+    )
     .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
     .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
     .replace(/`([^`]*)`/g, '$1')
